@@ -1,0 +1,14 @@
+/* demonstracao */
+Program Demo;
+var x: integer;
+    media: real;
+    letra: char;
+begin
+  x := 10 mod 3;
+  media := (x + 2.5) / 2;
+  letra := 'a';
+  if (x >= 1) and not (media <> 3.0e-2) then
+    writeln("Media = ", media);
+  x := 5 @ 2;
+  writeln("sem fechar);
+end.
