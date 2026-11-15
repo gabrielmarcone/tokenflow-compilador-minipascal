@@ -19,3 +19,5 @@
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+.vscode/
