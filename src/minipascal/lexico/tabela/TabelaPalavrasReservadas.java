@@ -9,6 +9,8 @@ import java.util.Map;
 /**
  * Tabela de palavras reservadas e operadores de palavra (mod, and, or, not),
  * montada uma única vez no início da execução. Busca por HashMap, O(1).
+ * São 53 entradas: as 48 palavras do enunciado, "procedure" (incluída na
+ * Unidade II) e os quatro operadores de palavra.
  */
 public class TabelaPalavrasReservadas {
 
@@ -34,6 +36,12 @@ public class TabelaPalavrasReservadas {
         for (String palavra : palavrasReservadas) {
             tabela.put(palavra, TipoToken.PALAVRA_RESERVADA);
         }
+
+        // Correcao da Unidade II: a gramatica do analisador sintatico declara
+        // procedimentos com "procedure", que nao consta na lista do enunciado
+        // (a lista traz PROC, FUNC e FUNCTION). Sem esta entrada, "procedure"
+        // seria lido como identificador.
+        tabela.put("procedure", TipoToken.PALAVRA_RESERVADA);
 
         // Nao estao na lista de palavras reservadas, mas o enunciado os trata como
         // operadores: mod e aritmetico; and, or e not sao logicos.
