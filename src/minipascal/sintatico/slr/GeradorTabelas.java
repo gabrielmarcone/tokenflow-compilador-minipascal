@@ -1,5 +1,6 @@
 package minipascal.sintatico.slr;
 
+import minipascal.sintatico.Console;
 import minipascal.sintatico.gramatica.Gramatica;
 import minipascal.sintatico.gramatica.GramaticaInvalidaException;
 import minipascal.sintatico.gramatica.LeitorGramatica;
@@ -9,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.Normalizer;
 import java.util.List;
 
 /**
@@ -25,8 +25,7 @@ import java.util.List;
  * gramática for inválida ou tiver conflitos (o relatório é gravado mesmo
  * assim, mostrando onde estão os conflitos).
  *
- * As mensagens do console não têm acentos, como no Main da Unidade I: o
- * console do Windows com Java 8 não mostra acentos corretamente.
+ * As mensagens do console não têm acentos (ver minipascal.sintatico.Console).
  */
 public final class GeradorTabelas {
 
@@ -89,22 +88,14 @@ public final class GeradorTabelas {
             }
             return analise.temConflitos() ? 1 : 0;
         } catch (GramaticaInvalidaException e) {
-            System.out.println("Gramatica invalida. " + semAcentos(e.getMessage()));
+            System.out.println("Gramatica invalida. " + Console.semAcentos(e.getMessage()));
             return 1;
         } catch (IOException e) {
-            System.out.println("Erro de leitura ou gravacao: " + semAcentos(e.getMessage()));
+            System.out.println("Erro de leitura ou gravacao: " + Console.semAcentos(e.getMessage()));
             return 1;
         } catch (InvalidPathException e) {
-            System.out.println("Caminho invalido: " + semAcentos(e.getMessage()));
+            System.out.println("Caminho invalido: " + Console.semAcentos(e.getMessage()));
             return 1;
         }
-    }
-
-    // "Gramática, linha 3: não terminal" -> "Gramatica, linha 3: nao terminal"
-    static String semAcentos(String texto) {
-        if (texto == null) {
-            return "";
-        }
-        return Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
 }

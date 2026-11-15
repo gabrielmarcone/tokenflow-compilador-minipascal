@@ -1,0 +1,74 @@
+package minipascal.sintatico;
+
+import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.sintatico.parser.AnalisadorSintatico;
+import minipascal.sintatico.parser.ResultadoAnalise;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
+
+/**
+ * Linha de comando do analisador sintático:
+ *
+ *   java -cp TokenFlow.jar minipascal.sintatico.Main <programa.txt> [saida.txt]
+ *
+ * Imprime "OK" se o programa estiver correto, ou um erro por linha, com o tipo
+ * e a linha de ocorrência (como pede o enunciado da Unidade II). Com
+ * [saida.txt], grava o mesmo resultado em UTF-8. No console, os acentos são
+ * removidos (ver Console).
+ *
+ * Código de saída: 0 quando o resultado é "OK"; 1 quando há erros no programa
+ * ou falha de leitura/gravação.
+ *
+ * Nesta etapa a gramática é a do subconjunto das expressões: o arquivo deve
+ * conter uma única expressão.
+ */
+public final class Main {
+
+    static final String GRAMATICA = AnalisadorSintatico.GRAMATICA_EXPRESSOES;
+
+    private Main() {
+    }
+
+    public static void main(String[] args) {
+        System.exit(executar(args));
+    }
+
+    public static int executar(String[] args) {
+        if (args.length < 1 || args.length > 2) {
+            System.out.println("Uso: java -cp TokenFlow.jar minipascal.sintatico.Main <programa.txt> [saida.txt]");
+            return 1;
+        }
+        String entrada = args[0];
+        if (args.length == 2
+                && new File(args[1]).getAbsoluteFile().equals(new File(entrada).getAbsoluteFile())) {
+            System.out.println("O arquivo de saida nao pode ser o mesmo da entrada.");
+            return 1;
+        }
+        try {
+            String fonte = LeitorArquivoFonte.ler(entrada);
+            AnalisadorSintatico analisador = new AnalisadorSintatico(AnalisadorSintatico.tabelaEmbutida(GRAMATICA));
+            ResultadoAnalise resultado = analisador.analisar(fonte);
+            String texto = resultado.formatar();
+            System.out.println(Console.semAcentos(texto));
+            if (args.length == 2) {
+                Files.write(Paths.get(args[1]), (texto + "\n").getBytes(StandardCharsets.UTF_8));
+            }
+            return resultado.isSucesso() ? 0 : 1;
+        } catch (NoSuchFileException e) {
+            System.out.println("Arquivo nao encontrado: " + entrada);
+            return 1;
+        } catch (IOException e) {
+            System.out.println("Erro ao processar o arquivo: " + Console.semAcentos(e.getMessage()));
+            return 1;
+        } catch (InvalidPathException e) {
+            System.out.println("Caminho invalido: " + Console.semAcentos(e.getMessage()));
+            return 1;
+        }
+    }
+}
