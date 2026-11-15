@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-267%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-342%20passing-success)
 
 </div>
 
@@ -49,7 +49,7 @@ O analisador implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
 - ✅ Limite de 63 caracteres em identificadores (truncamento, não erro)
 - ✅ Interface gráfica: carregar um `.txt` **ou** digitar/colar código direto na tela
 - ✅ Modo linha de comando, pra rodar em lote ou sem interface
-- ✅ **267 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
+- ✅ **342 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
   robustez (número colado em identificador, operadores repetidos sem espaço, comentário
   "aninhado", CRLF e CR solto, emoji, arquivo ANSI/UTF-16, locale turco...)
 - ✅ 7 arquivos de teste de integração, incluindo os dois exemplos do enunciado
@@ -152,6 +152,7 @@ java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoRobustez  # Unic
 java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoAfd       # AFD (tabela de transições) x analisador
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoAdaptador  # tokens -> terminais da gramática (Unidade II)
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoGeradorSLR # gerador de tabelas SLR(1) (Unidade II)
+java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserExpressoes # parser SLR(1) das expressões (Unidade II)
 ```
 
 ## Arquivos de teste
@@ -246,6 +247,21 @@ Mudanças já feitas:
   ```bash
   java -cp TokenFlow.jar minipascal.sintatico.slr.GeradorTabelas expressoes.txt [pasta-saida]
   ```
+- Analisador sintático SLR(1) (`AnalisadorSintatico`): algoritmo empilha/reduz com pilha de
+  estados e pilha de atributos (as ações de redução são o ponto onde a análise semântica vai
+  entrar). O resultado é `OK` ou a lista de erros, cada um com o tipo (léxico ou sintático)
+  e a linha. A mensagem de erro sintático diz o que foi encontrado e o que era esperado, por
+  exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
+  constante string ou constante char`. Por enquanto a análise para no primeiro erro
+  sintático (os erros léxicos do arquivo inteiro são relatados) e usa a gramática das
+  expressões: o arquivo deve conter uma expressão.
+
+  ```bash
+  java -cp TokenFlow.jar minipascal.sintatico.Main programa.txt [saida.txt]
+  ```
+
+  No console os acentos são removidos (o console do Windows com Java 8 não os mostra); o
+  arquivo de saída é gravado em UTF-8. Código de saída 0 quando o resultado é `OK`.
 
 ## Contexto acadêmico
 
