@@ -31,6 +31,10 @@ for %%E in (Main.fxml application.css icon.png) do (
         goto erro
     )
 )
+if not exist "src\minipascal\sintatico\gramatica\expressoes.txt" (
+    echo Arquivo faltando: src\minipascal\sintatico\gramatica\expressoes.txt
+    goto erro
+)
 
 if exist out rmdir /s /q out
 mkdir out
@@ -42,6 +46,8 @@ if errorlevel 1 goto erro
 
 for %%E in (Main.fxml application.css icon.png) do copy /y "src\minipascal\lexico\gui\%%E" "out\minipascal\lexico\gui\" >nul
 if errorlevel 1 goto erro
+copy /y "src\minipascal\sintatico\gramatica\*.txt" "out\minipascal\sintatico\gramatica\" >nul
+if errorlevel 1 goto erro
 
 echo Main-Class: minipascal.lexico.gui.MainApp> out\manifest.txt
 "%JAR%" cfm TokenFlow.jar out\manifest.txt -C out minipascal
@@ -50,7 +56,7 @@ if errorlevel 1 goto erro
 echo TokenFlow.jar gerado.
 
 if /i "%~1"=="teste" (
-    for %%S in (lexico.verificacao.VerificacaoFase3 lexico.verificacao.VerificacaoFase4 lexico.verificacao.VerificacaoFase5 lexico.verificacao.VerificacaoFase6 lexico.verificacao.VerificacaoAbsurda lexico.verificacao.VerificacaoRobustez lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador) do (
+    for %%S in (lexico.verificacao.VerificacaoFase3 lexico.verificacao.VerificacaoFase4 lexico.verificacao.VerificacaoFase5 lexico.verificacao.VerificacaoFase6 lexico.verificacao.VerificacaoAbsurda lexico.verificacao.VerificacaoRobustez lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador sintatico.verificacao.VerificacaoGeradorSLR) do (
         "!JAVA!" -cp out minipascal.%%S > out\resultado.txt
         set "RC=!errorlevel!"
         findstr /c:"FALHA" /c:"falha(s)" out\resultado.txt
