@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-342%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-393%20passing-success)
 
 </div>
 
@@ -49,7 +49,7 @@ O analisador implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
 - ✅ Limite de 63 caracteres em identificadores (truncamento, não erro)
 - ✅ Interface gráfica: carregar um `.txt` **ou** digitar/colar código direto na tela
 - ✅ Modo linha de comando, pra rodar em lote ou sem interface
-- ✅ **342 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
+- ✅ **393 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
   robustez (número colado em identificador, operadores repetidos sem espaço, comentário
   "aninhado", CRLF e CR solto, emoji, arquivo ANSI/UTF-16, locale turco...)
 - ✅ 7 arquivos de teste de integração, incluindo os dois exemplos do enunciado
@@ -153,6 +153,7 @@ java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoAfd       # AFD 
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoAdaptador  # tokens -> terminais da gramática (Unidade II)
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoGeradorSLR # gerador de tabelas SLR(1) (Unidade II)
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserExpressoes # parser SLR(1) das expressões (Unidade II)
+java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserCompleto   # parser SLR(1) da gramática completa (Unidade II)
 ```
 
 ## Arquivos de teste
@@ -239,8 +240,15 @@ Mudanças já feitas:
   produção vazia). O gerador calcula FIRST e FOLLOW, a coleção canônica LR(0) e as tabelas
   ACTION/GOTO, e recusa a gramática se houver qualquer conflito. Gramáticas com produção
   repetida, não terminal sem produção, inalcançável ou que não deriva terminais também são
-  recusadas. Por enquanto vem com o subconjunto das expressões (`expressoes.txt`: 22
-  produções, 34 estados, sem conflitos).
+  recusadas. Vêm duas gramáticas embutidas: `gramatica.txt`, a gramática completa (56
+  produções, 111 estados, sem conflitos), e `expressoes.txt`, o subconjunto das expressões
+  usado na primeira etapa (22 produções, 34 estados).
+- A gramática completa é a do enunciado convertida para GLC, com quatro modificações
+  (descritas no começo de `gramatica.txt`): o sinal `-` em SIEXPR (no enunciado aparece
+  `""`); `ident`, `variavel` e `proc` como um único terminal `id` (a distinção fica para a
+  análise semântica); comandos divididos em abertos e fechados, o que elimina o conflito do
+  `else` pendente sem mudar a linguagem (o `else` fica sempre com o `if` mais próximo); e
+  constantes string e char em FATOR.
 - O relatório completo (gramática numerada, FIRST, FOLLOW, estados com itens e tabela) e a
   tabela em CSV podem ser gerados por linha de comando:
 
@@ -253,8 +261,8 @@ Mudanças já feitas:
   e a linha. A mensagem de erro sintático diz o que foi encontrado e o que era esperado, por
   exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
   constante string ou constante char`. Por enquanto a análise para no primeiro erro
-  sintático (os erros léxicos do arquivo inteiro são relatados) e usa a gramática das
-  expressões: o arquivo deve conter uma expressão.
+  sintático (os erros léxicos do arquivo inteiro são relatados). O arquivo deve conter um
+  programa Mini_Pascal completo, de `program` até o `.` final.
 
   ```bash
   java -cp TokenFlow.jar minipascal.sintatico.Main programa.txt [saida.txt]
