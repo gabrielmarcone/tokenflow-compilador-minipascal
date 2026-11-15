@@ -25,12 +25,12 @@ import java.nio.file.Paths;
  * Código de saída: 0 quando o resultado é "OK"; 1 quando há erros no programa
  * ou falha de leitura/gravação.
  *
- * Nesta etapa a gramática é a do subconjunto das expressões: o arquivo deve
- * conter uma única expressão.
+ * A gramática usada é a completa (gramatica.txt): o arquivo deve conter um
+ * programa Mini_Pascal inteiro, de "program" até o "." final.
  */
 public final class Main {
 
-    static final String GRAMATICA = AnalisadorSintatico.GRAMATICA_EXPRESSOES;
+    static final String GRAMATICA = AnalisadorSintatico.GRAMATICA_COMPLETA;
 
     private Main() {
     }

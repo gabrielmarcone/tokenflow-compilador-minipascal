@@ -35,6 +35,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AnalisadorSintatico {
 
+    // Gramática completa do Mini_Pascal (programas inteiros).
+    public static final String GRAMATICA_COMPLETA = "gramatica.txt";
+
     // Gramática do subconjunto das expressões (primeira etapa do enunciado).
     public static final String GRAMATICA_EXPRESSOES = "expressoes.txt";
 

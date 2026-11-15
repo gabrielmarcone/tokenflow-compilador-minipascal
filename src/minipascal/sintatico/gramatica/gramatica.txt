@@ -1,0 +1,53 @@
+# Gramatica completa do Mini_Pascal usada pelo analisador sintatico SLR(1).
+#
+# Origem: "Especificacao da gramatica da linguagem" do enunciado da Unidade II,
+# convertida de EBNF para GLC (como na Atividade 3). Correspondencia:
+#   PROG    -> PROG
+#   BLOCO   -> BLOCO, BLOCO_VAR, DECL_VAR, LISTA_ID, BLOCO_PROC, LISTA_CMD
+#   PALIST  -> PALIST, LISTA_PARAM, PARAM, LISTA_ID_PARAM
+#   COMANDO -> COMANDO, CMD_FECHADO, CMD_ABERTO, SIMPLES, LISTA_ARG
+#   EXPR    -> EXPR, OPREL;  SIEXPR -> SIEXPR;  TERMO -> TERMO;  FATOR -> FATOR
+#
+# Modificacoes em relacao a gramatica do enunciado (decididas pelo grupo):
+#   1. SIEXPR: o sinal "-" (no enunciado aparece "", aspas vazias).
+#   2. ident, variavel e proc viram o terminal unico "id"; distinguir variavel
+#      de procedimento e tarefa da analise semantica (tabela de simbolos).
+#   3. Comandos divididos em fechados (todo if tem else) e abertos, para
+#      eliminar o conflito do "else" pendente. A linguagem aceita e a mesma; o
+#      else fica sempre com o if mais proximo.
+#   4. FATOR aceita constantes string e char (a linguagem tem os tipos char e
+#      string, mas a gramatica nao tinha como escrever valores deles).
+#
+# Terminais: os nomes entregues pelo AdaptadorLexico (id, numero, tipo,
+# constante_string, constante_char e o proprio lexema para palavras
+# reservadas, operadores e simbolos).
+
+PROG -> program id ; BLOCO .
+
+BLOCO -> BLOCO_VAR BLOCO_PROC begin LISTA_CMD end
+BLOCO_VAR -> BLOCO_VAR var DECL_VAR | ε
+DECL_VAR -> DECL_VAR LISTA_ID : tipo ; | LISTA_ID : tipo ;
+LISTA_ID -> LISTA_ID , id | id
+BLOCO_PROC -> BLOCO_PROC procedure id PALIST ; BLOCO ; | ε
+LISTA_CMD -> LISTA_CMD COMANDO ; | COMANDO ;
+
+PALIST -> ( LISTA_PARAM ) | ε
+LISTA_PARAM -> LISTA_PARAM ; PARAM | PARAM
+PARAM -> LISTA_ID_PARAM : tipo | var LISTA_ID_PARAM : tipo
+LISTA_ID_PARAM -> LISTA_ID_PARAM , id | id
+
+COMANDO -> CMD_FECHADO | CMD_ABERTO
+CMD_FECHADO -> SIMPLES
+            | if EXPR then CMD_FECHADO else CMD_FECHADO
+            | while EXPR do CMD_FECHADO
+CMD_ABERTO -> if EXPR then COMANDO
+           | if EXPR then CMD_FECHADO else CMD_ABERTO
+           | while EXPR do CMD_ABERTO
+SIMPLES -> id := EXPR | id | id ( LISTA_ARG ) | begin LISTA_CMD end
+LISTA_ARG -> LISTA_ARG , EXPR | EXPR
+
+EXPR -> SIEXPR | SIEXPR OPREL SIEXPR
+OPREL -> = | < | > | <> | <= | >=
+SIEXPR -> TERMO | + TERMO | - TERMO | SIEXPR + TERMO | SIEXPR - TERMO
+TERMO -> FATOR | TERMO * FATOR | TERMO div FATOR | TERMO mod FATOR
+FATOR -> numero | id | ( EXPR ) | constante_string | constante_char
