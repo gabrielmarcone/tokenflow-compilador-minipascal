@@ -1,6 +1,6 @@
-package minipascal.sintatico;
+package minipascal.cli;
 
-import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.io.LeitorArquivoFonte;
 import minipascal.sintatico.parser.AnalisadorSintatico;
 import minipascal.sintatico.parser.ResultadoAnalise;
 
@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 /**
  * Linha de comando do analisador sintático:
  *
- *   java -cp TokenFlow.jar minipascal.sintatico.Main <programa.txt> [saida.txt]
+ *   java -cp TokenFlow.jar minipascal.cli.AnaliseSintatica <programa.txt> [saida.txt]
  *
  * Imprime "OK" se o programa estiver correto, ou um erro por linha, com o tipo
  * e a linha de ocorrência (como pede o enunciado da Unidade II). Com
@@ -28,11 +28,11 @@ import java.nio.file.Paths;
  * A gramática usada é a completa (gramatica.txt): o arquivo deve conter um
  * programa Mini_Pascal inteiro, de "program" até o "." final.
  */
-public final class Main {
+public final class AnaliseSintatica {
 
     static final String GRAMATICA = AnalisadorSintatico.GRAMATICA_COMPLETA;
 
-    private Main() {
+    private AnaliseSintatica() {
     }
 
     public static void main(String[] args) {
@@ -41,7 +41,7 @@ public final class Main {
 
     public static int executar(String[] args) {
         if (args.length < 1 || args.length > 2) {
-            System.out.println("Uso: java -cp TokenFlow.jar minipascal.sintatico.Main <programa.txt> [saida.txt]");
+            System.out.println("Uso: java -cp TokenFlow.jar minipascal.cli.AnaliseSintatica <programa.txt> [saida.txt]");
             return 1;
         }
         String entrada = args[0];

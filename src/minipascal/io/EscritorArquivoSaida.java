@@ -1,4 +1,4 @@
-package minipascal.lexico.io;
+package minipascal.io;
 
 import minipascal.lexico.model.Token;
 

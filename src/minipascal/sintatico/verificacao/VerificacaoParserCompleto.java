@@ -1,7 +1,7 @@
 package minipascal.sintatico.verificacao;
 
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
-import minipascal.sintatico.Main;
+import minipascal.cli.AnaliseSintatica;
 import minipascal.sintatico.gramatica.Gramatica;
 import minipascal.sintatico.gramatica.LeitorGramatica;
 import minipascal.sintatico.gramatica.Producao;
@@ -469,7 +469,7 @@ public class VerificacaoParserCompleto {
         ByteArrayOutputStream capturado = new ByteArrayOutputStream();
         try {
             System.setOut(new PrintStream(capturado, true));
-            return Main.executar(args);
+            return AnaliseSintatica.executar(args);
         } finally {
             System.setOut(original);
             console[0] = new String(capturado.toByteArray());

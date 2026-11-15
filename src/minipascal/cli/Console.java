@@ -1,10 +1,10 @@
-package minipascal.sintatico;
+package minipascal.cli;
 
 import java.text.Normalizer;
 
 /**
  * Texto para o console. No Windows, o Java 8 não mostra acentos corretamente
- * no console (o Main da Unidade I já evitava acentos por isso); as mensagens
+ * no console (a linha de comando da Unidade I já evitava acentos por isso); as mensagens
  * impressas passam por aqui. Arquivos de saída continuam em UTF-8, com acentos.
  */
 public final class Console {

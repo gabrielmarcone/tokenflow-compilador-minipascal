@@ -10,7 +10,7 @@ import minipascal.sintatico.slr.ConflitoSLR;
 import minipascal.sintatico.slr.ConflitoSLRException;
 import minipascal.sintatico.slr.ConjuntosFirstFollow;
 import minipascal.sintatico.slr.ExportadorTabela;
-import minipascal.sintatico.slr.GeradorTabelas;
+import minipascal.cli.GeradorTabelas;
 import minipascal.sintatico.slr.TabelaSLR;
 
 import java.util.ArrayList;
