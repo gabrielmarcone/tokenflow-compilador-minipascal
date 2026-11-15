@@ -2,7 +2,6 @@ package minipascal.sintatico.verificacao;
 
 import minipascal.erros.CategoriaErro;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
-import minipascal.sintatico.Main;
 import minipascal.sintatico.gramatica.Gramatica;
 import minipascal.sintatico.gramatica.Producao;
 import minipascal.sintatico.parser.AcoesReducao;
@@ -11,12 +10,6 @@ import minipascal.sintatico.parser.ResultadoAnalise;
 import minipascal.sintatico.parser.Terminal;
 import minipascal.sintatico.slr.TabelaSLR;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -25,19 +18,18 @@ import java.util.Random;
  * Verifica o analisador sintático SLR(1) sobre o subconjunto das expressões,
  * sempre a partir de texto-fonte de verdade (passando pelo léxico da Unidade I
  * e pelo adaptador): aceitação, estrutura das reduções (precedência e
- * associatividade), mensagens de erro com tipo e linha, convivência com erros
- * léxicos e a linha de comando.
+ * associatividade), mensagens de erro com tipo e linha e convivência com erros
+ * léxicos. A linha de comando, que usa a gramática completa, é verificada em
+ * VerificacaoParserCompleto.
  */
 public class VerificacaoParserExpressoes {
 
     private static int total = 0;
     private static int falhas = 0;
 
-    private static final TabelaSLR TABELA =
-            AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_EXPRESSOES);
-    private static final AnalisadorSintatico RECONHECEDOR = new AnalisadorSintatico(TABELA);
-    private static final AnalisadorSintatico ARVORE =
-            new AnalisadorSintatico(TABELA, new TabelaPalavrasReservadas(), new AcoesArvore());
+    private static TabelaSLR TABELA;
+    private static AnalisadorSintatico RECONHECEDOR;
+    private static AnalisadorSintatico ARVORE;
 
     // Começo das mensagens mais comuns (os "esperados" saem da tabela, em ordem da gramática).
     private static final String INICIO_DE_EXPRESSAO =
@@ -48,12 +40,23 @@ public class VerificacaoParserExpressoes {
             "'=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div', 'mod'";
 
     public static void main(String[] args) {
+        // Se a gramática tiver conflito, a tabela não é construída: isso vira uma
+        // falha relatada (e não uma exceção solta) e as demais partes não rodam.
+        try {
+            TABELA = AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_EXPRESSOES);
+            RECONHECEDOR = new AnalisadorSintatico(TABELA);
+            ARVORE = new AnalisadorSintatico(TABELA, new TabelaPalavrasReservadas(), new AcoesArvore());
+        } catch (RuntimeException e) {
+            checar("expressoes.txt gera a tabela SLR(1): " + e.getMessage(), false);
+            System.out.println();
+            System.out.println(total + " verificações do parser de expressões, " + falhas + " falha(s).");
+            System.exit(1);
+        }
         executar("expressões válidas", VerificacaoParserExpressoes::verificarValidas);
         executar("estrutura das reduções", VerificacaoParserExpressoes::verificarEstrutura);
         executar("erros sintáticos", VerificacaoParserExpressoes::verificarErrosSintaticos);
         executar("erros léxicos", VerificacaoParserExpressoes::verificarErrosLexicos);
         executar("expressões geradas da gramática", VerificacaoParserExpressoes::verificarGeradas);
-        executar("linha de comando", VerificacaoParserExpressoes::verificarLinhaDeComando);
 
         System.out.println();
         System.out.println(total + " verificações do parser de expressões, " + falhas + " falha(s).");
@@ -261,65 +264,6 @@ public class VerificacaoParserExpressoes {
             default:
                 return terminal;
         }
-    }
-
-    // ---------------------------------------------------------- linha de comando
-
-    private static void verificarLinhaDeComando() {
-        try {
-            Path pasta = Files.createTempDirectory("tokenflow_parser");
-            Path ok = pasta.resolve("ok.txt");
-            Path errado = pasta.resolve("errado.txt");
-            Path saida = pasta.resolve("saida.txt");
-            Files.write(ok, "a + b * (c - 1)\n".getBytes(StandardCharsets.UTF_8));
-            Files.write(errado, "a +\n* b\n".getBytes(StandardCharsets.UTF_8));
-
-            String[] console = new String[1];
-            int semArgumentos = executarCalado(new String[0], console);
-            checar("sem argumentos: código 1 e mensagem de uso", semArgumentos == 1 && console[0].startsWith("Uso:"));
-
-            int inexistente = executarCalado(new String[]{pasta.resolve("nao_existe.txt").toString()}, console);
-            checar("arquivo inexistente: código 1", inexistente == 1 && console[0].startsWith("Arquivo nao encontrado"));
-
-            int codigoOk = executarCalado(new String[]{ok.toString(), saida.toString()}, console);
-            checar("programa correto: código 0, imprime OK e grava OK",
-                    codigoOk == 0 && console[0].trim().equals("OK") && ler(saida).equals("OK\n"));
-
-            int codigoErro = executarCalado(new String[]{errado.toString(), saida.toString()}, console);
-            String esperadoArquivo = "Erro sintático na linha 2: Encontrado '*'; esperado " + INICIO_DE_TERMO + "\n";
-            checar("programa com erro: código 1 e arquivo de saída em UTF-8 com acentos",
-                    codigoErro == 1 && ler(saida).equals(esperadoArquivo));
-            checar("no console, a mesma mensagem sem acentos",
-                    console[0].trim().equals("Erro sintatico na linha 2: Encontrado '*'; esperado "
-                            + "numero, identificador, '(', constante string ou constante char"));
-
-            int mesmo = executarCalado(new String[]{ok.toString(), ok.toString()}, console);
-            checar("saída igual à entrada é recusada e a entrada fica intacta",
-                    mesmo == 1 && ler(ok).equals("a + b * (c - 1)\n"));
-
-            for (Path p : new Path[]{ok, errado, saida}) {
-                Files.deleteIfExists(p);
-            }
-            Files.deleteIfExists(pasta);
-        } catch (IOException e) {
-            checar("linha de comando: erro de E/S no teste: " + e.getMessage(), false);
-        }
-    }
-
-    private static int executarCalado(String[] args, String[] console) {
-        PrintStream original = System.out;
-        ByteArrayOutputStream capturado = new ByteArrayOutputStream();
-        try {
-            System.setOut(new PrintStream(capturado, true));
-            return Main.executar(args);
-        } finally {
-            System.setOut(original);
-            console[0] = new String(capturado.toByteArray());
-        }
-    }
-
-    private static String ler(Path p) throws IOException {
-        return new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
     }
 
     // ------------------------------------------------------------------ apoio
