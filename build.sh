@@ -29,8 +29,11 @@ printf 'Main-Class: minipascal.lexico.gui.MainApp\n' > out/manifest.txt
 echo "TokenFlow.jar gerado."
 
 if [ "$1" = "teste" ]; then
-    for suite in Fase3 Fase4 Fase5 Fase6 Absurda Robustez Afd; do
-        "$JAVA" -cp out "minipascal.lexico.verificacao.Verificacao$suite" > out/resultado.txt || { grep FALHA out/resultado.txt; echo "Verificacao$suite falhou."; exit 1; }
+    for suite in lexico.verificacao.VerificacaoFase3 lexico.verificacao.VerificacaoFase4 \
+                 lexico.verificacao.VerificacaoFase5 lexico.verificacao.VerificacaoFase6 \
+                 lexico.verificacao.VerificacaoAbsurda lexico.verificacao.VerificacaoRobustez \
+                 lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador; do
+        "$JAVA" -cp out "minipascal.$suite" > out/resultado.txt || { grep FALHA out/resultado.txt; echo "$suite falhou."; exit 1; }
         grep "falha(s)" out/resultado.txt
     done
     echo "Todas as verificacoes passaram."
