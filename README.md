@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-409%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-463%20passing-success)
 
 </div>
 
@@ -27,9 +27,9 @@ simplificada inspirada em Pascal.
   na tag `unidade-1`.
 - **Análise sintática (Unidade II, em desenvolvimento):** analisador **SLR(1)** com gerador de
   tabelas próprio, a partir da gramática do enunciado. Recebe um programa e devolve `OK` ou
-  as mensagens de erro, cada uma com o tipo e a linha. Ainda faltam a recuperação de erros
-  sintáticos (hoje a análise para no primeiro), a análise semântica e a integração com a
-  interface gráfica, que por enquanto mostra só a análise léxica.
+  o conjunto das mensagens de erro, cada uma com o tipo e a linha: a análise se recupera de
+  cada erro sintático e segue até o fim do arquivo. Ainda faltam a análise semântica e a
+  integração com a interface gráfica, que por enquanto mostra só a análise léxica.
 
 ## Como é
 
@@ -68,14 +68,18 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
 - ✅ Analisador empilha/reduz com pilha de estados e pilha de atributos (ponto de entrada da
   futura análise semântica)
 - ✅ Saída `OK` ou erros com tipo e linha, dizendo o que foi encontrado e o que era esperado
+- ✅ Recuperação de erros: uma análise relata todos os erros do programa, sem erros em
+  cascata (modo pânico do livro do Dragão mais inserção do símbolo que falta, escolhendo a
+  retomada que vai mais longe)
 - ✅ Linha de comando para as duas análises e para o gerador de tabelas
 
 **Testes**
 
-- ✅ **409 verificações automatizadas** em 12 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **463 verificações automatizadas** em 13 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
-  mensagens de erro exatas, programas gerados a partir da gramática e regras de arquitetura
+  mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
+  (vários erros, cascata, textos aleatórios, desempenho) e regras de arquitetura
 - ✅ 8 arquivos de teste de integração do léxico, incluindo os dois exemplos do enunciado
 
 ## Arquitetura
@@ -145,10 +149,10 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
 - **Análise léxica:** sem o segundo argumento, a saída é gravada ao lado da entrada como
   `<entrada>_saida.txt`, um par lexema/token por linha.
 - **Análise sintática:** o arquivo deve conter um programa completo, de `program` até o `.`
-  final. Imprime `OK` ou um erro por linha, por exemplo
-  `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(', constante
-  string ou constante char`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8. Código de
-  saída 0 quando o resultado é `OK` e 1 caso contrário.
+  final. Imprime `OK` ou todos os erros encontrados, um por linha, em ordem de linha, por
+  exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
+  constante string ou constante char`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8.
+  Código de saída 0 quando o resultado é `OK` e 1 caso contrário.
 - **Gerador de tabelas:** aceita um arquivo de gramática ou o nome de uma gramática embutida
   (`gramatica.txt` ou `expressoes.txt`). Grava `<nome>_tabela_slr.txt` (gramática numerada,
   FIRST, FOLLOW, estados LR(0) com itens e transições, tabela e conflitos) e
@@ -206,6 +210,7 @@ java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoAdaptador    
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoGeradorSLR       # gerador de tabelas SLR(1)
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserExpressoes # parser com a gramática das expressões
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserCompleto   # parser com a gramática completa
+java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoRecuperacao      # recuperação de erros sintáticos
 java -cp TokenFlow.jar minipascal.verificacao.VerificacaoArquitetura                # regras entre os módulos
 ```
 
@@ -252,6 +257,41 @@ O que a gramática não aceita (e por isso vale como limitação da linguagem): 
 `repeat`, `const`, `/`, `and`/`or`/`not`, funções, `;` antes do `else` e parênteses vazios
 na declaração de procedimento. `read`, `write` e `writeln` são aceitos como chamadas de
 procedimento.
+
+## Recuperação de erros sintáticos
+
+Num erro sintático, a análise não para: ela relata o erro e procura um jeito de continuar,
+para que uma única execução mostre o conjunto dos erros do programa, como pede o enunciado.
+
+- **Modo pânico** (livro do Dragão, seção 4.8.3): volta na pilha até um estado com desvio
+  para algum não terminal (um comando, uma expressão, uma declaração...), descarta tokens da
+  entrada e continua como se aquele não terminal tivesse sido reconhecido.
+- **Inserção**: insere o símbolo que falta (um `then`, um `begin`, um `;`, um `)`...) e
+  continua com a pilha como está.
+- **Escolha da retomada**: cada possibilidade é simulada sobre os tokens seguintes. Vale a
+  que descarta menos tokens, desde que consiga empilhar pelo menos 4 tokens sem novo erro
+  (ou aceite o programa até o fim); entre essas, a que vai mais longe. No empate, o modo
+  pânico ganha da inserção.
+- **Sem cascata**: como a retomada escolhida sempre empilha pelo menos 4 tokens sem erro, um
+  erro que é só consequência do anterior não aparece. O número 4 foi escolhido medindo, em
+  milhares de programas com erros inseridos de propósito, quantos erros são encontrados e
+  quantos erros falsos aparecem: com 3, construções que não existem no Mini_Pascal (como o
+  `for` do segundo exemplo do enunciado) geram um segundo erro em cascata; com 5, erros em
+  linhas vizinhas deixam de ser encontrados. Por isso, dois erros a menos de 4 tokens um do
+  outro contam como um só.
+- **Mensagens**: o primeiro erro de cada programa é exatamente o da análise sem recuperação
+  (conferido contra um reconhecedor de Earley independente). Erros léxicos e sintáticos
+  saem juntos, em ordem de linha e, na mesma linha, na ordem do texto.
+- Um caractere inválido some da entrada da análise sintática; se o que sobra estiver errado
+  (como `x := 5 @ 2`, que vira `x := 5 2`), aparecem os dois erros, o léxico e o sintático.
+
+Exemplo, com o segundo programa do enunciado (`02_piloto.txt`):
+
+```
+Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'
+Erro sintático na linha 17: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+Erro sintático na linha 21: Encontrado '/'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+```
 
 ## Decisões de projeto
 
@@ -315,15 +355,14 @@ Respostas às perguntas de projeto (a-e) da especificação:
   reservadas, operadores e símbolos, e `$` no fim). Erros léxicos são registrados com a
   linha e não chegam ao analisador sintático.
 - Gerador de tabelas SLR(1), gramática completa e analisador sintático, descritos acima.
-- A análise sintática para no primeiro erro sintático; mesmo assim, o arquivo inteiro passa
-  pelo léxico e todos os erros léxicos são relatados, em ordem de linha.
+- Recuperação de erros sintáticos (modo pânico e inserção), descrita acima: uma análise
+  relata todos os erros do programa, léxicos e sintáticos, em ordem de linha.
 - Módulos reorganizados (léxico, erros, io, sintático, linha de comando e interface
   separados), com a regra de dependências conferida por `VerificacaoArquitetura`. Os
   comandos da linha de comando passaram a ficar em `minipascal.cli`.
 
-Próximas etapas: recuperação de erros sintáticos (vários erros por análise), análise
-semântica com tabela de símbolos, interface gráfica com a análise completa e os arquivos de
-teste da Unidade II.
+Próximas etapas: análise semântica com tabela de símbolos, interface gráfica com a análise
+completa e os arquivos de teste da Unidade II.
 
 ## Contexto acadêmico
 
