@@ -84,6 +84,16 @@ public class VerificacaoAdaptador {
         checar("tokens lidos incluem os erros (para a aba de tokens)",
                 comErros.getTokensLidos().size() == 12);
 
+        // Posições na sequência de todos os tokens lidos (ordenam erros léxicos e
+        // sintáticos na mesma linha): x=0, @=1, y=2, $=3.
+        AdaptadorLexico posicoes = adaptador("x @ y");
+        Terminal px = posicoes.proximo();
+        Terminal py = posicoes.proximo();
+        Terminal pfim = posicoes.proximo();
+        checar("posições: x é o token 0, y o 2 (o '@' é o 1), '$' o 3",
+                px.getPosicao() == 0 && py.getPosicao() == 2 && pfim.getPosicao() == 3);
+        checar("posição do erro léxico '@': 1", posicoes.posicaoDoErroLexico(0) == 1);
+
         AdaptadorLexico comentario = adaptador("program x;\n/* aberto");
         nomesAteOFim(comentario);
         checar("comentário não fechado vira erro léxico na linha da abertura",

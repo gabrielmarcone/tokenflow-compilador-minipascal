@@ -35,6 +35,8 @@ public class AdaptadorLexico {
     private final AnalisadorLexico lexico;
     private final List<Token> tokensLidos = new ArrayList<>();
     private final List<ErroCompilacao> errosLexicos = new ArrayList<>();
+    // Posição (em tokensLidos) do token de cada erro léxico, na mesma ordem de errosLexicos.
+    private final List<Integer> posicoesDosErrosLexicos = new ArrayList<>();
     private int ultimaLinha = 1;
     private boolean terminou = false;
 
@@ -54,15 +56,22 @@ public class AdaptadorLexico {
             tokensLidos.add(token);
             ultimaLinha = token.getLinha();
 
+            int posicao = tokensLidos.size() - 1;
             String nome = nomeDoTerminal(token);
             if (nome != null) {
-                return new Terminal(nome, token);
+                return new Terminal(nome, token, posicao);
             }
             // Erro léxico: registra e pede o próximo token (modo pânico do léxico).
             errosLexicos.add(new ErroCompilacao(CategoriaErro.LEXICO, token.getLinha(),
                     DescricaoErroLexico.descrever(token) + ": " + token.getLexema()));
+            posicoesDosErrosLexicos.add(posicao);
         }
-        return Terminal.fimDeArquivo(ultimaLinha);
+        return Terminal.fimDeArquivo(ultimaLinha, tokensLidos.size());
+    }
+
+    // Posição (na sequência de tokens lidos) do token do i-ésimo erro léxico.
+    public int posicaoDoErroLexico(int i) {
+        return posicoesDosErrosLexicos.get(i);
     }
 
     // Nome do terminal da gramática para um token, ou null se for erro léxico.

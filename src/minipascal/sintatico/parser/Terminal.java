@@ -20,43 +20,90 @@ public final class Terminal {
     private final String nome;
     private final Token token;
     private final int linha;
+    private final int posicao;
 
     public Terminal(String nome, Token token) {
+        this(nome, token, -1);
+    }
+
+    /**
+     * @param posicao índice do token na sequência de todos os tokens lidos pelo
+     *                léxico (inclusive os de erro léxico); ordena erros léxicos e
+     *                sintáticos que caem na mesma linha
+     */
+    public Terminal(String nome, Token token, int posicao) {
         this.nome = nome;
         this.token = token;
         this.linha = token.getLinha();
+        this.posicao = posicao;
     }
 
     // Construtor do fim de arquivo, que não tem token de origem.
-    private Terminal(int linha) {
+    private Terminal(int linha, int posicao) {
         this.nome = FIM_DE_ARQUIVO;
         this.token = null;
         this.linha = linha;
+        this.posicao = posicao;
     }
 
     public static Terminal fimDeArquivo(int linha) {
-        return new Terminal(linha);
+        return new Terminal(linha, -1);
+    }
+
+    public static Terminal fimDeArquivo(int linha, int posicao) {
+        return new Terminal(linha, posicao);
+    }
+
+    /**
+     * Terminal que não está no texto: inserido pela recuperação de erros para
+     * que a análise possa continuar (por exemplo, um 'begin' que faltava).
+     */
+    public static Terminal inserido(String nome, int linha) {
+        if (FIM_DE_ARQUIVO.equals(nome)) {
+            throw new IllegalArgumentException("o fim de arquivo não é inserido");
+        }
+        return new Terminal(nome, linha);
+    }
+
+    private Terminal(String nome, int linha) {
+        this.nome = nome;
+        this.token = null;
+        this.linha = linha;
+        this.posicao = -1;
     }
 
     public String getNome() {
         return nome;
     }
 
-    // null apenas no fim de arquivo
+    // null no fim de arquivo e nos terminais inseridos pela recuperação de erros
     public Token getToken() {
         return token;
     }
 
     public String getLexema() {
-        return token == null ? "fim do arquivo" : token.getLexema();
+        if (token != null) {
+            return token.getLexema();
+        }
+        return isFimDeArquivo() ? "fim do arquivo" : nome;
+    }
+
+    // Verdadeiro para um terminal inserido pela recuperação de erros (não está no texto).
+    public boolean isInserido() {
+        return token == null && !FIM_DE_ARQUIVO.equals(nome);
     }
 
     public int getLinha() {
         return linha;
     }
 
+    // Posição na sequência de tokens lidos (-1 se desconhecida).
+    public int getPosicao() {
+        return posicao;
+    }
+
     public boolean isFimDeArquivo() {
-        return token == null;
+        return token == null && FIM_DE_ARQUIVO.equals(nome);
     }
 
     @Override
