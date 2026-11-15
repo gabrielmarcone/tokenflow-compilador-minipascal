@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-167%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-267%20passing-success)
 
 </div>
 
@@ -49,7 +49,7 @@ O analisador implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
 - ✅ Limite de 63 caracteres em identificadores (truncamento, não erro)
 - ✅ Interface gráfica: carregar um `.txt` **ou** digitar/colar código direto na tela
 - ✅ Modo linha de comando, pra rodar em lote ou sem interface
-- ✅ **167 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
+- ✅ **267 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
   robustez (número colado em identificador, operadores repetidos sem espaço, comentário
   "aninhado", CRLF e CR solto, emoji, arquivo ANSI/UTF-16, locale turco...)
 - ✅ 7 arquivos de teste de integração, incluindo os dois exemplos do enunciado
@@ -151,6 +151,7 @@ java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoAbsurda   # caso
 java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoRobustez  # Unicode, codificações, CLI
 java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoAfd       # AFD (tabela de transições) x analisador
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoAdaptador  # tokens -> terminais da gramática (Unidade II)
+java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoGeradorSLR # gerador de tabelas SLR(1) (Unidade II)
 ```
 
 ## Arquivos de teste
@@ -231,6 +232,20 @@ Mudanças já feitas:
   próprio lexema para palavras reservadas, operadores e símbolos, e `$` no fim). Erros
   léxicos são registrados com a linha e não chegam ao analisador sintático. O analisador
   léxico e a saída da Unidade I não mudaram.
+- Gerador próprio de tabelas SLR(1) (`src/minipascal/sintatico/gramatica/` e
+  `src/minipascal/sintatico/slr/`). A gramática fica num arquivo de texto, uma regra por
+  linha (`EXPR -> SIEXPR | SIEXPR OPREL SIEXPR`, não terminais em MAIÚSCULAS, `ε` para a
+  produção vazia). O gerador calcula FIRST e FOLLOW, a coleção canônica LR(0) e as tabelas
+  ACTION/GOTO, e recusa a gramática se houver qualquer conflito. Gramáticas com produção
+  repetida, não terminal sem produção, inalcançável ou que não deriva terminais também são
+  recusadas. Por enquanto vem com o subconjunto das expressões (`expressoes.txt`: 22
+  produções, 34 estados, sem conflitos).
+- O relatório completo (gramática numerada, FIRST, FOLLOW, estados com itens e tabela) e a
+  tabela em CSV podem ser gerados por linha de comando:
+
+  ```bash
+  java -cp TokenFlow.jar minipascal.sintatico.slr.GeradorTabelas expressoes.txt [pasta-saida]
+  ```
 
 ## Contexto acadêmico
 

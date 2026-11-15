@@ -1,0 +1,17 @@
+# Subconjunto da gramatica do Mini_Pascal: as expressoes.
+# Primeira etapa recomendada pelo enunciado da Unidade II ("comece com um
+# subconjunto da gramatica, por exemplo, as expressoes").
+#
+# Corresponde a EXPR, SIEXPR, TERMO e FATOR da gramatica do enunciado, ja em
+# forma de GLC (como na Atividade 3), com duas mudancas decididas pelo grupo:
+#   - o sinal "-" em SIEXPR (no enunciado aparece como "", aspas vazias);
+#   - constantes string e char como opcoes de FATOR.
+# "variavel" da gramatica original vira o terminal unico "id".
+#
+# Formato: CABECA -> alternativa | alternativa ; nao terminais em MAIUSCULAS.
+
+EXPR -> SIEXPR | SIEXPR OPREL SIEXPR
+OPREL -> = | < | > | <> | <= | >=
+SIEXPR -> TERMO | + TERMO | - TERMO | SIEXPR + TERMO | SIEXPR - TERMO
+TERMO -> FATOR | TERMO * FATOR | TERMO div FATOR | TERMO mod FATOR
+FATOR -> numero | id | ( EXPR ) | constante_string | constante_char
