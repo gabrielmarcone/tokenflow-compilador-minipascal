@@ -17,8 +17,10 @@ import java.nio.file.Paths;
  *
  *   java -cp TokenFlow.jar minipascal.cli.AnaliseSintatica <programa.txt> [saida.txt]
  *
- * Imprime "OK" se o programa estiver correto, ou um erro por linha, com o tipo
- * e a linha de ocorrência (como pede o enunciado da Unidade II). Com
+ * Imprime "OK" se o programa estiver correto, ou o conjunto dos erros, um por
+ * linha, com o tipo e a linha de ocorrência (como pede o enunciado da Unidade
+ * II): a análise se recupera de cada erro sintático e continua até o fim do
+ * arquivo (ver AnalisadorSintatico). Com
  * [saida.txt], grava o mesmo resultado em UTF-8. No console, os acentos são
  * removidos (ver Console).
  *

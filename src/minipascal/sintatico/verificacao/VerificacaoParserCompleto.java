@@ -31,9 +31,11 @@ import java.util.Set;
  * comando.
  *
  * As mensagens esperadas foram conferidas contra um reconhecedor de Earley
- * independente: o erro sai no primeiro token em que o programa deixa de ser
- * começo de um programa válido, e os "esperados" são exatamente os terminais
- * que manteriam o programa válido naquele ponto.
+ * independente: o primeiro erro sai no primeiro token em que o programa deixa
+ * de ser começo de um programa válido, e os "esperados" são exatamente os
+ * terminais que manteriam o programa válido naquele ponto. Os erros seguintes
+ * vêm da recuperação de erros (verificada em detalhe em VerificacaoRecuperacao);
+ * aqui, cada um dos que aparecem foi conferido à mão no programa.
  */
 public class VerificacaoParserCompleto {
 
@@ -246,8 +248,12 @@ public class VerificacaoParserCompleto {
                 "Erro sintático na linha 1: Encontrado 'begin'; esperado ';'");
         checarSaida("'then' sem comando antes do 'else'", "program p; begin if x then else x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'if' ou 'while'");
+        // A recuperação insere o 'begin' que falta; o "begin q; end" passa a ser o
+        // fim do corpo do procedimento, e falta então o bloco do programa principal
+        // (o '.' chega onde se esperava o ';' depois do procedimento).
         checarSaida("procedimento sem 'begin'", "program p; procedure q; x := 1; begin q; end.",
-                "Erro sintático na linha 1: Encontrado identificador 'x'; esperado 'begin', 'var' ou 'procedure'");
+                "Erro sintático na linha 1: Encontrado identificador 'x'; esperado 'begin', 'var' ou 'procedure'\n"
+                + "Erro sintático na linha 1: Encontrado '.'; esperado ';'");
         checarSaida("declaração sem nome de variável", "program p; var : integer; begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado ':'; esperado identificador");
     }
@@ -267,7 +273,9 @@ public class VerificacaoParserCompleto {
                 "writeln(x);",
                 "write(y);",
                 "end."),
-                "Erro sintático na linha 3: Encontrado 'const'; esperado identificador, 'begin', 'var' ou 'procedure'");
+                // const não existe no Mini_Pascal; o ';' antes do else também é erro.
+                "Erro sintático na linha 3: Encontrado 'const'; esperado identificador, 'begin', 'var' ou 'procedure'\n"
+                + "Erro sintático na linha 9: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
         checarSaida("segundo exemplo do enunciado da Unidade I (usa for e /)", linhas(
                 "Program Piloto;",
                 "    /* declaracoes de variaveis e constantes globais */",
@@ -291,7 +299,12 @@ public class VerificacaoParserCompleto {
                 "end;",
                 "write(\"Media Geral = \", Media_das_medias/total);",
                 "end."),
-                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
+                // for não existe no Mini_Pascal, nem o operador '/' (aparece duas vezes).
+                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'\n"
+                + "Erro sintático na linha 17: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
+                + "'*', 'div' ou 'mod'\n"
+                + "Erro sintático na linha 21: Encontrado '/'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
+                + "'*', 'div' ou 'mod'");
         checarSaida("programa demo da apresentação da Unidade I", linhas(
                 "/* demonstracao */",
                 "Program Demo;",
@@ -307,9 +320,19 @@ public class VerificacaoParserCompleto {
                 "  x := 5 @ 2;",
                 "  writeln(\"sem fechar);",
                 "end."),
+                // '/' e 'and' não existem no Mini_Pascal. Sem o '@' (erro léxico), sobra
+                // "5 2", que é erro sintático. A string não fechada vai até o fim da
+                // linha 13 (erro léxico); sem ela, sobra "writeln(" e o 'end' da linha 14
+                // chega onde se esperava o argumento.
                 "Erro sintático na linha 8: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'" + "\n"
+                + "Erro sintático na linha 10: Encontrado 'and'; esperado 'then', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
+                + "'*', 'div' ou 'mod'\n"
                 + "Erro léxico na linha 12: Caractere inválido: @" + "\n"
-                + "Erro léxico na linha 13: String não fechada (falta \"): \"sem fechar);");
+                + "Erro sintático na linha 12: Encontrado número '2'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
+                + "'*', 'div' ou 'mod'\n"
+                + "Erro léxico na linha 13: String não fechada (falta \"): \"sem fechar);\n"
+                + "Erro sintático na linha 14: Encontrado 'end'; esperado identificador, '(', '+', '-', número, "
+                + "constante string ou constante char");
     }
 
     // ---------------------------------------------------- programas gerados

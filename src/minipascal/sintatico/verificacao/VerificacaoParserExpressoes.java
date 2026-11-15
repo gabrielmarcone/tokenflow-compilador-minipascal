@@ -162,9 +162,9 @@ public class VerificacaoParserExpressoes {
                 + "'=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div', 'mod' ou ')'");
 
         ResultadoAnalise r = RECONHECEDOR.analisar("a b c d");
-        checar("análise para no primeiro erro sintático (um só erro em 'a b c d')",
+        checar("erros colados contam como um só (um só erro em 'a b c d'; ver VerificacaoRecuperacao)",
                 r.getErros().size() == 1 && r.errosDa(CategoriaErro.SINTATICO).size() == 1);
-        checar("mesmo parando, o léxico lê o texto todo (4 tokens)", r.getTokens().size() == 4);
+        checar("o léxico lê o texto todo (4 tokens)", r.getTokens().size() == 4);
     }
 
     // --------------------------------------------------------- erros léxicos
