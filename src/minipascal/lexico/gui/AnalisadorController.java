@@ -13,6 +13,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
 import minipascal.lexico.core.AnalisadorLexico;
+import minipascal.lexico.core.DescricaoErroLexico;
 import minipascal.lexico.io.EscritorArquivoSaida;
 import minipascal.lexico.io.LeitorArquivoFonte;
 import minipascal.lexico.model.Token;
@@ -91,23 +92,7 @@ public class AnalisadorController implements Initializable {
         lexema.setCellValueFactory(dados ->
                 new SimpleStringProperty(dados.getValue().getLexema()));
         descricao.setCellValueFactory(dados ->
-                new SimpleStringProperty(descreverErro(dados.getValue())));
-    }
-
-    // O lexema do erro indica o que deu errado: o analisador devolve a string
-    // ou o char parcial, o "/*" do comentário aberto, ou o caractere isolado.
-    private static String descreverErro(Token erro) {
-        String lexema = erro.getLexema();
-        if (lexema.equals("/*")) {
-            return "Comentário não fechado (falta */)";
-        }
-        if (lexema.startsWith("\"")) {
-            return "String não fechada (falta \")";
-        }
-        if (lexema.startsWith("'")) {
-            return "Char deve ter 1 caractere";
-        }
-        return "Caractere inválido";
+                new SimpleStringProperty(DescricaoErroLexico.descrever(dados.getValue())));
     }
 
     @FXML

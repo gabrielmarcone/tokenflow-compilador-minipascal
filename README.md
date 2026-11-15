@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-142%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-167%20passing-success)
 
 </div>
 
@@ -41,7 +41,7 @@ O analisador implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
 - ✅ Reconhece todas as classes léxicas do enunciado: palavra reservada, identificador,
   número inteiro/real (com notação científica), operadores aritméticos/relacionais/lógicos,
   símbolo especial, atribuição, fim, constante string e char
-- ✅ Tabela com as **48 palavras reservadas** do enunciado (`DOWTO` lido como `downto`) + `mod`/`and`/`or`/`not`, busca O(1),
+- ✅ Tabela com as **48 palavras reservadas** do enunciado (`DOWTO` lido como `downto`) + `procedure` (incluída na Unidade II) + `mod`/`and`/`or`/`not`, busca O(1),
   **case-insensitive** (`Program`, `PROGRAM` e `program` são todos reconhecidos)
 - ✅ Comentários de bloco `/* */`, inclusive multilinha, com recuperação de erro se não
   fecharem
@@ -49,7 +49,7 @@ O analisador implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
 - ✅ Limite de 63 caracteres em identificadores (truncamento, não erro)
 - ✅ Interface gráfica: carregar um `.txt` **ou** digitar/colar código direto na tela
 - ✅ Modo linha de comando, pra rodar em lote ou sem interface
-- ✅ **142 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
+- ✅ **167 verificações automatizadas**, incluindo baterias dedicadas a casos absurdos e de
   robustez (número colado em identificador, operadores repetidos sem espaço, comentário
   "aninhado", CRLF e CR solto, emoji, arquivo ANSI/UTF-16, locale turco...)
 - ✅ 7 arquivos de teste de integração, incluindo os dois exemplos do enunciado
@@ -150,6 +150,7 @@ java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoFase6     # leit
 java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoAbsurda   # casos extremos/maldosos
 java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoRobustez  # Unicode, codificações, CLI
 java -cp TokenFlow.jar minipascal.lexico.verificacao.VerificacaoAfd       # AFD (tabela de transições) x analisador
+java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoAdaptador  # tokens -> terminais da gramática (Unidade II)
 ```
 
 ## Arquivos de teste
@@ -214,6 +215,22 @@ Respostas às perguntas de projeto (a-e) da especificação:
   caractere. Caractere fora da linguagem gera um erro por caractere; string e char mal
   fechados param no fim da linha; comentário sem `*/` gera um erro `/*` na linha de abertura.
   Na interface, a tabela de erros mostra a linha, o lexema e uma descrição do problema.
+
+## Unidade II (em desenvolvimento)
+
+A Unidade II acrescenta o analisador sintático (SLR(1)) e semântico, reaproveitando este
+analisador léxico. A versão entregue na Unidade I está na tag `unidade-1`.
+
+Mudanças já feitas:
+
+- `procedure` passou a ser palavra reservada (53 entradas na tabela). A gramática da
+  Unidade II declara procedimentos com `procedure`, que não consta na lista do enunciado
+  da Unidade I (ela traz `PROC`, `FUNC` e `FUNCTION`).
+- `AdaptadorLexico` (`src/minipascal/sintatico/parser/`) traduz cada token do léxico para o
+  terminal da gramática (`id`, `numero`, `tipo`, `constante_string`, `constante_char`, o
+  próprio lexema para palavras reservadas, operadores e símbolos, e `$` no fim). Erros
+  léxicos são registrados com a linha e não chegam ao analisador sintático. O analisador
+  léxico e a saída da Unidade I não mudaram.
 
 ## Contexto acadêmico
 
