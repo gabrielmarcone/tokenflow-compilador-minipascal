@@ -26,8 +26,8 @@ echo Compilador em uso:
 if errorlevel 1 goto erro
 
 for %%E in (Main.fxml application.css icon.png) do (
-    if not exist "src\minipascal\lexico\gui\%%E" (
-        echo Arquivo faltando: src\minipascal\lexico\gui\%%E
+    if not exist "src\minipascal\gui\%%E" (
+        echo Arquivo faltando: src\minipascal\gui\%%E
         goto erro
     )
 )
@@ -46,19 +46,19 @@ for /r src %%F in (*.java) do set FONTES=!FONTES! "%%F"
 "%JAVAC%" %JAVAC_OPTS% -encoding UTF-8 -d out !FONTES!
 if errorlevel 1 goto erro
 
-for %%E in (Main.fxml application.css icon.png) do copy /y "src\minipascal\lexico\gui\%%E" "out\minipascal\lexico\gui\" >nul
+for %%E in (Main.fxml application.css icon.png) do copy /y "src\minipascal\gui\%%E" "out\minipascal\gui\" >nul
 if errorlevel 1 goto erro
 copy /y "src\minipascal\sintatico\gramatica\*.txt" "out\minipascal\sintatico\gramatica\" >nul
 if errorlevel 1 goto erro
 
-echo Main-Class: minipascal.lexico.gui.MainApp> out\manifest.txt
+echo Main-Class: minipascal.gui.MainApp> out\manifest.txt
 "%JAR%" cfm TokenFlow.jar out\manifest.txt -C out minipascal
 if errorlevel 1 goto erro
 
 echo TokenFlow.jar gerado.
 
 if /i "%~1"=="teste" (
-    for %%S in (lexico.verificacao.VerificacaoFase3 lexico.verificacao.VerificacaoFase4 lexico.verificacao.VerificacaoFase5 lexico.verificacao.VerificacaoFase6 lexico.verificacao.VerificacaoAbsurda lexico.verificacao.VerificacaoRobustez lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador sintatico.verificacao.VerificacaoGeradorSLR sintatico.verificacao.VerificacaoParserExpressoes sintatico.verificacao.VerificacaoParserCompleto) do (
+    for %%S in (lexico.verificacao.VerificacaoFase3 lexico.verificacao.VerificacaoFase4 lexico.verificacao.VerificacaoFase5 lexico.verificacao.VerificacaoFase6 lexico.verificacao.VerificacaoAbsurda lexico.verificacao.VerificacaoRobustez lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador sintatico.verificacao.VerificacaoGeradorSLR sintatico.verificacao.VerificacaoParserExpressoes sintatico.verificacao.VerificacaoParserCompleto verificacao.VerificacaoArquitetura) do (
         "!JAVA!" -cp out minipascal.%%S > out\resultado.txt
         set "RC=!errorlevel!"
         findstr /c:"FALHA" /c:"falha(s)" out\resultado.txt

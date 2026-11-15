@@ -1,9 +1,9 @@
 package minipascal.lexico.verificacao;
 
-import minipascal.lexico.Main;
+import minipascal.cli.AnaliseLexica;
 import minipascal.lexico.core.AnalisadorLexico;
-import minipascal.lexico.io.EscritorArquivoSaida;
-import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.io.EscritorArquivoSaida;
+import minipascal.io.LeitorArquivoFonte;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
@@ -159,13 +159,13 @@ public class VerificacaoRobustez {
         File entrada = new File(pasta, "prog");
         Files.write(entrada.toPath(), "program x;".getBytes(StandardCharsets.UTF_8));
 
-        Main.main(new String[]{entrada.getAbsolutePath()});
+        AnaliseLexica.main(new String[]{entrada.getAbsolutePath()});
         checar("CLI: entrada 'dir.v2/prog' (ponto na pasta, sem extensão) gera 'dir.v2/prog_saida.txt'",
                 new File(pasta, "prog_saida.txt").isFile() && !new File(raiz, "dir_saida.txt").exists());
 
         File sub = new File(pasta, "sub");
         sub.mkdirs();
-        Main.main(new String[]{new File(sub, "..").getPath() + File.separator + "prog"});
+        AnaliseLexica.main(new String[]{new File(sub, "..").getPath() + File.separator + "prog"});
         checar("CLI: caminho com '..' não cria arquivo '._saida.txt'",
                 !new File(".", "._saida.txt").exists());
     }
@@ -173,7 +173,7 @@ public class VerificacaoRobustez {
     private static void checarCliRecusaSobrescreverEntrada() throws IOException {
         File f = temporario("mesmo", ".txt");
         Files.write(f.toPath(), "program x;".getBytes(StandardCharsets.UTF_8));
-        Main.main(new String[]{f.getAbsolutePath(), f.getAbsolutePath()});
+        AnaliseLexica.main(new String[]{f.getAbsolutePath(), f.getAbsolutePath()});
         String depois = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
         checar("CLI: saída igual à entrada é recusada e o arquivo original fica intacto",
                 depois.equals("program x;"));

@@ -1,8 +1,8 @@
 package minipascal.lexico.verificacao;
 
 import minipascal.lexico.core.AnalisadorLexico;
-import minipascal.lexico.io.EscritorArquivoSaida;
-import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.io.EscritorArquivoSaida;
+import minipascal.io.LeitorArquivoFonte;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;

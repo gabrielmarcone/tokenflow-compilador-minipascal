@@ -1,4 +1,4 @@
-package minipascal.lexico.gui;
+package minipascal.gui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

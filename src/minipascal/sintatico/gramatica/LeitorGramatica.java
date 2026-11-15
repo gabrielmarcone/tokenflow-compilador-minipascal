@@ -1,6 +1,6 @@
 package minipascal.sintatico.gramatica;
 
-import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.io.LeitorArquivoFonte;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -1,9 +1,11 @@
-package minipascal.sintatico.slr;
+package minipascal.cli;
 
-import minipascal.sintatico.Console;
 import minipascal.sintatico.gramatica.Gramatica;
 import minipascal.sintatico.gramatica.GramaticaInvalidaException;
 import minipascal.sintatico.gramatica.LeitorGramatica;
+import minipascal.sintatico.slr.AnaliseSLR;
+import minipascal.sintatico.slr.ConflitoSLR;
+import minipascal.sintatico.slr.ExportadorTabela;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +18,7 @@ import java.util.List;
  * Linha de comando do gerador: lê uma gramática, constrói a tabela SLR(1) e
  * grava o relatório (.txt) e a tabela (.csv).
  *
- *   java -cp TokenFlow.jar minipascal.sintatico.slr.GeradorTabelas <gramatica.txt> [pasta-saida]
+ *   java -cp TokenFlow.jar minipascal.cli.GeradorTabelas <gramatica.txt> [pasta-saida]
  *
  * Se o argumento for só um nome (sem pasta) e não existir no disco, procura
  * uma gramática com esse nome entre as que acompanham o programa (ex.:
@@ -25,7 +27,7 @@ import java.util.List;
  * gramática for inválida ou tiver conflitos (o relatório é gravado mesmo
  * assim, mostrando onde estão os conflitos).
  *
- * As mensagens do console não têm acentos (ver minipascal.sintatico.Console).
+ * As mensagens do console não têm acentos (ver Console).
  */
 public final class GeradorTabelas {
 
@@ -39,7 +41,7 @@ public final class GeradorTabelas {
     // Devolve o código de saída: 0 = tabela gerada sem conflitos; 1 = qualquer problema.
     public static int executar(String[] args) {
         if (args.length < 1 || args.length > 2) {
-            System.out.println("Uso: java -cp TokenFlow.jar minipascal.sintatico.slr.GeradorTabelas"
+            System.out.println("Uso: java -cp TokenFlow.jar minipascal.cli.GeradorTabelas"
                     + " <gramatica.txt> [pasta-saida]");
             return 1;
         }

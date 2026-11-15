@@ -1,8 +1,8 @@
-package minipascal.lexico;
+package minipascal.cli;
 
 import minipascal.lexico.core.AnalisadorLexico;
-import minipascal.lexico.io.EscritorArquivoSaida;
-import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.io.EscritorArquivoSaida;
+import minipascal.io.LeitorArquivoFonte;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
@@ -12,14 +12,14 @@ import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main {
+public class AnaliseLexica {
 
     // Modo linha de comando: le o arquivo, chama o analisador ate ele devolver
     // null e grava um par lexema/token por linha. Erros lexicos entram na saida
     // como tokens; so falha de leitura ou gravacao interrompe a execucao.
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Uso: java -cp TokenFlow.jar minipascal.lexico.Main <entrada.txt> [saida.txt]");
+            System.out.println("Uso: java -cp TokenFlow.jar minipascal.cli.AnaliseLexica <entrada.txt> [saida.txt]");
             return;
         }
 

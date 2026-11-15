@@ -21,10 +21,10 @@ mkdir -p out
 find src -name '*.java' > out/fontes.txt
 "$JAVAC" $JAVAC_OPTS -encoding UTF-8 -d out @out/fontes.txt
 
-cp src/minipascal/lexico/gui/*.fxml src/minipascal/lexico/gui/*.css src/minipascal/lexico/gui/*.png out/minipascal/lexico/gui/
+cp src/minipascal/gui/*.fxml src/minipascal/gui/*.css src/minipascal/gui/*.png out/minipascal/gui/
 cp src/minipascal/sintatico/gramatica/*.txt out/minipascal/sintatico/gramatica/
 
-printf 'Main-Class: minipascal.lexico.gui.MainApp\n' > out/manifest.txt
+printf 'Main-Class: minipascal.gui.MainApp\n' > out/manifest.txt
 "$JAR" cfm TokenFlow.jar out/manifest.txt -C out minipascal
 
 echo "TokenFlow.jar gerado."
@@ -35,7 +35,7 @@ if [ "$1" = "teste" ]; then
                  lexico.verificacao.VerificacaoAbsurda lexico.verificacao.VerificacaoRobustez \
                  lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador \
                  sintatico.verificacao.VerificacaoGeradorSLR sintatico.verificacao.VerificacaoParserExpressoes \
-                 sintatico.verificacao.VerificacaoParserCompleto; do
+                 sintatico.verificacao.VerificacaoParserCompleto verificacao.VerificacaoArquitetura; do
         "$JAVA" -cp out "minipascal.$suite" > out/resultado.txt || { grep FALHA out/resultado.txt; echo "$suite falhou."; exit 1; }
         grep "falha(s)" out/resultado.txt
     done

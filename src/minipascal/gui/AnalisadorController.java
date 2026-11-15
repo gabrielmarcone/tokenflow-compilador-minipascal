@@ -1,4 +1,4 @@
-package minipascal.lexico.gui;
+package minipascal.gui;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,8 +14,8 @@ import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.lexico.core.DescricaoErroLexico;
-import minipascal.lexico.io.EscritorArquivoSaida;
-import minipascal.lexico.io.LeitorArquivoFonte;
+import minipascal.io.EscritorArquivoSaida;
+import minipascal.io.LeitorArquivoFonte;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
