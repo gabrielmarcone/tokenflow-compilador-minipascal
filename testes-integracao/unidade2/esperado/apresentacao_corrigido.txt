@@ -1,0 +1,18 @@
+OK
+
+Tabela de símbolos:
+Escopo    Nível  Nome       Categoria                 Tipo     Linha  Parâmetros
+externo   0      read       procedimento predefinido  -        -
+externo   0      write      procedimento predefinido  -        -
+externo   0      writeln    procedimento predefinido  -        -
+externo   0      Notas      programa                  -        4
+global    1      nota1      variável                  real     5
+global    1      nota2      variável                  real     5
+global    1      media      variável                  real     5
+global    1      faltas     variável                  integer  6
+global    1      nome       variável                  string   7
+global    1      situacao   variável                  string   7
+global    1      calcular   procedimento              -        9      (a: real; b: real; var resultado: real)
+calcular  2      a          parâmetro                 real     9
+calcular  2      b          parâmetro                 real     9
+calcular  2      resultado  parâmetro var             real     9

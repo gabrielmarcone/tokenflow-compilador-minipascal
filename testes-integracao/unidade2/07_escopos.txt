@@ -1,0 +1,44 @@
+/* Teste 07 - escopos (programa correto):
+   procedimento dentro de procedimento, nome local que esconde o de fora,
+   acesso a nomes de fora, recursão, nome do programa e procedimento
+   predefinido redeclarados, e nomes em maiúsculas e minúsculas.
+   Resultado esperado: OK. A tabela de símbolos mostra os níveis. */
+program Escopos;
+var x, total: integer;
+    escopos: string;
+
+procedure externa(x: real);
+var y: integer;
+
+  procedure interna(var y: integer);
+  var z: char;
+  begin
+    z := 'k';
+    y := y + total;
+    writeln(x, z);
+  end;
+
+begin
+  y := 1;
+  interna(y);
+  x := x * 2;
+  total := y;
+end;
+
+procedure contar(n: integer);
+var write: integer;
+begin
+  write := n;
+  if n > 0 then contar(n - 1);
+  externa(n);
+  writeln(write);
+end;
+
+begin
+  x := 10;
+  escopos := "global";
+  EXTERNA(x);
+  contar(3);
+  Total := X + total;
+  write(escopos, total);
+end.

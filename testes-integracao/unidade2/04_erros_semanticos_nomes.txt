@@ -1,0 +1,50 @@
+/* Teste 04 - erros semânticos de declaração e uso de nomes:
+   nome repetido no mesmo escopo, nome não declarado, nome fora de escopo,
+   procedimento usado como variável, variável chamada como procedimento,
+   nome do programa e procedimento predefinido usados como variável.
+   Não há erros léxicos nem sintáticos. */
+program Nomes;
+var x, y: integer;
+    x: real;
+    texto: string;
+
+procedure p(a: integer; a: real);
+var a: char;
+    local: integer;
+begin
+  a := 1;
+  local := a;
+end;
+
+procedure q;
+begin
+  z := 1;
+  z := z + 1;
+  depois;
+end;
+
+procedure p;
+begin
+  writeln("outro p");
+end;
+
+procedure depois;
+begin
+  q;
+end;
+
+begin
+  z := 2;
+  x := q;
+  q := 3;
+  y(1);
+  y;
+  Nomes := 1;
+  x := Nomes + 1;
+  r(1);
+  writeln(local);
+  read := x;
+  X := 5;
+  depois;
+  TEXTO := "maiúsculas e minúsculas são o mesmo nome";
+end.

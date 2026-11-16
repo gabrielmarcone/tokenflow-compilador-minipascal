@@ -1,0 +1,62 @@
+/* Teste 06 - erros semânticos nas chamadas de procedimento:
+   número de argumentos, tipo de cada argumento, parâmetro var (precisa
+   de uma variável do mesmo tipo) e os predefinidos read, write e writeln.
+   Não há erros léxicos nem sintáticos. */
+program Chamadas;
+var i: integer;
+    r: real;
+    c: char;
+    s: string;
+
+procedure dobrar(var n: integer);
+begin
+  n := n * 2;
+end;
+
+procedure media(a, b: real; var m: real);
+begin
+  m := (a + b) * 0.5;
+end;
+
+procedure escrever(texto: string; vezes: integer);
+begin
+  while vezes > 0 do
+  begin
+    writeln(texto);
+    vezes := vezes - 1;
+  end;
+end;
+
+procedure nada;
+begin
+  writeln;
+end;
+
+begin
+  dobrar(i);
+  dobrar(5);
+  dobrar(i + 1);
+  dobrar((i));
+  dobrar(r);
+  dobrar;
+  dobrar(i, i);
+  media(1, 2, r);
+  media(i, r, i);
+  media(s, 2, r);
+  media(1, 'x', c);
+  escrever(c, 3);
+  escrever("oi", 2.5);
+  escrever("oi");
+  nada(1);
+  nada;
+  read;
+  read(i, 10);
+  read(i + 1);
+  write;
+  write(i, r, c, s, i < 2);
+  writeln;
+  writeln(i, s);
+  dobrar(x);
+  media(nada, 1, r);
+  READ(c);
+end.

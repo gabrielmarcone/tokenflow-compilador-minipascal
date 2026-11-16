@@ -1,0 +1,41 @@
+/* Teste 05 - erros semânticos de tipos: atribuição, operadores
+   aritméticos, div e mod, sinal, comparações e condições de if e while.
+   As conversões permitidas (integer em real, char em string) não são erro,
+   e uma expressão que já tem erro não gera outras mensagens.
+   Não há erros léxicos nem sintáticos. */
+program Tipos;
+var i, j: integer;
+    r: real;
+    c: char;
+    s: string;
+begin
+  i := 2.5;
+  i := i + r;
+  r := i;
+  c := s;
+  c := "a";
+  s := c;
+  s := 10;
+  i := 'x';
+  r := i div 2;
+  i := r div 2;
+  i := i mod 2.0;
+  i := s * 2;
+  s := s - c;
+  s := s + i;
+  i := -s;
+  s := +c;
+  i := (s * 2 + 1) div 3;
+  i := i < j;
+  r := r
+       * s;
+  if i then i := 0;
+  while r + 1 do r := 0;
+  if i = s then i := 1;
+  if c < 1 then i := 2;
+  if (i < j) = 1 then i := 3;
+  if (i < j) = (s < c) then i := 4;
+  if s = c then s := s + c;
+  while (i > r) do i := i - 1;
+  if i + s < 3 then i := 5;
+end.

@@ -1,0 +1,24 @@
+/* Teste 08 - erros das três fases no mesmo programa.
+   Os erros saem em ordem de linha e, na mesma linha, na ordem do texto.
+   Erros léxicos não param a análise semântica; o primeiro erro sintático
+   para a semântica (o erro de tipo da linha 18 não é relatado), mas os
+   erros léxicos e sintáticos continuam sendo relatados até o fim.
+   Um caractere inválido some da entrada da análise sintática (na linha 19
+   sobra "b := 5 2", também um erro sintático), e uma string sem fechar
+   vai até o fim da linha (o erro sintático aparece na linha seguinte). */
+program Misto;
+var a, b: integer;
+    nome: string;
+begin
+  a := 10 # ;
+  b := nome;
+  a := b + c;
+  nome := 5 ? ;
+  b := (a + 1;
+  a := nome;
+  b := 5 @ 2;
+  writeln(a, b);
+  nome := "sem fechar;
+  nome := "certo";
+  writeln(nome);
+end.

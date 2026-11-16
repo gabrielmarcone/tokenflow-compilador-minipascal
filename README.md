@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-601%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-653%20passing-success)
 
 </div>
 
@@ -116,15 +116,18 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
 
 **Testes**
 
-- ✅ **601 verificações automatizadas** em 16 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **653 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
   (vários erros, cascata, textos aleatórios, desempenho), passos da pilha mostrados na
   interface (conferidos com a figura 4.38 do livro do Dragão), análise semântica (cada regra,
-  escopos, programas gerados bem tipados e com um erro injetado de cada tipo) e regras de
-  arquitetura
+  escopos, programas gerados bem tipados e com um erro injetado de cada tipo), regras de
+  arquitetura e os arquivos de teste da Unidade II
 - ✅ 8 arquivos de teste de integração do léxico, incluindo os dois exemplos do enunciado
+- ✅ 10 arquivos de teste da Unidade II (dois programas corretos, um para cada tipo de erro,
+  um com erros misturados e o programa da apresentação), cada um com o resultado esperado
+  conferido à mão
 
 ## Arquitetura
 
@@ -268,11 +271,16 @@ java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoRastro       
 java -cp TokenFlow.jar minipascal.semantico.verificacao.VerificacaoTabelaSimbolos    # tabela de símbolos e tipos
 java -cp TokenFlow.jar minipascal.semantico.verificacao.VerificacaoSemantica         # análise semântica
 java -cp TokenFlow.jar minipascal.verificacao.VerificacaoArquitetura                # regras entre os módulos
+java -cp TokenFlow.jar minipascal.verificacao.VerificacaoTestesUnidade2             # arquivos de teste da Unidade II
 ```
 
-A `VerificacaoArquitetura` lê o código em `src/`, então precisa ser rodada da raiz do projeto.
+A `VerificacaoArquitetura` lê o código em `src/` e a `VerificacaoTestesUnidade2` lê os
+arquivos de `testes-integracao/unidade2/`, então as duas precisam ser rodadas da raiz do
+projeto.
 
 ## Arquivos de teste da análise léxica
+
+Ficam em `testes-integracao/entrada/`.
 
 | Arquivo | O que cobre |
 |---|---|
@@ -284,6 +292,26 @@ A `VerificacaoArquitetura` lê o código em `src/`, então precisa ser rodada da
 | `06_comentarios_e_strings.txt` | Comentário "aninhado", string sem fechar no meio do arquivo |
 | `07_casos_extremos_diversos.txt` | Identificador de 100+ caracteres, palavras reservadas em caixa mista, comentário nunca fechado |
 | `demo.txt` | Programa usado na apresentação da Unidade I, com dois erros léxicos |
+
+## Arquivos de teste da Unidade II
+
+Ficam em `testes-integracao/unidade2/`, cada um com o resultado esperado (`OK` ou os erros,
+e a tabela de símbolos) em `testes-integracao/unidade2/esperado/`. O
+[README da pasta](testes-integracao/unidade2/README.md) descreve cada teste, explica como os
+resultados esperados foram conferidos e traz o roteiro da apresentação.
+
+| Arquivo | O que testa | Resultado |
+|---|---|---|
+| `01_programa_completo.txt` | Programa correto com toda a linguagem | `OK` |
+| `02_erros_lexicos.txt` | Caracteres inválidos e comentário sem fechar | 8 erros léxicos |
+| `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 9 erros sintáticos |
+| `04_erros_semanticos_nomes.txt` | Declarações repetidas, nomes não declarados, escopo, categoria | 16 erros semânticos |
+| `05_erros_semanticos_tipos.txt` | Atribuição, operadores, comparações e condições | 22 erros semânticos |
+| `06_erros_semanticos_chamadas.txt` | Argumentos, parâmetros `var`, `read`/`write`/`writeln` | 19 erros semânticos |
+| `07_escopos.txt` | Procedimentos aninhados, nomes escondidos, recursão | `OK` |
+| `08_erros_misturados.txt` | Erros das três fases juntos | 10 erros |
+| `apresentacao.txt` | Programa da apresentação, com um erro de cada fase | 4 erros |
+| `apresentacao_corrigido.txt` | O mesmo programa corrigido | `OK` |
 
 ## Gramática (Unidade II)
 
@@ -494,7 +522,11 @@ Respostas às perguntas de projeto (a-e) da especificação:
   pode avisar um observador (`OuvinteAnalise`) a cada ação; a interface usa isso para mostrar
   a pilha passo a passo, e sem observador a análise é a mesma de antes.
 
-Próximas etapas: os arquivos de teste da Unidade II e a documentação.
+- Arquivos de teste da Unidade II com os resultados esperados conferidos à mão, a suíte
+  `VerificacaoTestesUnidade2` e o programa da apresentação, descritos em "Arquivos de teste
+  da Unidade II".
+
+Próxima etapa: a documentação.
 
 ## Contexto acadêmico
 
