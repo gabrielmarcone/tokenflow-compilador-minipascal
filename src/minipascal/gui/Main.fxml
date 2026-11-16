@@ -17,10 +17,10 @@
 <?import minipascal.gui.EditorCodigo?>
 
 <!--
-  Janela do TokenFlow. À esquerda, o código (sempre visível); à direita, o
-  resultado da análise (faixa de resultado) e as abas, na ordem das fases do
-  compilador: Erros, Tokens (léxica), Pilha (sintática), Símbolos (semântica)
-  e a descrição da linguagem (Gramática e SLR(1)). O comportamento está em
+  Janela do TokenFlow. A esquerda, o codigo (sempre visivel); a direita, o
+  resultado da analise (faixa de resultado) e as abas, na ordem das fases do
+  compilador: Erros, Tokens (lexica), Pilha (sintatica), Simbolos (semantica)
+  e a descricao da linguagem (Gramatica e SLR(1)). O comportamento esta em
   AnalisadorController.
 -->
 <BorderPane fx:id="raiz" prefHeight="780" prefWidth="1280" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="minipascal.gui.AnalisadorController">
@@ -132,7 +132,7 @@
                                                         <Button fx:id="btnVerNaTabela" minWidth="-Infinity" onAction="#verPassoNaTabela" styleClass="botao-pequeno" text="Ver na tabela SLR" />
                                                     </children>
                                                 </HBox>
-                                                <!-- Tabela e detalhe do passo, com divisória que o usuário pode arrastar. -->
+                                                <!-- Tabela e detalhe do passo, com divisoria que o usuario pode arrastar. -->
                                                 <SplitPane fx:id="splitPilha" dividerPositions="0.78" orientation="VERTICAL" styleClass="split-pilha" VBox.vgrow="ALWAYS">
                                                     <items>
                                                         <TableView fx:id="tabelaPassos" minHeight="90">

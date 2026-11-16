@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.core.AnalisadorLexico;
@@ -12,9 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Verifica a tradução de tokens do analisador léxico para terminais da
- * gramática, feita pelo AdaptadorLexico. Sem JUnit, no mesmo formato das
- * verificações da Unidade I.
+ * Verifica a traducao de tokens do analisador lexico para terminais da
+ * gramatica, feita pelo AdaptadorLexico. Sem JUnit, no mesmo formato das
+ * verificacoes da Unidade I.
  */
 public class VerificacaoAdaptador {
 
@@ -34,13 +35,13 @@ public class VerificacaoAdaptador {
         checarTerminais("palavras reservadas fora da gramática mantêm o nome (for, repeat, proc)",
                 "for repeat proc", "for", "repeat", "proc");
 
-        // Identificadores e números
+        // Identificadores e numeros
         checarTerminais("identificadores viram 'id', inclusive read/write/writeln",
                 "x total read write writeln", "id", "id", "id", "id", "id");
         checarTerminais("inteiro e real viram 'numero'",
                 "13 1.33 24.40e-04", "numero", "numero", "numero");
 
-        // Operadores e símbolos
+        // Operadores e simbolos
         checarTerminais("operadores aritméticos e relacionais viram o lexema",
                 "+ - * / = < > <> <= >=", "+", "-", "*", "/", "=", "<", ">", "<>", "<=", ">=");
         checarTerminais("operadores lógicos viram o lexema em minúsculas",
@@ -62,14 +63,14 @@ public class VerificacaoAdaptador {
         ultimaLinha.proximo();
         checar("'$' recebe a linha do último token lido (3)", ultimaLinha.proximo().getLinha() == 3);
 
-        // Erros léxicos: registrados e pulados
+        // Erros lexicos: registrados e pulados
         AdaptadorLexico comErros = adaptador("x := 5 @ 2;\nwriteln(\"aberta);\n'ab'");
         List<String> nomes = nomesAteOFim(comErros);
         checar("erros léxicos não chegam ao parser",
-                nomes.equals(Arrays.asList("id", ":=", "numero", "numero", ";", "id", "(", "id", "$")));
+                nomes.equals(Arrays.asList("id", ":=", "numero", "numero", ";", "id", "(", "$")));
         List<ErroCompilacao> erros = comErros.getErrosLexicos();
-        checar("quatro erros léxicos registrados ('@', string aberta e os dois do char 'ab')",
-                erros.size() == 4);
+        checar("três erros léxicos registrados ('@', string aberta e o char 'ab')",
+                erros.size() == 3);
         checar("primeiro erro: linha 1, caractere inválido",
                 erros.get(0).getLinha() == 1 && erros.get(0).getCategoria() == CategoriaErro.LEXICO
                         && erros.get(0).getMensagem().equals("Caractere inválido: @"));
@@ -78,14 +79,14 @@ public class VerificacaoAdaptador {
                         && erros.get(1).getMensagem().equals("String não fechada (falta \"): \"aberta);"));
         checar("terceiro erro: linha 3, char com mais de um caractere",
                 erros.get(2).getLinha() == 3
-                        && erros.get(2).getMensagem().equals("Char deve ter 1 caractere: 'a"));
+                        && erros.get(2).getMensagem().equals("Char deve ter 1 caractere: 'ab'"));
         checar("formato da mensagem completa",
                 erros.get(0).toString().equals("Erro léxico na linha 1: Caractere inválido: @"));
         checar("tokens lidos incluem os erros (para a aba de tokens)",
-                comErros.getTokensLidos().size() == 12);
+                comErros.getTokensLidos().size() == 10);
 
-        // Posições na sequência de todos os tokens lidos (ordenam erros léxicos e
-        // sintáticos na mesma linha): x=0, @=1, y=2, $=3.
+        // Posicoes na sequencia de todos os tokens lidos (ordenam erros lexicos e
+        // sintaticos na mesma linha): x=0, @=1, y=2, $=3.
         AdaptadorLexico posicoes = adaptador("x @ y");
         Terminal px = posicoes.proximo();
         Terminal py = posicoes.proximo();
@@ -102,7 +103,7 @@ public class VerificacaoAdaptador {
                         && comentario.getErrosLexicos().get(0).getMensagem()
                                 .equals("Comentário não fechado (falta */): /*"));
 
-        // Programa completo, no formato da gramática
+        // Programa completo, no formato da gramatica
         String programa =
                 "program exemplo;\n" +
                 "var a, b: integer;\n" +
@@ -132,7 +133,7 @@ public class VerificacaoAdaptador {
         checar("programa completo não tem erros léxicos", completo.getErrosLexicos().isEmpty());
 
         System.out.println();
-        System.out.println(total + " verificações do adaptador, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do adaptador, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -142,7 +143,7 @@ public class VerificacaoAdaptador {
         return new AdaptadorLexico(new AnalisadorLexico(fonte, TABELA));
     }
 
-    // Lê até o "$" (inclusive) e devolve os nomes dos terminais.
+    // Le ate o "$" (inclusive) e devolve os nomes dos terminais.
     private static List<String> nomesAteOFim(AdaptadorLexico adaptador) {
         List<String> nomes = new ArrayList<>();
         Terminal t;
@@ -164,10 +165,10 @@ public class VerificacaoAdaptador {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

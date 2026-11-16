@@ -8,25 +8,25 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Tabela de símbolos com escopos aninhados: uma tabela hash por escopo,
- * empilhadas (livro do Dragão, seção 2.7).
+ * Tabela de simbolos com escopos aninhados: uma tabela hash por escopo,
+ * empilhadas (livro do Dragao, secao 2.7).
  *
  *   - abrirEscopo: empilha uma tabela nova (o bloco de um procedimento);
  *   - declarar: insere no escopo do topo; recusa um nome repetido nele;
- *   - buscar: procura do topo para a base, então o nome local esconde o de
- *     fora (um parâmetro x esconde uma variável global x);
- *   - fecharEscopo: desempilha, e os nomes locais deixam de ser visíveis.
+ *   - buscar: procura do topo para a base, entao o nome local esconde o de
+ *     fora (um parametro x esconde uma variavel global x);
+ *   - fecharEscopo: desempilha, e os nomes locais deixam de ser visiveis.
  *
  * Escopos: 0 "externo" (read, write, writeln e o nome do programa, que ficam
- * fora do programa e podem ser redeclarados nele); 1 "global" (variáveis e
+ * fora do programa e podem ser redeclarados nele); 1 "global" (variaveis e
  * procedimentos do programa); 2 em diante, dentro dos procedimentos.
  *
- * Os nomes são comparados sem diferenciar maiúsculas de minúsculas, como no
- * Pascal e como as palavras reservadas do léxico: Soma e soma são o mesmo nome.
+ * Os nomes sao comparados sem diferenciar maiusculas de minusculas, como no
+ * Pascal e como as palavras reservadas do lexico: Soma e soma sao o mesmo nome.
  *
- * Além da pilha, a tabela guarda o histórico de todos os símbolos declarados,
- * na ordem da declaração, para mostrar a tabela inteira depois da análise
- * (os escopos já fechados não estão mais na pilha).
+ * Alem da pilha, a tabela guarda o historico de todos os simbolos declarados,
+ * na ordem da declaracao, para mostrar a tabela inteira depois da analise
+ * (os escopos ja fechados nao estao mais na pilha).
  */
 public final class TabelaSimbolos {
 
@@ -45,14 +45,14 @@ public final class TabelaSimbolos {
     private final List<Escopo> pilha = new ArrayList<>();
     private final List<Simbolo> historico = new ArrayList<>();
 
-    // Começa com o escopo externo já aberto.
+    // Comeca com o escopo externo ja aberto.
     public TabelaSimbolos() {
         pilha.add(new Escopo(ESCOPO_EXTERNO));
     }
 
     /**
      * Abre um escopo dentro do atual. O nome completo junta os nomes dos
-     * procedimentos que o contêm ("soma.aux"); o global se chama "global".
+     * procedimentos que o contem ("soma.aux"); o global se chama "global".
      */
     public void abrirEscopo(String nome) {
         String pai = topo().nome;
@@ -67,7 +67,7 @@ public final class TabelaSimbolos {
         pilha.remove(pilha.size() - 1);
     }
 
-    // Nível do escopo atual (0 = externo).
+    // Nivel do escopo atual (0 = externo).
     public int nivelAtual() {
         return pilha.size() - 1;
     }
@@ -79,8 +79,8 @@ public final class TabelaSimbolos {
     /**
      * Declara no escopo atual.
      *
-     * @return null se deu certo; se o nome já existe neste escopo, o símbolo que
-     *         já estava (o novo não é inserido)
+     * @return null se deu certo; se o nome ja existe neste escopo, o simbolo que
+     *         ja estava (o novo nao e inserido)
      */
     public Simbolo declarar(Simbolo simbolo) {
         Escopo escopo = topo();
@@ -95,7 +95,7 @@ public final class TabelaSimbolos {
         return null;
     }
 
-    // O símbolo visível com esse nome (do escopo mais interno para o externo), ou null.
+    // O simbolo visivel com esse nome (do escopo mais interno para o externo), ou null.
     public Simbolo buscar(String nome) {
         String chave = chave(nome);
         for (int i = pilha.size() - 1; i >= 0; i--) {
@@ -107,22 +107,22 @@ public final class TabelaSimbolos {
         return null;
     }
 
-    // Só no escopo atual, ou null.
+    // So no escopo atual, ou null.
     public Simbolo buscarNoEscopoAtual(String nome) {
         return topo().simbolos.get(chave(nome));
     }
 
-    // Todos os símbolos declarados, na ordem da declaração (inclusive os de escopos já fechados).
+    // Todos os simbolos declarados, na ordem da declaracao (inclusive os de escopos ja fechados).
     public List<Simbolo> getHistorico() {
         return Collections.unmodifiableList(historico);
     }
 
     /**
-     * A tabela inteira em texto, uma linha por símbolo, sem os nomes "não
-     * declarados" (que só existem para evitar mensagens repetidas):
+     * A tabela inteira em texto, uma linha por simbolo, sem os nomes "nao
+     * declarados" (que so existem para evitar mensagens repetidas):
      *
-     *   Escopo   Nível  Nome   Categoria  Tipo     Linha  Parâmetros
-     *   global   1      x      variável   integer  2
+     *   Escopo   Nivel  Nome   Categoria  Tipo     Linha  Parametros
+     *   global   1      x      variavel   integer  2
      */
     public String listar() {
         String[] cabecalho = {"Escopo", "Nível", "Nome", "Categoria", "Tipo", "Linha", "Parâmetros"};

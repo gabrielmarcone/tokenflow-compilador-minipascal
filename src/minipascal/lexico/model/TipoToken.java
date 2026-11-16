@@ -1,8 +1,8 @@
 package minipascal.lexico.model;
 
 /**
- * Classes léxicas da linguagem. O texto de cada valor é o que aparece na
- * coluna de token do arquivo de saída (sem código numérico).
+ * Classes lexicas da linguagem. O texto de cada valor e o que aparece na
+ * coluna de token do arquivo de saida (sem codigo numerico).
  */
 public enum TipoToken {
 
@@ -26,6 +26,7 @@ public enum TipoToken {
         this.descricao = descricao;
     }
 
+    // Texto da classe, com acentos (vai para o arquivo de saida em UTF-8).
     public String getDescricao() {
         return descricao;
     }

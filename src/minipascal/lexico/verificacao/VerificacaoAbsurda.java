@@ -1,5 +1,6 @@
 package minipascal.lexico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
@@ -10,8 +11,8 @@ import java.util.List;
 
 /**
  * Testes de estresse: entradas maldosas, mal formadas ou no limite do que
- * a linguagem permite. O objetivo não é validar o "caminho feliz" (isso já
- * é coberto pelas Fases 3-6), e sim tentar quebrar o analisador de propósito.
+ * a linguagem permite. O objetivo nao e validar o "caminho feliz" (isso ja
+ * e coberto pelas Fases 3-6), e sim tentar quebrar o analisador de proposito.
  */
 public class VerificacaoAbsurda {
 
@@ -46,20 +47,20 @@ public class VerificacaoAbsurda {
         checarCharComMaisDeUmCaractereEhErro();
 
         System.out.println();
-        System.out.println(total + " verificações absurdas, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes absurdas, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
     }
 
-    // "123abc" — número colado direto num identificador, sem espaço.
-    // Comportamento correto: dois tokens separados, não um "número inválido".
+    // "123abc" - numero colado direto num identificador, sem espaco.
+    // Comportamento correto: dois tokens separados, nao um "numero invalido".
     private static void checarNumeroColadoEmIdentificador() {
-        List<Token> tokens = tokenizarTudo("123abc");
-        checar("'123abc' vira DOIS tokens: '123' (inteiro) + 'abc' (identificador)",
+        List<Token> tokens = tokenizarTudo("123abc x");
+        checar("'123abc' vira UM erro lexico (numero mal formado), e o 'x' depois continua normal",
                 tokens.size() == 2
-                        && tokens.get(0).getLexema().equals("123") && tokens.get(0).getTipo() == TipoToken.NUMERO_INTEIRO
-                        && tokens.get(1).getLexema().equals("abc") && tokens.get(1).getTipo() == TipoToken.IDENTIFICADOR);
+                        && tokens.get(0).getLexema().equals("123abc") && tokens.get(0).getTipo() == TipoToken.ERRO_LEXICO
+                        && tokens.get(1).getLexema().equals("x") && tokens.get(1).getTipo() == TipoToken.IDENTIFICADOR);
     }
 
     // Palavra reservada com um caractere a mais/a menos deve ser Identificador.
@@ -70,8 +71,8 @@ public class VerificacaoAbsurda {
         checarTokenUnico("edn", TipoToken.IDENTIFICADOR);
     }
 
-    // "vars", "integer2" etc — contêm uma palavra reservada como prefixo,
-    // mas são identificadores válidos e diferentes (match tem que ser exato).
+    // "vars", "integer2" etc - contem uma palavra reservada como prefixo,
+    // mas sao identificadores validos e diferentes (match tem que ser exato).
     private static void checarPalavraReservadaComoPrefixoDeIdentificador() {
         checarTokenUnico("vars", TipoToken.IDENTIFICADOR);
         checarTokenUnico("integer2", TipoToken.IDENTIFICADOR);
@@ -79,16 +80,16 @@ public class VerificacaoAbsurda {
         checarTokenUnico("endereco", TipoToken.IDENTIFICADOR);
     }
 
-    // A busca já era case-insensitive (testado na Fase 3/4), mas com
-    // maiúsculas/minúsculas ALTERNADAS dentro da mesma palavra — caso mais
+    // A busca ja era case-insensitive (testado na Fase 3/4), mas com
+    // maiusculas/minusculas ALTERNADAS dentro da mesma palavra - caso mais
     // extremo de mistura de caixa.
     private static void checarCaixaMistaEmPalavraReservada() {
         checarTokenUnico("PrOgRaM", TipoToken.PALAVRA_RESERVADA);
         checarTokenUnico("BeGiN", TipoToken.PALAVRA_RESERVADA);
     }
 
-    // "1.2.3" — dois pontos decimais. Segundo ponto não tem dígito de sobra
-    // pra formar outro real junto ao primeiro, então vira Fim isolado.
+    // "1.2.3" - dois pontos decimais. Segundo ponto nao tem digito de sobra
+    // pra formar outro real junto ao primeiro, entao vira Fim isolado.
     private static void checarPontosMultiplos() {
         List<Token> tokens = tokenizarTudo("1.2.3");
         checar("'1.2.3' vira '1.2' (real) + '.' (Fim) + '3' (inteiro), não trava",
@@ -98,7 +99,7 @@ public class VerificacaoAbsurda {
                         && tokens.get(2).getLexema().equals("3") && tokens.get(2).getTipo() == TipoToken.NUMERO_INTEIRO);
     }
 
-    // Vários caracteres inválidos em sequência, sem nada válido entre eles.
+    // Varios caracteres invalidos em sequencia, sem nada valido entre eles.
     private static void checarSequenciaDeErros() {
         List<Token> tokens = tokenizarTudo("@#$%&");
         boolean todosErro = tokens.size() == 5;
@@ -121,7 +122,7 @@ public class VerificacaoAbsurda {
                 tokens.isEmpty());
     }
 
-    // Pascal não suporta comentário aninhado — /* dentro de /* fecha no
+    // Pascal nao suporta comentario aninhado - /* dentro de /* fecha no
     // PRIMEIRO "*/", sobra "*/" como texto solto (dois operadores '*' e '/').
     private static void checarComentarioAninhado() {
         List<Token> tokens = tokenizarTudo("/* externo /* interno */ */");
@@ -131,7 +132,7 @@ public class VerificacaoAbsurda {
                         && tokens.get(1).getLexema().equals("/") && tokens.get(1).getTipo() == TipoToken.OPERADOR_ARITMETICO);
     }
 
-    // Expressão inteira sem nenhum espaço em lugar nenhum.
+    // Expressao inteira sem nenhum espaco em lugar nenhum.
     private static void checarOperadoresColadosSemEspaco() {
         List<Token> tokens = tokenizarTudo("x:=1+2*3-4/5;");
         String[] esperado = {"x", ":=", "1", "+", "2", "*", "3", "-", "4", "/", "5", ";"};
@@ -146,8 +147,8 @@ public class VerificacaoAbsurda {
                 mesmosLexemas(tokens, esperado));
     }
 
-    // ".5" — sem dígito antes do ponto. A linguagem não prevê esse formato
-    // (todos os exemplos do enunciado têm dígito antes do ponto).
+    // ".5" - sem digito antes do ponto. A linguagem nao preve esse formato
+    // (todos os exemplos do enunciado tem digito antes do ponto).
     private static void checarNumeroComPontoNoInicio() {
         List<Token> tokens = tokenizarTudo(".5");
         checar("'.5' vira '.' (Fim) + '5' (inteiro), não um real começando em ponto",
@@ -156,8 +157,8 @@ public class VerificacaoAbsurda {
                         && tokens.get(1).getLexema().equals("5") && tokens.get(1).getTipo() == TipoToken.NUMERO_INTEIRO);
     }
 
-    // Um 'e' sozinho (fora de um número) é só um identificador de uma letra,
-    // não deve ser confundido com marcador de expoente.
+    // Um 'e' sozinho (fora de um numero) e so um identificador de uma letra,
+    // nao deve ser confundido com marcador de expoente.
     private static void checarLetraEIsoladaNaoViraExpoente() {
         checarTokenUnico("e", TipoToken.IDENTIFICADOR);
         List<Token> tokens = tokenizarTudo("x := e;");
@@ -169,9 +170,9 @@ public class VerificacaoAbsurda {
         checarTokenUnico("\"it's a test\"", TipoToken.CONSTANTE_STRING);
     }
 
-    // Identificador tem que COMEÇAR com letra (igual ao Pascal clássico) —
-    // underscore só é permitido no meio, como em "Media_das_medias". Um
-    // underscore como primeiro caractere não é uma letra, então deve ser
+    // Identificador tem que COMECAR com letra (igual ao Pascal classico) -
+    // underscore so e permitido no meio, como em "Media_das_medias". Um
+    // underscore como primeiro caractere nao e uma letra, entao deve ser
     // rejeitado como Erro lexico, separado do resto que vem depois.
     private static void checarIdentificadorComUnderscoreNoMeio() {
         checarTokenUnico("Media_das_medias", TipoToken.IDENTIFICADOR);
@@ -183,7 +184,7 @@ public class VerificacaoAbsurda {
                         && tokens.get(1).getLexema().equals("comecaComUnderscore") && tokens.get(1).getTipo() == TipoToken.IDENTIFICADOR);
     }
 
-    // Arquivos vindos do Windows costumam ter \r\n, não só \n.
+    // Arquivos vindos do Windows costumam ter \r\n, nao so \n.
     private static void checarQuebraDeLinhaWindowsCRLF() {
         List<Token> tokens = tokenizarTudo("program x;\r\nbegin\r\nend.");
         checar("quebra de linha CRLF (Windows) não gera token nem erro estranho",
@@ -199,8 +200,8 @@ public class VerificacaoAbsurda {
                 tokens.size() == 6 && tokens.stream().noneMatch(t -> t.getTipo() == TipoToken.ERRO_LEXICO));
     }
 
-    // Duas palavras reservadas grudadas viram UM identificador só (esperado:
-    // sem separador não tem como saber que eram duas palavras diferentes).
+    // Duas palavras reservadas grudadas viram UM identificador so (esperado:
+    // sem separador nao tem como saber que eram duas palavras diferentes).
     private static void checarPalavrasConcatenadasSemEspaco() {
         checarTokenUnico("beginend", TipoToken.IDENTIFICADOR);
     }
@@ -210,7 +211,7 @@ public class VerificacaoAbsurda {
         checarTokenUnico("€", TipoToken.ERRO_LEXICO);
     }
 
-    // "!=" não existe na linguagem (o certo é "<>"). Vira dois tokens: erro + '='.
+    // "!=" nao existe na linguagem (o certo e "<>"). Vira dois tokens: erro + '='.
     private static void checarSinalDuploNaoExiste() {
         List<Token> tokens = tokenizarTudo("!=");
         checar("'!=' (não existe na linguagem) vira erro em '!' + '=' relacional",
@@ -219,9 +220,9 @@ public class VerificacaoAbsurda {
                         && tokens.get(1).getLexema().equals("=") && tokens.get(1).getTipo() == TipoToken.OPERADOR_RELACIONAL);
     }
 
-    // String que nunca fecha NO MEIO do arquivo (não no final) — o scanner
+    // String que nunca fecha NO MEIO do arquivo (nao no final) - o scanner
     // deve parar a string na quebra de linha e CONTINUAR tokenizando o
-    // resto do arquivo depois, não engolir tudo até o fim.
+    // resto do arquivo depois, nao engolir tudo ate o fim.
     private static void checarStringNaoFechadaNoMeioDoArquivo() {
         String programa = "write(\"esqueci de fechar);\nx := 1;\nend.";
         List<Token> tokens = tokenizarTudo(programa);
@@ -234,19 +235,20 @@ public class VerificacaoAbsurda {
     }
 
     private static void checarCharVazioEhErro() {
-        checarTokenUnico("'a'", TipoToken.CONSTANTE_CHAR); // caso válido continua ok
+        checarTokenUnico("'a'", TipoToken.CONSTANTE_CHAR); // caso valido continua ok
         List<Token> tokens = tokenizarTudo("''");
         checar("char vazio '' deve ser rejeitado (não pode ter 0 caracteres)",
                 tokens.stream().noneMatch(t -> t.getTipo() == TipoToken.CONSTANTE_CHAR));
     }
 
     private static void checarCharComMaisDeUmCaractereEhErro() {
-        List<Token> tokens = tokenizarTudo("'ab'");
-        checar("char com 2+ caracteres 'ab' deve ser rejeitado (só aceita exatamente 1)",
-                tokens.stream().noneMatch(t -> t.getTipo() == TipoToken.CONSTANTE_CHAR));
+        List<Token> tokens = tokenizarTudo("'ab';");
+        checar("char com 2+ caracteres 'ab' vira um erro so, e o ';' depois continua normal",
+                tokens.size() == 2 && tokens.get(0).getLexema().equals("'ab'")
+                        && tokens.get(0).getTipo() == TipoToken.ERRO_LEXICO && tokens.get(1).getLexema().equals(";"));
     }
 
-    // ---------- utilitários ----------
+    // ---------- utilitarios ----------
 
     private static List<Token> tokenizarTudo(String fonte) {
         AnalisadorLexico lexer = new AnalisadorLexico(fonte, TABELA);
@@ -279,10 +281,10 @@ public class VerificacaoAbsurda {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

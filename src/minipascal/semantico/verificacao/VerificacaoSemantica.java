@@ -1,6 +1,7 @@
 package minipascal.semantico.verificacao;
 
 import minipascal.cli.AnaliseSemantica;
+import minipascal.cli.Console;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
@@ -27,26 +28,26 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Verifica a análise semântica (AnalisadorSemantico, pelo Compilador):
+ * Verifica a analise semantica (AnalisadorSemantico, pelo Compilador):
  *
- *   - as regras cobrem exatamente as produções de gramatica.txt;
- *   - programas corretos dão OK;
- *   - cada verificação, com a mensagem exata e a linha: declarações, nomes e
+ *   - as regras cobrem exatamente as producoes de gramatica.txt;
+ *   - programas corretos dao OK;
+ *   - cada verificacao, com a mensagem exata e a linha: declaracoes, nomes e
  *     categorias, tipos, chamadas e os procedimentos predefinidos;
  *   - escopos: nomes locais escondem os de fora, procedimentos aninhados,
- *     recursão, procedimento declarado depois não é visível;
- *   - sem cascatas: expressão com erro não gera novos erros; nome não
- *     declarado é relatado uma vez por escopo;
- *   - convivência com as outras fases: a semântica para no primeiro erro
- *     sintático; erros das três fases na ordem do texto; erros só léxicos não
- *     param a semântica;
- *   - a tabela de símbolos montada e a linha de comando AnaliseSemantica;
- *   - um gerador de programas bem tipados (que sabe o tipo de cada expressão,
- *     sem usar o analisador) dá OK em todos; com um erro injetado de cada
- *     tipo, a saída tem de ser exatamente aquele erro, naquela linha;
- *   - as ações semânticas não mudam a análise sintática: em textos
- *     aleatórios, os erros léxicos e sintáticos são os mesmos do analisador
- *     sem ações, e nenhum erro semântico vem depois do primeiro sintático.
+ *     recursao, procedimento declarado depois nao e visivel;
+ *   - sem cascatas: expressao com erro nao gera novos erros; nome nao
+ *     declarado e relatado uma vez por escopo;
+ *   - convivencia com as outras fases: a semantica para no primeiro erro
+ *     sintatico; erros das tres fases na ordem do texto; erros so lexicos nao
+ *     param a semantica;
+ *   - a tabela de simbolos montada e a linha de comando AnaliseSemantica;
+ *   - um gerador de programas bem tipados (que sabe o tipo de cada expressao,
+ *     sem usar o analisador) da OK em todos; com um erro injetado de cada
+ *     tipo, a saida tem de ser exatamente aquele erro, naquela linha;
+ *   - as acoes semanticas nao mudam a analise sintatica: em textos
+ *     aleatorios, os erros lexicos e sintaticos sao os mesmos do analisador
+ *     sem acoes, e nenhum erro semantico vem depois do primeiro sintatico.
  */
 public class VerificacaoSemantica {
 
@@ -93,7 +94,7 @@ public class VerificacaoSemantica {
         }
         checar("toda produção de gramatica.txt tem regra semântica, e toda regra, produção", montou);
 
-        // Uma gramática com uma produção a mais (e outra a menos) é recusada.
+        // Uma gramatica com uma producao a mais (e outra a menos) e recusada.
         String texto = textoDaGramaticaCompleta()
                 .replace("FATOR -> numero | id", "FATOR -> numero | id | nil");
         String mensagem = "";
@@ -188,7 +189,7 @@ public class VerificacaoSemantica {
                 "end."), "OK");
     }
 
-    // ---------------------------------------------------------- declarações
+    // ---------------------------------------------------------- declaracoes
 
     private static void verificarDeclaracoes() {
         checarSaida("variável declarada duas vezes na mesma lista", linhas(
@@ -276,6 +277,29 @@ public class VerificacaoSemantica {
                 SEM + "5: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real",
                 SEM + "6: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real",
                 SEM + "7: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real");
+        checarSaida("'/' só com números e sempre dá real (como no Pascal)", linhas(
+                "program p;", "var i: integer; r: real; c: char;", "begin", "  r := 4 / 2;", "  r := i / 2.5;",
+                "  i := 4 / 2;", "  r := c / 2;", "end."),
+                SEM + "6: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real",
+                SEM + "7: O operador '/' não se aplica aos tipos char e integer");
+        checarSaida("and, or e not só com comparações; o resultado é lógico", linhas(
+                "program p;", "var i, j: integer; s: string;", "begin",
+                "  if (i < j) and not (s = \"a\") or (i = 0) then i := 1;",
+                "  while not not (i > j) do i := i - 1;",
+                "  if i and j then i := 2;",
+                "  if (i < j) or s then i := 3;",
+                "  if not i then i := 4;",
+                "  i := (i < j) and (j < i);",
+                "end."),
+                SEM + "6: O operador 'and' exige operandos lógicos (comparações), mas recebeu integer e integer",
+                SEM + "7: O operador 'or' exige operandos lógicos (comparações), mas recebeu lógico e string",
+                SEM + "8: O operador 'not' exige um operando lógico (uma comparação), mas recebeu integer",
+                SEM + "9: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é lógico");
+        checarSaida("expressão lógica com erro não gera outras mensagens", linhas(
+                "program p;", "var i: integer; s: string;", "begin",
+                "  if not (s * 2 > 1) and (i / s < 0) then i := 1;", "end."),
+                SEM + "4: O operador '*' não se aplica aos tipos string e integer",
+                SEM + "4: O operador '/' não se aplica aos tipos integer e string");
         checarSaida("div e mod só com integer", linhas(
                 "program p;", "var i: integer; r: real;", "begin", "  i := r div 2;", "  i := 7 mod r;",
                 "  i := 7 div 2 mod 3;", "end."),
@@ -446,12 +470,12 @@ public class VerificacaoSemantica {
                 r.formatar().equals(String.join("\n",
                         SEM + "4: Tipos incompatíveis na atribuição a 'x': a variável é integer e a expressão é real",
                         "Erro sintático na linha 5: Encontrado ';'; esperado identificador, '(', '+', '-', número, "
-                                + "constante string ou constante char"))
+                                + "constante string, constante char ou 'not'"))
                         && !r.isSemanticaCompleta());
         checarSaida("só erros sintáticos, sem nenhum semântico depois deles", linhas(
                 "program p;", "begin", "  x := 1 +;", "  y := \"a\" * 2;", "end."),
-                "Erro sintático na linha 3: Encontrado ';'; esperado identificador, '(', número, constante string "
-                        + "ou constante char");
+                "Erro sintático na linha 3: Encontrado ';'; esperado identificador, '(', número, constante string, "
+                        + "constante char ou 'not'");
         ResultadoCompilacao lexico = COMPILADOR.analisar(linhas(
                 "program p;", "var x: integer;", "begin", "  x := 1 @;", "  x := 2.5;", "end."));
         checar("erro só léxico (o resto é um programa correto): a semântica continua",
@@ -462,8 +486,8 @@ public class VerificacaoSemantica {
                 "program p;", "var x: integer;", "begin", "  x := y; @ x := 1 +;", "end."),
                 SEM + "4: Identificador 'y' não declarado",
                 "Erro léxico na linha 4: Caractere inválido: @",
-                "Erro sintático na linha 4: Encontrado ';'; esperado identificador, '(', número, constante string "
-                        + "ou constante char");
+                "Erro sintático na linha 4: Encontrado ';'; esperado identificador, '(', número, constante string, "
+                        + "constante char ou 'not'");
         checarSaida("na mesma linha, a condição (antes) sai antes do erro do corpo", linhas(
                 "program p;", "var x: integer;", "begin", "  if x then x := 1.5;", "end."),
                 SEM + "4: A condição do 'if' deve ser lógica (uma comparação), mas é integer",
@@ -481,7 +505,7 @@ public class VerificacaoSemantica {
         checar("erros da categoria semântica separáveis das outras",
                 comErro.errosDa(CategoriaErro.SEMANTICO).size() == 1 && comErro.errosDa(CategoriaErro.SINTATICO).isEmpty());
 
-        // A análise sintática sozinha (AnaliseSintatica) continua sem semântica.
+        // A analise sintatica sozinha (AnaliseSintatica) continua sem semantica.
         ResultadoAnalise soSintatica = new AnalisadorSintatico(
                 AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_COMPLETA)).analisar(
                 "program p; begin x := 1; end.");
@@ -489,7 +513,7 @@ public class VerificacaoSemantica {
                 soSintatica.isSucesso());
     }
 
-    // ----------------------------------------------------------- tabela de símbolos
+    // ----------------------------------------------------------- tabela de simbolos
 
     private static void verificarTabela() {
         ResultadoCompilacao r = COMPILADOR.analisar(linhas(
@@ -581,7 +605,7 @@ public class VerificacaoSemantica {
         }
     }
 
-    // Roda AnaliseSemantica.executar com o console capturado: {código, texto}.
+    // Roda AnaliseSemantica.executar com o console capturado: {codigo, texto}.
     private static String[] rodar(String... args) {
         PrintStream original = System.out;
         ByteArrayOutputStream capturado = new ByteArrayOutputStream();
@@ -630,7 +654,7 @@ public class VerificacaoSemantica {
                 GeradorDeProgramas g = new GeradorDeProgramas(rnd);
                 String programa = g.gerar(defeito);
                 if (programa == null) {
-                    continue; // o programa sorteado não tinha onde pôr esse defeito
+                    continue; // o programa sorteado nao tinha onde por esse defeito
                 }
                 tentativas++;
                 String esperado = SEM + g.getLinhaDoDefeito() + ": " + g.getMensagemDoDefeito();
@@ -646,7 +670,7 @@ public class VerificacaoSemantica {
         }
     }
 
-    // --------------------------------------------------------- textos aleatórios
+    // --------------------------------------------------------- textos aleatorios
 
     private static void verificarAleatorios() {
         Random rnd = new Random(77);
@@ -744,7 +768,7 @@ public class VerificacaoSemantica {
 
     // ------------------------------------------------------------------ apoio
 
-    // O texto de gramatica.txt, como está no classpath (para montar variações dele).
+    // O texto de gramatica.txt, como esta no classpath (para montar variacoes dele).
     private static String textoDaGramaticaCompleta() {
         try (java.io.InputStream in = LeitorGramatica.class.getResourceAsStream(AnalisadorSintatico.GRAMATICA_COMPLETA)) {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -780,17 +804,17 @@ public class VerificacaoSemantica {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações da análise semântica, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes da analise semantica, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

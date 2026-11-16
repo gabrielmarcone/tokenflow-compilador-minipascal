@@ -1,13 +1,13 @@
 package minipascal.erros;
 
 /**
- * Um erro encontrado durante a análise: a fase que o detectou, a linha do
- * código-fonte e a mensagem. O enunciado da Unidade II pede que cada erro
- * indique o tipo e o número da linha de ocorrência.
+ * Um erro encontrado durante a analise: a fase que o detectou, a linha do
+ * codigo-fonte e a mensagem. O enunciado da Unidade II pede que cada erro
+ * indique o tipo e o numero da linha de ocorrencia.
  *
- * A posição (índice do token na sequência de tokens lidos pelo léxico) não
- * aparece na mensagem: serve só para ordenar, na mesma linha, erros de fases
- * diferentes na ordem do texto. Vale -1 quando não se aplica.
+ * A posicao (indice do token na sequencia de tokens lidos pelo lexico) nao
+ * aparece na mensagem: serve so para ordenar, na mesma linha, erros de fases
+ * diferentes na ordem do texto. Vale -1 quando nao se aplica.
  */
 public final class ErroCompilacao {
 
@@ -39,12 +39,12 @@ public final class ErroCompilacao {
         return mensagem;
     }
 
-    // Índice do token do erro na sequência de tokens lidos (-1 se não se aplica).
+    // Indice do token do erro na sequencia de tokens lidos (-1 se nao se aplica).
     public int getPosicao() {
         return posicao;
     }
 
-    // Formato usado na saída: "Erro léxico na linha 12: Caractere inválido: @"
+    // Formato usado na saida: "Erro lexico na linha 12: Caractere invalido: @"
     @Override
     public String toString() {
         return categoria.getDescricao() + " na linha " + linha + ": " + mensagem;

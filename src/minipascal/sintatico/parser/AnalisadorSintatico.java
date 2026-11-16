@@ -3,6 +3,8 @@ package minipascal.sintatico.parser;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.core.AnalisadorLexico;
+import minipascal.lexico.model.TipoToken;
+import minipascal.lexico.model.Token;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 import minipascal.sintatico.gramatica.LeitorGramatica;
 import minipascal.sintatico.gramatica.Producao;
@@ -16,80 +18,53 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Analisador sintático SLR(1): o algoritmo empilha/reduz guiado pelas tabelas
- * ACTION e GOTO.
+ * Analisador sintatico SLR(1): o algoritmo empilha/reduz guiado pelas
+ * tabelas ACTION e GOTO (livro do Dragao, secao 4.6).
  *
- * Pilhas (sempre do mesmo tamanho):
- *   - estados: estados do autômato LR(0);
- *   - valores: atributos dos símbolos (ver AcoesReducao);
- *   - linhas:  linha do primeiro token de cada símbolo da pilha.
+ * Pilhas, sempre do mesmo tamanho: estados (do automato LR(0)), valores
+ * (atributos dos simbolos, ver AcoesReducao) e linhas (linha do primeiro
+ * token de cada simbolo). A cada passo, com s no topo e a como terminal:
+ *   ACTION[s, a] = empilhar t      -> empilha t e le o proximo terminal;
+ *   ACTION[s, a] = reduzir A -> b  -> desempilha |b| itens, empilha GOTO[topo, A];
+ *   ACTION[s, a] = aceitar         -> fim, entrada correta;
+ *   celula vazia                   -> erro sintatico.
  *
- * A cada passo, com s no topo e a como terminal atual:
- *   ACTION[s, a] = empilhar t  -> empilha t e lê o próximo terminal;
- *   ACTION[s, a] = reduzir A -> β -> desempilha |β| itens, empilha GOTO[topo, A];
- *   ACTION[s, a] = aceitar     -> fim, entrada correta;
- *   célula vazia               -> erro sintático.
+ * Num erro, o analisador relata e se recupera (ver recuperar), para mostrar
+ * numa analise so todos os erros do programa, como pede o enunciado:
+ *   - modo panico (secao 4.8.3): volta na pilha ate um estado com GOTO para
+ *     algum nao terminal A, descarta tokens e segue como se A tivesse sido
+ *     reconhecido;
+ *   - insercao: insere o terminal que falta (';', 'then', ')'...).
+ * Cada retomada possivel e simulada sobre os tokens seguintes; vale a que
+ * descarta menos tokens e ainda empilha pelo menos MINIMO_PARA_RETOMAR tokens
+ * sem novo erro (no empate, a que vai mais longe; depois, o modo panico).
+ * Assim um erro que e so consequencia do anterior nao e relatado.
  *
- * Recuperação de erros: em vez de parar no primeiro erro, o analisador se
- * recupera e continua, para relatar numa única análise o conjunto dos erros
- * do programa, como pede o enunciado. Dois tipos de retomada são avaliados:
- *
- *   - modo pânico (livro do Dragão, seção 4.8.3): procura na pilha um estado
- *     s com desvio GOTO[s, A] para algum não terminal A, descarta tokens da
- *     entrada até achar um que possa continuar depois de A e empilha
- *     GOTO[s, A], como se A tivesse sido reconhecido;
- *   - inserção: insere um terminal que falta (um 'begin', um 'then', um ';',
- *     um ')'...) e segue com a pilha como está. O terminal inserido não está
- *     no texto (Terminal.isInserido) e não conta como token lido.
- *
- * Como escolher entre as retomadas possíveis: cada candidata é simulada sobre
- * os tokens seguintes, contando quantos ela consegue empilhar antes de um novo
- * erro. Vale a que descarta menos tokens, desde que empilhe pelo menos
- * MINIMO_PARA_RETOMAR tokens (ou aceite o programa até o fim); entre as que
- * descartam o mesmo número, a que vai mais longe. No empate, o modo pânico
- * ganha da inserção (o modo pânico é o método do livro; a inserção entra só
- * quando de fato leva mais longe) e, no modo pânico, vale o estado mais
- * próximo do topo. Duas diferenças em relação ao livro, ambas para evitar
- * erros falsos logo depois da retomada: o token de retomada precisa ser de
- * fato aceito depois de A (e não só estar em FOLLOW(A), que no SLR pode
- * conter terminais impossíveis naquele ponto), e a escolha olha adiante.
- *
- * Erros em cascata (consequências do anterior): como a análise real repete a
- * simulação, depois de uma retomada sempre há pelo menos MINIMO_PARA_RETOMAR
- * tokens do texto empilhados antes de um novo erro. É o efeito da regra do
- * yacc (não relatar erro nos primeiros tokens depois de uma recuperação),
- * obtido de outro jeito: uma retomada que erraria logo adiante simplesmente
- * não é escolhida, e a busca descarta mais tokens. Assim, dois erros a menos
- * de MINIMO_PARA_RETOMAR tokens um do outro contam como um só. A análise
- * sempre avança e termina no fim do arquivo.
- *
- * Todo o texto passa pelo léxico, então todos os erros léxicos são relatados.
- * Os erros que as ações encontram (os semânticos, ver AcoesReducao) entram
- * junto. Todos saem em ordem de linha e, na mesma linha, na ordem do texto
- * (ver ResultadoAnalise).
+ * Os erros lexicos (do adaptador) e os das acoes (os semanticos) entram
+ * junto; ResultadoAnalise ordena tudo por linha e posicao no texto.
  */
 public class AnalisadorSintatico {
 
-    // Gramática completa do Mini_Pascal (programas inteiros).
+    // Gramatica completa do Mini_Pascal (programas inteiros).
     public static final String GRAMATICA_COMPLETA = "gramatica.txt";
 
-    // Gramática do subconjunto das expressões (primeira etapa do enunciado).
+    // Gramatica do subconjunto das expressoes (primeira etapa do enunciado).
     public static final String GRAMATICA_EXPRESSOES = "expressoes.txt";
 
-    // Tokens do texto que uma retomada precisa empilhar (na simulação) para ser
-    // escolhida; dois erros a menos disso um do outro contam como um só. O valor
+    // Tokens do texto que uma retomada precisa empilhar (na simulacao) para ser
+    // escolhida; dois erros a menos disso um do outro contam como um so. O valor
     // foi escolhido medindo, em milhares de programas com erros inseridos de
-    // propósito, quantos erros são encontrados e quantos erros falsos aparecem,
+    // proposito, quantos erros sao encontrados e quantos erros falsos aparecem,
     // e conferindo os exemplos do enunciado: com 3 (o valor do yacc), uma
-    // construção que não existe no Mini_Pascal, como o for do enunciado, gera
+    // construcao que nao existe no Mini_Pascal, como o for do enunciado, gera
     // um segundo erro em cascata (no 'to'); com 5, erros em linhas vizinhas
     // deixam de ser encontrados.
     static final int MINIMO_PARA_RETOMAR = 4;
 
-    // Até quantos tokens à frente cada retomada candidata é simulada.
+    // Ate quantos tokens a frente cada retomada candidata e simulada.
     static final int ALCANCE_DA_SIMULACAO = 500;
 
-    // Tabelas das gramáticas embutidas, montadas uma única vez por execução.
+    // Tabelas das gramaticas embutidas, montadas uma unica vez por execucao.
     private static final Map<String, TabelaSLR> TABELAS = new ConcurrentHashMap<>();
 
     private final TabelaSLR tabela;
@@ -106,7 +81,7 @@ public class AnalisadorSintatico {
         this(tabela, new TabelaPalavrasReservadas(), AcoesReducao.NENHUMA);
     }
 
-    // Tabela de uma gramática que acompanha o programa (construída na primeira chamada).
+    // Tabela de uma gramatica que acompanha o programa (construida na primeira chamada).
     public static TabelaSLR tabelaEmbutida(String nomeGramatica) {
         return TABELAS.computeIfAbsent(nomeGramatica,
                 nome -> TabelaSLR.construir(LeitorGramatica.lerRecurso(nome)));
@@ -118,8 +93,8 @@ public class AnalisadorSintatico {
 
     /**
      * Analisa avisando cada passo ao ouvinte (por exemplo, um RastroAnalise,
-     * para mostrar os movimentos da pilha). O ouvinte só observa: o resultado
-     * é o mesmo de analisar(fonte).
+     * para mostrar os movimentos da pilha). O ouvinte so observa: o resultado
+     * e o mesmo de analisar(fonte).
      *
      * @param ouvinte pode ser null
      */
@@ -133,21 +108,23 @@ public class AnalisadorSintatico {
         valores.add(null);
         linhas.add(1);
 
+        // Erros de todas as fases, na ordem em que aparecem; ResultadoAnalise ordena.
         List<ErroCompilacao> erros = new ArrayList<>();
         int lexicosIncluidos = 0;
         boolean houveErroSintatico = false;
         Object valorFinal = null;
         Terminal atual = entrada.consumir();
         // Pilha de estados no momento em que o terminal atual chegou, antes das
-        // reduções feitas com ele: é dela que saem os "esperados" de um erro.
+        // reducoes feitas com ele: e dela que saem os "esperados" de um erro.
         List<Integer> estadosAoLerAtual = new ArrayList<>(estados);
 
         while (true) {
+            // Consulta ACTION[estado do topo, terminal atual].
             Acao acao = tabela.acao(topo(estados), atual.getNome());
             if (acao == null) {
-                // Erros léxicos anteriores a este token vêm antes deste erro.
+                // Erros lexicos anteriores a este token vem antes deste erro.
                 lexicosIncluidos = incluirLexicos(adaptador, erros, lexicosIncluidos, atual.getPosicao());
-                ErroCompilacao erro = erroSintatico(estadosAoLerAtual, atual);
+                ErroCompilacao erro = erroSintatico(estadosAoLerAtual, atual, adaptador);
                 erros.add(erro);
                 houveErroSintatico = true;
                 acoes.aoErroSintatico(atual);
@@ -161,6 +138,7 @@ public class AnalisadorSintatico {
             if (ouvinte != null) {
                 ouvinte.acao(Collections.unmodifiableList(estados), atual, acao);
             }
+            // Empilhar: o terminal entra na pilha com o estado de destino; le o proximo.
             if (acao.isEmpilhar()) {
                 estados.add(acao.getAlvo());
                 valores.add(acoes.aoEmpilhar(atual));
@@ -168,6 +146,8 @@ public class AnalisadorSintatico {
                 atual = entrada.consumir();
                 estadosAoLerAtual = new ArrayList<>(estados);
             } else if (acao.isReduzir()) {
+                // Reduzir A -> beta: tira |beta| itens das pilhas; a acao semantica recebe
+                // os valores deles e o resultado entra com o estado GOTO[novo topo, A].
                 Producao p = tabela.getGramatica().getProducao(acao.getAlvo());
                 int n = p.tamanho();
                 int base = estados.size() - n;
@@ -178,7 +158,7 @@ public class AnalisadorSintatico {
                 truncar(linhas, base);
                 int destino = tabela.desvio(topo(estados), p.getCabeca());
                 if (destino < 0) {
-                    // Não acontece com uma tabela SLR construída corretamente.
+                    // Nao acontece com uma tabela SLR construida corretamente.
                     throw new IllegalStateException("GOTO vazio no estado " + topo(estados)
                             + " para " + p.getCabeca());
                 }
@@ -186,36 +166,37 @@ public class AnalisadorSintatico {
                 valores.add(acoes.aoReduzir(p, filhos, linha));
                 linhas.add(linha);
             } else {
-                // Aceitar só acontece no fim do arquivo: todo o texto passou pelo léxico.
-                // Com erro sintático, o valor montado pelas ações não representa o programa.
+                // Aceitar so acontece no fim do arquivo: todo o texto passou pelo lexico.
+                // Com erro sintatico, o valor montado pelas acoes nao representa o programa.
                 valorFinal = houveErroSintatico ? null : valores.get(valores.size() - 1);
                 break;
             }
         }
         incluirLexicos(adaptador, erros, lexicosIncluidos, Integer.MAX_VALUE);
-        // Os erros das ações (os semânticos); o resultado ordena tudo por linha e posição.
+        // Os erros das acoes (os semanticos); o resultado ordena tudo por linha e posicao.
         erros.addAll(acoes.getErros());
         return new ResultadoAnalise(erros, adaptador.getTokensLidos(), valorFinal);
     }
 
     /*
-     * Recuperação. Para k = 0, 1, 2... tokens descartados a partir do token com
+     * Recuperacao. Para k = 0, 1, 2... tokens descartados a partir do token com
      * erro, avalia dois tipos de retomada:
-     *   - modo pânico: para cada estado s da pilha (do topo para a base) e cada
-     *     não terminal A com GOTO[s, A] definido, corta a pilha acima de s e
+     *   - modo panico: para cada estado s da pilha (do topo para a base) e cada
+     *     nao terminal A com GOTO[s, A] definido, corta a pilha acima de s e
      *     empilha GOTO[s, A], como se A tivesse sido reconhecido;
-     *   - inserção: mantém a pilha e insere um terminal que falta (um 'begin',
+     *   - insercao: mantem a pilha e insere um terminal que falta (um 'begin',
      *     um ';', um ')'...) antes do token de retomada.
-     * Cada candidata é simulada adiante; vale a regra descrita no comentário da
-     * classe. O terminal devolvido (o inserido ou o de retomada) será empilhado
+     * Cada candidata e simulada adiante; vale a regra descrita no comentario da
+     * classe. O terminal devolvido (o inserido ou o de retomada) sera empilhado
      * em seguida, e a retomada escolhida empilha pelo menos MINIMO_PARA_RETOMAR
-     * tokens do texto sem erro (a análise real repete a simulação), então a
-     * análise sempre avança. No fim do arquivo sempre há retomada: a candidata
+     * tokens do texto sem erro (a analise real repete a simulacao), entao a
+     * analise sempre avanca. No fim do arquivo sempre ha retomada: a candidata
      * da base da pilha, GOTO[0, S], aceita o '$'.
      */
     private Terminal recuperar(List<Integer> estados, List<Object> valores, List<Integer> linhas,
                                Terminal erro, Entrada entrada, OuvinteAnalise ouvinte) {
         entrada.devolver(erro);
+        // Primeiro tenta sem descartar nada; depois descartando 1, 2, 3... tokens.
         for (int descartados = 0; ; descartados++) {
             Terminal retomada = entrada.ver(descartados);
             int melhorAlcance = 0;
@@ -224,7 +205,7 @@ public class AnalisadorSintatico {
             String melhorNaoTerminal = null;
             String melhorInsercao = null;
 
-            // Modo pânico: no empate, vale a mais próxima do topo (a primeira encontrada).
+            // Modo panico: no empate, vale a mais proxima do topo (a primeira encontrada).
             pesquisa:
             for (int nivel = estados.size() - 1; nivel >= 0; nivel--) {
                 int estado = estados.get(nivel);
@@ -245,8 +226,8 @@ public class AnalisadorSintatico {
                     }
                 }
             }
-            // Inserção: só vale se for estritamente mais longe que o modo pânico.
-            // ('$' nunca é inserido; um terminal sem ação no topo daria alcance 0.)
+            // Insercao: so vale se for estritamente mais longe que o modo panico.
+            // ('$' nunca e inserido; um terminal sem acao no topo daria alcance 0.)
             for (String terminal : tabela.getGramatica().getTerminais()) {
                 if (terminal.equals(Terminal.FIM_DE_ARQUIVO) || tabela.acao(topo(estados), terminal) == null) {
                     continue;
@@ -261,7 +242,8 @@ public class AnalisadorSintatico {
                 }
             }
 
-            if (melhorAlcance >= MINIMO_PARA_RETOMAR) { // ATE_O_FIM também conta
+            // Achou uma retomada boa: aplica de verdade (descarta, insere ou desempilha).
+            if (melhorAlcance >= MINIMO_PARA_RETOMAR) { // ATE_O_FIM tambem conta
                 StringBuilder descricao = new StringBuilder();
                 if (ouvinte != null && descartados > 0) {
                     List<String> lexemas = new ArrayList<>();
@@ -303,30 +285,30 @@ public class AnalisadorSintatico {
                 return proximo;
             }
             if (retomada.isFimDeArquivo()) {
-                // Não acontece: no fim do arquivo, a candidata da base da pilha
-                // (GOTO[0, S], S o símbolo inicial) sempre aceita.
+                // Nao acontece: no fim do arquivo, a candidata da base da pilha
+                // (GOTO[0, S], S o simbolo inicial) sempre aceita.
                 throw new IllegalStateException("recuperação sem retomada no fim do arquivo");
             }
         }
     }
 
-    // Valor de "alcance" de uma simulação que aceita o programa até o fim.
+    // Valor de "alcance" de uma simulacao que aceita o programa ate o fim.
     private static final int ATE_O_FIM = Integer.MAX_VALUE;
 
     /*
-     * Simula a análise (só a pilha de estados) a partir da pilha formada pelos
+     * Simula a analise (so a pilha de estados) a partir da pilha formada pelos
      * primeiros "altura" estados de "estados" mais, se "destino" >= 0, o estado
      * "destino" no topo: primeiro o terminal inserido, se houver, depois os
-     * tokens a partir de ver(inicio). A pilha real não é copiada nem alterada
-     * (o que a simulação empilha fica numa lista à parte; o que ela desempilha
-     * abaixo disso só baixa a altura), para que o custo de cada candidata não
+     * tokens a partir de ver(inicio). A pilha real nao e copiada nem alterada
+     * (o que a simulacao empilha fica numa lista a parte; o que ela desempilha
+     * abaixo disso so baixa a altura), para que o custo de cada candidata nao
      * dependa da profundidade da pilha.
      *
-     * Devolve quantos tokens da entrada foram empilhados antes de um erro, até
+     * Devolve quantos tokens da entrada foram empilhados antes de um erro, ate
      * ALCANCE_DA_SIMULACAO, ou ATE_O_FIM se a entrada for aceita (as duas
-     * coisas não acontecem para o mesmo ponto de retomada: aceitar exige
-     * empilhar todos os tokens que restam). O terminal inserido não conta; se
-     * ele mesmo não puder ser empilhado, devolve 0.
+     * coisas nao acontecem para o mesmo ponto de retomada: aceitar exige
+     * empilhar todos os tokens que restam). O terminal inserido nao conta; se
+     * ele mesmo nao puder ser empilhado, devolve 0.
      */
     private int simular(List<Integer> estados, int altura, int destino, String inserido,
                         Entrada entrada, int inicio) {
@@ -338,7 +320,7 @@ public class AnalisadorSintatico {
         int i = inicio;
         boolean usandoInserido = inserido != null;
         String terminal = usandoInserido ? inserido : entrada.ver(i).getNome();
-        // Salvaguarda: entre dois empilhamentos há sempre um número finito de reduções.
+        // Salvaguarda: entre dois empilhamentos ha sempre um numero finito de reducoes.
         for (int passos = 0; passos < 100000; passos++) {
             int topo = acima.isEmpty() ? estados.get(altura - 1) : acima.get(acima.size() - 1);
             Acao a = tabela.acao(topo, terminal);
@@ -346,7 +328,7 @@ public class AnalisadorSintatico {
                 return empilhados;
             }
             if (a.isAceitar()) {
-                return ATE_O_FIM; // só no '$', então o inserido (nunca '$') já foi empilhado
+                return ATE_O_FIM; // so no '$', entao o inserido (nunca '$') ja foi empilhado
             }
             if (a.isEmpilhar()) {
                 acima.add(a.getAlvo());
@@ -380,7 +362,7 @@ public class AnalisadorSintatico {
         return empilhados;
     }
 
-    // Inclui os erros léxicos ainda não incluídos cujo token vem antes da posição dada.
+    // Inclui os erros lexicos ainda nao incluidos cujo token vem antes da posicao dada.
     private static int incluirLexicos(AdaptadorLexico adaptador, List<ErroCompilacao> erros,
                                       int jaIncluidos, int antesDaPosicao) {
         List<ErroCompilacao> lexicos = adaptador.getErrosLexicos();
@@ -393,7 +375,7 @@ public class AnalisadorSintatico {
     }
 
     /*
-     * Terminais do adaptador com leitura antecipada: a recuperação olha os
+     * Terminais do adaptador com leitura antecipada: a recuperacao olha os
      * tokens seguintes sem consumi-los.
      */
     private static final class Entrada {
@@ -404,7 +386,7 @@ public class AnalisadorSintatico {
             this.adaptador = adaptador;
         }
 
-        // i-ésimo terminal à frente (0 = o próximo a ser consumido)
+        // i-esimo terminal a frente (0 = o proximo a ser consumido)
         Terminal ver(int i) {
             while (adiante.size() <= i) {
                 adiante.add(adaptador.proximo());
@@ -416,32 +398,51 @@ public class AnalisadorSintatico {
             return adiante.isEmpty() ? adaptador.proximo() : adiante.remove(0);
         }
 
-        // Põe de volta na frente um terminal já consumido.
+        // Poe de volta na frente um terminal ja consumido.
         void devolver(Terminal t) {
             adiante.add(0, t);
         }
     }
 
-    private ErroCompilacao erroSintatico(List<Integer> estados, Terminal atual) {
+    private ErroCompilacao erroSintatico(List<Integer> estados, Terminal atual, AdaptadorLexico adaptador) {
         String esperado = DescricaoTerminal.listaDeEsperados(terminaisValidos(estados));
         String mensagem = atual.isFimDeArquivo()
                 ? "Fim do arquivo inesperado; esperado " + esperado
                 : "Encontrado " + DescricaoTerminal.encontrado(atual) + "; esperado " + esperado;
+        // O erro e relatado na linha do simbolo encontrado. Quando ele esta numa
+        // linha depois da do token anterior (o caso tipico: falta ';' no fim da
+        // linha de cima), a mensagem diz tambem onde fica esse token anterior.
+        Token anterior = tokenAnterior(adaptador, atual.getPosicao());
+        if (anterior != null && anterior.getLinha() < atual.getLinha()) {
+            mensagem += " (depois de '" + anterior.getLexema() + "' na linha " + anterior.getLinha() + ")";
+        }
         return new ErroCompilacao(CategoriaErro.SINTATICO, atual.getLinha(), mensagem, atual.getPosicao());
+    }
+
+    // Token do texto logo antes da posicao dada, sem contar erros lexicos (que
+    // nao chegam a analise sintatica), ou null se nao houver.
+    private static Token tokenAnterior(AdaptadorLexico adaptador, int posicao) {
+        List<Token> tokens = adaptador.getTokensLidos();
+        for (int i = Math.min(posicao, tokens.size()) - 1; i >= 0; i--) {
+            if (tokens.get(i).getTipo() != TipoToken.ERRO_LEXICO) {
+                return tokens.get(i);
+            }
+        }
+        return null;
     }
 
     /*
      * Terminais que de fato continuariam a entrada a partir desta pilha.
      *
-     * A pilha usada é a do momento em que o token com erro chegou. O SLR pode
+     * A pilha usada e a do momento em que o token com erro chegou. O SLR pode
      * reduzir antes de detectar o erro (em "a < b < c", o "b" vira SIEXPR antes
-     * de o segundo '<' ser recusado); olhar a pilha depois dessas reduções
-     * esconderia opções que valiam logo após o "b", como '*'.
+     * de o segundo '<' ser recusado); olhar a pilha depois dessas reducoes
+     * esconderia opcoes que valiam logo apos o "b", como '*'.
      *
-     * Num estado SLR, as reduções valem para todo o FOLLOW da cabeça, que pode
-     * incluir terminais impossíveis neste ponto (ex.: ')' depois de "a" numa
-     * expressão sem parêntese aberto). Por isso cada candidato é simulado numa
-     * cópia da pilha: só fica na lista se, depois das reduções, ele chega a
+     * Num estado SLR, as reducoes valem para todo o FOLLOW da cabeca, que pode
+     * incluir terminais impossiveis neste ponto (ex.: ')' depois de "a" numa
+     * expressao sem parentese aberto). Por isso cada candidato e simulado numa
+     * copia da pilha: so fica na lista se, depois das reducoes, ele chega a
      * ser empilhado (ou aceito, no caso de '$').
      */
     List<String> terminaisValidos(List<Integer> estados) {
@@ -457,7 +458,7 @@ public class AnalisadorSintatico {
 
     private boolean seriaConsumido(List<Integer> estadosOriginais, String terminal) {
         List<Integer> pilha = new ArrayList<>(estadosOriginais);
-        // cada redução encolhe ou mantém a pilha; o limite só protege contra laço
+        // cada reducao encolhe ou mantem a pilha; o limite so protege contra laco
         for (int passos = 0; passos < 100000; passos++) {
             Acao a = tabela.acao(topo(pilha), terminal);
             if (a == null) {

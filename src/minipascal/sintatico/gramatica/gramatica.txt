@@ -22,6 +22,11 @@
 #      semantica: ao reduzir CAB_PROC, antes do bloco do procedimento, ela
 #      declara o procedimento e abre o escopo dos parametros e das variaveis
 #      locais (num analisador ascendente, as acoes so rodam nas reducoes).
+#   6. Os operadores "/", "and", "or" e "not", que a Unidade I reconhece mas a
+#      gramatica do enunciado nao tinha, com a precedencia do Pascal: "not" em
+#      FATOR; "/" e "and" em TERMO (junto de * div mod); "or" em SIEXPR (junto
+#      de + -). Como no Pascal, comparacoes ligadas por and/or precisam de
+#      parenteses: (a < b) and (c < d).
 #
 # Terminais: os nomes entregues pelo AdaptadorLexico (id, numero, tipo,
 # constante_string, constante_char e o proprio lexema para palavras
@@ -54,6 +59,6 @@ LISTA_ARG -> LISTA_ARG , EXPR | EXPR
 
 EXPR -> SIEXPR | SIEXPR OPREL SIEXPR
 OPREL -> = | < | > | <> | <= | >=
-SIEXPR -> TERMO | + TERMO | - TERMO | SIEXPR + TERMO | SIEXPR - TERMO
-TERMO -> FATOR | TERMO * FATOR | TERMO div FATOR | TERMO mod FATOR
-FATOR -> numero | id | ( EXPR ) | constante_string | constante_char
+SIEXPR -> TERMO | + TERMO | - TERMO | SIEXPR + TERMO | SIEXPR - TERMO | SIEXPR or TERMO
+TERMO -> FATOR | TERMO * FATOR | TERMO / FATOR | TERMO div FATOR | TERMO mod FATOR | TERMO and FATOR
+FATOR -> numero | id | ( EXPR ) | constante_string | constante_char | not FATOR

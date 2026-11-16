@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
@@ -22,19 +23,19 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Verifica o rastro da análise (RastroAnalise): os movimentos da pilha que a
+ * Verifica o rastro da analise (RastroAnalise): os movimentos da pilha que a
  * interface mostra.
  *
- *   - a tabela de movimentos do livro do Dragão (figura 4.38, entrada
- *     id * id + id com a gramática 4.1), passo a passo;
- *   - reexecução: cada passo leva ao seguinte exatamente como a ação diz
- *     (empilhar acrescenta o estado; reduzir tira |corpo| estados e põe o
- *     GOTO; recuperação só corta a pilha e, no modo pânico, põe um estado);
- *   - os terminais empilhados são os tokens do texto, na ordem;
- *   - os símbolos de cada passo são os símbolos de acesso dos estados;
- *   - erros e recuperações aparecem no rastro, um passo de recuperação logo
+ *   - a tabela de movimentos do livro do Dragao (figura 4.38, entrada
+ *     id * id + id com a gramatica 4.1), passo a passo;
+ *   - reexecucao: cada passo leva ao seguinte exatamente como a acao diz
+ *     (empilhar acrescenta o estado; reduzir tira |corpo| estados e poe o
+ *     GOTO; recuperacao so corta a pilha e, no modo panico, poe um estado);
+ *   - os terminais empilhados sao os tokens do texto, na ordem;
+ *   - os simbolos de cada passo sao os simbolos de acesso dos estados;
+ *   - erros e recuperacoes aparecem no rastro, um passo de recuperacao logo
  *     depois de cada erro;
- *   - com ou sem rastro, o resultado da análise é o mesmo;
+ *   - com ou sem rastro, o resultado da analise e o mesmo;
  *   - a entrada restante e o limite de passos.
  */
 public class VerificacaoRastro {
@@ -60,7 +61,7 @@ public class VerificacaoRastro {
         terminar();
     }
 
-    // ------------------------------------------------------- livro do Dragão
+    // ------------------------------------------------------- livro do Dragao
 
     private static void verificarDragao() {
         TabelaSLR t = TabelaSLR.construir(LeitorGramatica.lerTexto(
@@ -68,7 +69,7 @@ public class VerificacaoRastro {
         AnalisadorSintatico a = new AnalisadorSintatico(t, new TabelaPalavrasReservadas(), AcoesReducao.NENHUMA);
         RastroAnalise rastro = new RastroAnalise(t);
         ResultadoAnalise r = a.analisar("id * id + id", rastro);
-        // Figura 4.38 do livro: pilha | símbolos | entrada | ação.
+        // Figura 4.38 do livro: pilha | simbolos | entrada | acao.
         String[] esperado = {
                 "0 |  | id * id + id $ | s5",
                 "0 5 | id | * id + id $ | r6",
@@ -104,7 +105,7 @@ public class VerificacaoRastro {
                 && r.isSucesso() && !rastro.isTruncado());
     }
 
-    // ------------------------------------------------------ símbolos de acesso
+    // ------------------------------------------------------ simbolos de acesso
 
     private static void verificarSimbolosDeAcesso() {
         RastroAnalise rastro = new RastroAnalise(TABELA);
@@ -126,7 +127,7 @@ public class VerificacaoRastro {
         checar("o estado 0 não tem símbolo; os outros " + (colecao.tamanho() - 1) + " têm", todosTem);
     }
 
-    // ---------------------------------------------------- erros e recuperação
+    // ---------------------------------------------------- erros e recuperacao
 
     private static void verificarRecuperacao() {
         AnalisadorSintatico a = new AnalisadorSintatico(TABELA);
@@ -192,7 +193,7 @@ public class VerificacaoRastro {
                 && ultimo.getLexema().equals("fim do arquivo") && ultimo.getTerminal().equals("$"));
     }
 
-    // ------------------------------------------------------------ reexecução
+    // ------------------------------------------------------------ reexecucao
 
     private static void verificarReexecucao() {
         Gramatica g = TABELA.getGramatica();
@@ -249,8 +250,8 @@ public class VerificacaoRastro {
     }
 
     /*
-     * Confere o rastro inteiro: pilha e símbolos de cada passo coerentes, e
-     * cada passo levando ao seguinte como a ação diz. Devolve o problema, ou null.
+     * Confere o rastro inteiro: pilha e simbolos de cada passo coerentes, e
+     * cada passo levando ao seguinte como a acao diz. Devolve o problema, ou null.
      */
     private static String reexecutar(RastroAnalise rastro, Gramatica g) {
         List<PassoAnalise> passos = rastro.getPassos();
@@ -304,7 +305,7 @@ public class VerificacaoRastro {
                     }
                     break;
                 case RECUPERACAO: {
-                    // A pilha seguinte é a mesma (o passo seguinte usa a pilha da recuperação).
+                    // A pilha seguinte e a mesma (o passo seguinte usa a pilha da recuperacao).
                     if (!Arrays.equals(pilha, seguinte)) {
                         return "passo " + p.getNumero() + ": recuperação não leva ao passo seguinte";
                     }
@@ -314,7 +315,7 @@ public class VerificacaoRastro {
                     return "aceitar antes do fim";
             }
         }
-        // Recuperação: a pilha depois dela é a de antes do erro cortada, mais no máximo um estado.
+        // Recuperacao: a pilha depois dela e a de antes do erro cortada, mais no maximo um estado.
         for (int i = 0; i + 1 < passos.size(); i++) {
             if (passos.get(i).getTipo() == PassoAnalise.Tipo.ERRO) {
                 int[] antes = passos.get(i).getEstados();
@@ -421,17 +422,17 @@ public class VerificacaoRastro {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações do rastro da análise, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do rastro da analise, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

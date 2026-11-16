@@ -5,12 +5,13 @@ import javafx.scene.shape.FillRule;
 import javafx.scene.shape.SVGPath;
 
 /**
- * Ícones desenhados em vetor (SVG), para os botões e a faixa de resultado.
- * Emojis e símbolos de fonte dependem das fontes instaladas e podem aparecer
- * como quadrados; um SVGPath aparece igual em qualquer máquina.
+ * Icones desenhados em vetor (SVG), para os botoes e a faixa de resultado.
+ * Emojis e simbolos de fonte dependem das fontes instaladas e podem aparecer
+ * como quadrados; um SVGPath aparece igual em qualquer maquina.
  */
 final class Icones {
 
+    // Caminhos SVG numa grade de 20 x 20 (M = move, h/v/l = linhas, a = arco, z = fecha).
     private static final String PASTA = "M2 4h6l2 2h8v11H2z";
     private static final String DISCO = "M3 3h11l3 3v11H3z M6 3v5h7V3 M6 12h8v5H6z";
     private static final String PLAY = "M5 3l11 7-11 7z";
@@ -70,10 +71,11 @@ final class Icones {
         return icone(ULTIMO, "icone-navegacao");
     }
 
+    // Cria o icone; a cor e o tamanho vem do CSS, pela classe.
     private static Node icone(String caminho, String classe) {
         SVGPath svg = new SVGPath();
         svg.setContent(caminho);
-        // Par-ímpar: as partes de dentro (o "!" do aviso, o "i") ficam vazadas.
+        // Par-impar: as partes de dentro (o "!" do aviso, o "i") ficam vazadas.
         svg.setFillRule(FillRule.EVEN_ODD);
         svg.getStyleClass().add(classe);
         return svg;

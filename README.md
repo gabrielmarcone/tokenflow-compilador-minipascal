@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-653%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-673%20passing-success)
 
 </div>
 
@@ -61,7 +61,9 @@ salva o resultado; o botão `?` resume tudo isso.
 
 ## Autômato
 
-O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
+O analisador léxico implementa o AFD abaixo (39 estados: 30 finais e 9 não finais). A figura é
+gerada por `docs/gerar_automato.py`, a partir do mesmo autômato que a suíte `VerificacaoAfd`
+compara com o analisador.
 
 ![AFD do analisador léxico](docs/automato_completo.jpg)
 
@@ -83,7 +85,7 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
 **Análise sintática**
 
 - ✅ Gramática do enunciado em arquivo de texto (`gramatica.txt`), convertida para GLC, sem
-  conflitos SLR(1): 57 produções, 112 estados
+  conflitos SLR(1): 61 produções, 120 estados
 - ✅ Gerador próprio de tabelas SLR(1): FIRST, FOLLOW, coleção canônica LR(0), tabelas
   ACTION/GOTO, recusa de qualquer conflito, relatório completo e tabela em CSV
 - ✅ Analisador empilha/reduz com pilha de estados e pilha de atributos, onde a análise
@@ -100,8 +102,8 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
 - ✅ Tabela de símbolos com escopos aninhados (global, procedimentos e procedimentos dentro
   de procedimentos), com `read`, `write` e `writeln` predefinidos
 - ✅ Nomes: não declarado, declarado duas vezes, procedimento usado como variável e o contrário
-- ✅ Tipos: atribuição, operadores (`div`/`mod` só com integer), comparações e condições de
-  `if`/`while`
+- ✅ Tipos: atribuição, operadores (`div`/`mod` só com integer, `/` sempre real, `and`/`or`/`not`
+  só com comparações), comparações e condições de `if`/`while`
 - ✅ Chamadas: número de argumentos, tipo de cada um e parâmetro `var` recebendo variável do
   mesmo tipo
 - ✅ Sem cascatas: uma expressão com erro não gera mais mensagens
@@ -116,7 +118,7 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
 
 **Testes**
 
-- ✅ **653 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **673 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
@@ -204,7 +206,7 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
 - **Análise sintática:** o arquivo deve conter um programa completo, de `program` até o `.`
   final. Imprime `OK` ou todos os erros encontrados, um por linha, em ordem de linha, por
   exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
-  constante string ou constante char`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8.
+  constante string, constante char ou 'not'`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8.
   Código de saída 0 quando o resultado é `OK` e 1 caso contrário.
 - **Análise completa:** como a sintática, mas com a análise semântica junto; é a saída pedida
   pelo enunciado da Unidade II. Com `--tabela`, imprime também a tabela de símbolos (escopo,
@@ -303,10 +305,10 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 | Arquivo | O que testa | Resultado |
 |---|---|---|
 | `01_programa_completo.txt` | Programa correto com toda a linguagem | `OK` |
-| `02_erros_lexicos.txt` | Caracteres inválidos e comentário sem fechar | 8 erros léxicos |
-| `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 9 erros sintáticos |
+| `02_erros_lexicos.txt` | Caracteres inválidos, número mal formado, char com dois caracteres e comentário sem fechar | 10 erros léxicos |
+| `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 10 erros sintáticos |
 | `04_erros_semanticos_nomes.txt` | Declarações repetidas, nomes não declarados, escopo, categoria | 16 erros semânticos |
-| `05_erros_semanticos_tipos.txt` | Atribuição, operadores, comparações e condições | 22 erros semânticos |
+| `05_erros_semanticos_tipos.txt` | Atribuição, operadores, comparações e condições | 27 erros semânticos |
 | `06_erros_semanticos_chamadas.txt` | Argumentos, parâmetros `var`, `read`/`write`/`writeln` | 19 erros semânticos |
 | `07_escopos.txt` | Procedimentos aninhados, nomes escondidos, recursão | `OK` |
 | `08_erros_misturados.txt` | Erros das três fases juntos | 10 erros |
@@ -317,7 +319,7 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 
 A gramática fica em `src/minipascal/sintatico/gramatica/gramatica.txt`, uma regra por linha
 (`EXPR -> SIEXPR | SIEXPR OPREL SIEXPR`, não terminais em MAIÚSCULAS, `ε` para a produção
-vazia). É a gramática do enunciado convertida de EBNF para GLC, com cinco modificações,
+vazia). É a gramática do enunciado convertida de EBNF para GLC, com seis modificações,
 descritas também no começo do arquivo:
 
 1. **Sinal `-` em SIEXPR.** No enunciado aparece `""` (aspas vazias) no lugar do sinal.
@@ -333,18 +335,25 @@ descritas também no começo do arquivo:
    semântica: num analisador ascendente as ações só rodam nas reduções, e a redução de
    `CAB_PROC`, antes do bloco do procedimento, é o momento de declarar o procedimento e abrir
    o escopo dos parâmetros e das variáveis locais.
+6. **Operadores `/`, `and`, `or` e `not`.** O enunciado da Unidade I os lista como operadores
+   (e o exemplo Piloto usa `/`), mas a gramática da Unidade II não os tinha. Entram com a
+   precedência do Pascal: `not` em FATOR (`FATOR -> not FATOR`), `/` e `and` em TERMO (junto
+   de `*`, `div` e `mod`) e `or` em SIEXPR (junto de `+` e `-`). Como no Pascal, comparações
+   ligadas por `and`/`or` precisam de parênteses: `(a < b) and (c < d)`; sem eles,
+   `a < b and c < d` é lido como `a < (b and c) < d`, que é erro de sintaxe.
 
-Resultado: 57 produções, 22 não terminais, 33 terminais, 112 estados LR(0) e nenhum conflito.
+Resultado: 61 produções, 22 não terminais, 37 terminais (mais o `$`), 120 estados LR(0) e nenhum
+conflito.
 Também vem embutido `expressoes.txt`, o subconjunto das expressões usado na primeira etapa
-(22 produções, 34 estados).
+(22 produções, 34 estados), sem os operadores da modificação 6.
 
 O gerador recusa qualquer gramática com conflito, produção repetida, não terminal sem
 produção, inalcançável ou que não deriva terminais, sempre com a mensagem indicando onde
 está o problema.
 
 O que a gramática não aceita (e por isso vale como limitação da linguagem): `for`,
-`repeat`, `const`, `/`, `and`/`or`/`not`, funções, `;` antes do `else` e parênteses vazios
-na declaração de procedimento. `read`, `write` e `writeln` são aceitos como chamadas de
+`repeat`, `const`, funções, `;` antes do `else`, comparações ligadas por `and`/`or` sem
+parênteses e parênteses vazios na declaração de procedimento. `read`, `write` e `writeln` são aceitos como chamadas de
 procedimento.
 
 ## Recuperação de erros sintáticos
@@ -371,16 +380,22 @@ para que uma única execução mostre o conjunto dos erros do programa, como ped
 - **Mensagens**: o primeiro erro de cada programa é exatamente o da análise sem recuperação
   (conferido contra um reconhecedor de Earley independente). Erros léxicos e sintáticos
   saem juntos, em ordem de linha e, na mesma linha, na ordem do texto.
+- **Linha do erro**: o erro sai na linha do símbolo encontrado. Quando ele está numa linha
+  depois da do token anterior (o caso típico: falta `;` no fim da linha de cima), a mensagem
+  diz também onde está esse token:
+  `Erro sintático na linha 10: Encontrado 'end'; esperado ';' (depois de ')' na linha 9)`.
 - Um caractere inválido some da entrada da análise sintática; se o que sobra estiver errado
   (como `x := 5 @ 2`, que vira `x := 5 2`), aparecem os dois erros, o léxico e o sintático.
 
-Exemplo, com o segundo programa do enunciado (`02_piloto.txt`):
+Exemplo, com o segundo programa do enunciado (`02_piloto.txt`), que usa `for` (fora da
+gramática):
 
 ```
 Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'
-Erro sintático na linha 17: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
-Erro sintático na linha 21: Encontrado '/'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
 ```
+
+O resto do programa (inclusive o `/` das linhas 17 e 21) é analisado normalmente depois da
+recuperação, sem erros em cascata.
 
 ## Análise semântica
 
@@ -407,13 +422,15 @@ dos atributos dos filhos.
   e o nome do programa não pode ser usado como variável.
 
 **Tipos**: `integer`, `real`, `char`, `string` e, internamente, *lógico* (o resultado de uma
-comparação). Na atribuição e na passagem de argumentos, os tipos precisam ser iguais, com duas
+comparação, de `and`, `or` e `not`). Na atribuição e na passagem de argumentos, os tipos precisam ser iguais, com duas
 conversões permitidas: `integer` em `real` e `char` em `string`.
 
 | Construção | Regra |
 |---|---|
 | `+` `-` `*` e sinal | números (integer com integer dá integer; com real, real); `+` também junta textos (char e string), dando string |
 | `div`, `mod` | os dois lados integer |
+| `/` | números; o resultado é sempre real (como no Pascal: `4 / 2` dá `2.0`) |
+| `and`, `or`, `not` | operandos lógicos (comparações); o resultado é lógico |
 | `=` `<` `>` `<>` `<=` `>=` | números entre si, textos entre si ou lógicos entre si; o resultado é lógico |
 | condição do `if` e do `while` | lógica (uma comparação) |
 | chamada de procedimento | mesmo número de argumentos e de parâmetros; parâmetro `var` recebe uma variável do mesmo tipo |
@@ -430,6 +447,7 @@ Identificador 'y' não declarado
 Não é possível atribuir um valor a 'q', que é um procedimento
 Tipos incompatíveis na atribuição a 'x': a variável é integer e a expressão é real
 O operador 'div' exige operandos integer, mas recebeu real e integer
+O operador 'and' exige operandos lógicos (comparações), mas recebeu integer e integer
 Comparação entre tipos incompatíveis: integer e string
 A condição do 'if' deve ser lógica (uma comparação), mas é integer
 O procedimento 'q' tem 2 parâmetros, mas a chamada passa 3 argumentos
@@ -469,7 +487,12 @@ ambíguo - todas documentadas e testadas:
 - **Quebra de linha**: `\n`, `\r\n` e `\r` sozinho contam uma linha cada
 - **Codificação do arquivo**: UTF-8 (com ou sem BOM); se não for UTF-8 válido, lê como
   ANSI (ISO-8859-1), e UTF-16 com BOM também é reconhecido
-- **Constante char aceita exatamente 1 caractere** - vazio (`''`) ou múltiplo (`'ab'`) são erro
+- **Constante char aceita exatamente 1 caractere** - vazio (`''`) ou múltiplo (`'ab'`) são um
+  erro só, até a aspa que fecha (`Char deve ter 1 caractere: 'ab'`); sem a aspa do fim, o erro
+  vai até o fim da linha, como na string (`Char não fechado`)
+- **Número colado em letra é erro léxico** - `12abc`, `1.5x` e `2end` viram um único erro,
+  `Número mal formado`, com tudo o que estiver colado. O expoente pode vir sem ponto, como no
+  Pascal: `2e3` e `2E-3` são números reais; `2e` sem dígitos depois é número mal formado
 - **String não fechada é limitada à linha atual** - evita que uma aspa esquecida engula o
   resto do arquivo inteiro
 - **Limite de 63 caracteres em identificador** - o excedente é truncado, não vira erro
@@ -496,8 +519,9 @@ Respostas às perguntas de projeto (a-e) da especificação:
   analisador sintático (ver "Análise semântica").
 - **e) Tratamento de erros léxicos?** Modo pânico: o erro é registrado como token
   `Erro léxico`, o analisador descarta só o trecho inválido e continua a partir do próximo
-  caractere. Caractere fora da linguagem gera um erro por caractere; string e char mal
-  fechados param no fim da linha; comentário sem `*/` gera um erro `/*` na linha de abertura.
+  caractere. Caractere fora da linguagem gera um erro por caractere; número colado em letra e
+  char com mais (ou menos) de um caractere geram um erro só; string e char sem a aspa do fim
+  param no fim da linha; comentário sem `*/` gera um erro `/*` na linha de abertura.
   Na interface, a aba Erros mostra a linha, a fase e a descrição de cada erro.
 
 ## Unidade II: o que já foi feito

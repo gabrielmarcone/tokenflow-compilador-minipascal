@@ -3,9 +3,9 @@ package minipascal.sintatico.parser;
 import java.util.Arrays;
 
 /**
- * Um passo da análise sintática, como nas tabelas de movimentos do livro do
- * Dragão (figura 4.38): a pilha de estados, os símbolos correspondentes, o
- * terminal de entrada e a ação feita.
+ * Um passo da analise sintatica, como nas tabelas de movimentos do livro do
+ * Dragao (figura 4.38): a pilha de estados, os simbolos correspondentes, o
+ * terminal de entrada e a acao feita.
  */
 public final class PassoAnalise {
 
@@ -26,17 +26,17 @@ public final class PassoAnalise {
     /**
      * @param numero         1, 2, 3...
      * @param tipo           o que aconteceu
-     * @param estados        pilha de estados (base no índice 0)
-     * @param simbolos       o símbolo de cada estado da pilha ("" para o estado 0)
+     * @param estados        pilha de estados (base no indice 0)
+     * @param simbolos       o simbolo de cada estado da pilha ("" para o estado 0)
      * @param terminal       nome do terminal de entrada ("id", ";", "$"...)
      * @param lexema         o texto dele ("x", ";", "fim do arquivo"...)
-     * @param inserido       se o terminal foi inserido pela recuperação de erros
-     * @param posicaoEntrada posição do terminal de entrada (ou, se inserido, do
+     * @param inserido       se o terminal foi inserido pela recuperacao de erros
+     * @param posicaoEntrada posicao do terminal de entrada (ou, se inserido, do
      *                       primeiro token do texto que vem depois dele) na
-     *                       sequência de tokens lidos
+     *                       sequencia de tokens lidos
      * @param linha          linha do terminal de entrada
-     * @param codigo         ação como na tabela ("s7", "r23", "acc"), ou "" para erro e recuperação
-     * @param descricao      a ação por extenso
+     * @param codigo         acao como na tabela ("s7", "r23", "acc"), ou "" para erro e recuperacao
+     * @param descricao      a acao por extenso
      */
     PassoAnalise(int numero, Tipo tipo, int[] estados, String[] simbolos, String terminal, String lexema,
                  boolean inserido, int posicaoEntrada, int linha, String codigo, String descricao) {
@@ -110,7 +110,7 @@ public final class PassoAnalise {
         return sb.toString();
     }
 
-    // "program id ; BLOCO_VAR" (os símbolos dos estados, sem o do estado 0)
+    // "program id ; BLOCO_VAR" (os simbolos dos estados, sem o do estado 0)
     public String simbolosComoTexto() {
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i < simbolos.length; i++) {

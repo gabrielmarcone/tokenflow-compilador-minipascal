@@ -1,7 +1,7 @@
 Erro semântico na linha 16: Argumento 3 de 'calcular': o parâmetro var 'resultado' é real e a variável 'faltas' é integer (num parâmetro var os tipos devem ser iguais)
 Erro semântico na linha 18: Identificador 'situacao' não declarado
 Erro léxico na linha 21: Caractere inválido: !
-Erro sintático na linha 23: Encontrado identificador 'writeln'; esperado 'then', '+', '-', '*', 'div' ou 'mod'
+Erro sintático na linha 23: Encontrado identificador 'writeln'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'
 
 Tabela de símbolos (a análise semântica parou no primeiro erro sintático: só o que foi declarado até ali):
 Escopo    Nível  Nome       Categoria                 Tipo     Linha  Parâmetros

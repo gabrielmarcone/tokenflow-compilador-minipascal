@@ -2,12 +2,13 @@ package minipascal.sintatico.slr;
 
 /**
  * Uma entrada da tabela ACTION: empilhar e ir para um estado ("s5"),
- * reduzir por uma produção ("r3") ou aceitar ("acc").
+ * reduzir por uma producao ("r3") ou aceitar ("acc").
  */
 public final class Acao implements Comparable<Acao> {
 
     public enum Tipo { EMPILHAR, REDUZIR, ACEITAR }
 
+    // Aceitar nao tem alvo; um objeto so serve para todas as celulas.
     private static final Acao ACEITAR = new Acao(Tipo.ACEITAR, 0);
 
     private final Tipo tipo;
@@ -34,7 +35,7 @@ public final class Acao implements Comparable<Acao> {
         return tipo;
     }
 
-    // Estado de destino (empilhar) ou número da produção (reduzir).
+    // Estado de destino (empilhar) ou numero da producao (reduzir).
     public int getAlvo() {
         return alvo;
     }
@@ -52,6 +53,7 @@ public final class Acao implements Comparable<Acao> {
     }
 
     @Override
+    // Texto usado nas tabelas: s5, r3 ou acc.
     public String toString() {
         switch (tipo) {
             case EMPILHAR:
@@ -63,7 +65,7 @@ public final class Acao implements Comparable<Acao> {
         }
     }
 
-    // Ordem usada só para listar conflitos sempre do mesmo jeito.
+    // Ordem usada so para listar conflitos sempre do mesmo jeito.
     @Override
     public int compareTo(Acao outra) {
         if (tipo != outra.tipo) {

@@ -7,26 +7,26 @@ import minipascal.sintatico.parser.ResultadoAnalise;
 import minipascal.sintatico.slr.TabelaSLR;
 
 /**
- * A parte de análise do compilador, as três fases juntas, numa única
+ * A parte de analise do compilador, as tres fases juntas, numa unica
  * passada pelo texto:
  *
  *   texto -> AnalisadorLexico -> AdaptadorLexico -> AnalisadorSintatico (SLR(1))
- *                                                       |  a cada redução
+ *                                                       |  a cada reducao
  *                                                       v
  *                                                 AnalisadorSemantico
- *                                                 (tabela de símbolos e tipos)
+ *                                                 (tabela de simbolos e tipos)
  *
- * O léxico entrega um token por vez ao sintático; o sintático chama as ações
- * semânticas a cada redução. Cada análise usa um AnalisadorSemantico novo
- * (ele guarda a tabela de símbolos daquele programa); as tabelas SLR(1) e a
- * de palavras reservadas são montadas uma única vez.
+ * O lexico entrega um token por vez ao sintatico; o sintatico chama as acoes
+ * semanticas a cada reducao. Cada analise usa um AnalisadorSemantico novo
+ * (ele guarda a tabela de simbolos daquele programa); as tabelas SLR(1) e a
+ * de palavras reservadas sao montadas uma unica vez.
  */
 public final class Compilador {
 
     private final TabelaSLR tabela;
     private final TabelaPalavrasReservadas palavrasReservadas;
 
-    // Com a gramática completa (gramatica.txt).
+    // Com a gramatica completa (gramatica.txt).
     public Compilador() {
         this(AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_COMPLETA),
                 new TabelaPalavrasReservadas());
@@ -42,7 +42,7 @@ public final class Compilador {
     }
 
     /**
-     * Analisa avisando cada passo da análise sintática ao ouvinte (por
+     * Analisa avisando cada passo da analise sintatica ao ouvinte (por
      * exemplo, um RastroAnalise, para mostrar os movimentos da pilha).
      *
      * @param ouvinte pode ser null
@@ -54,7 +54,7 @@ public final class Compilador {
         return new ResultadoCompilacao(analise, semantico.getTabela(), !semantico.isInterrompida());
     }
 
-    // A tabela SLR(1) usada (gramática, estados, ACTION e GOTO).
+    // A tabela SLR(1) usada (gramatica, estados, ACTION e GOTO).
     public TabelaSLR getTabelaSLR() {
         return tabela;
     }

@@ -1,5 +1,7 @@
 package minipascal.verificacao;
 
+import minipascal.cli.Console;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -20,21 +22,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Verifica a organização dos módulos, lendo o código-fonte em src/ (rodar a
+ * Verifica a organizacao dos modulos, lendo o codigo-fonte em src/ (rodar a
  * partir da raiz do projeto, como faz o build.bat).
  *
- * Camadas, de baixo para cima; cada módulo só pode usar os de baixo:
+ * Camadas, de baixo para cima; cada modulo so pode usar os de baixo:
  *
- *   lexico                  análise léxica (não depende de nenhum outro módulo)
- *   erros                   erros de compilação (tipo, linha, mensagem)
- *   io                      leitura de fontes e gravação da listagem de tokens
- *   sintatico               gramática, gerador SLR(1) e analisador sintático
- *   semantico               análise semântica: tabela de símbolos, tipos e as ações de redução
- *   cli, gui                linha de comando e interface gráfica (usam todos)
+ *   lexico                  analise lexica (nao depende de nenhum outro modulo)
+ *   erros                   erros de compilacao (tipo, linha, mensagem)
+ *   io                      leitura de fontes e gravacao da listagem de tokens
+ *   sintatico               gramatica, gerador SLR(1) e analisador sintatico
+ *   semantico               analise semantica: tabela de simbolos, tipos e as acoes de reducao
+ *   cli, gui                linha de comando e interface grafica (usam todos)
  *
- * Os pacotes "verificacao" (as suítes) podem usar qualquer módulo; nenhum
- * código de produção pode usar uma suíte. Um pacote novo no topo de
- * minipascal precisa ser incluído aqui de propósito.
+ * Os pacotes "verificacao" (as suites) podem usar qualquer modulo; nenhum
+ * codigo de producao pode usar uma suite. Um pacote novo no topo de
+ * minipascal precisa ser incluido aqui de proposito.
  */
 public class VerificacaoArquitetura {
 
@@ -43,7 +45,7 @@ public class VerificacaoArquitetura {
 
     private static final Path FONTES = Paths.get("src", "minipascal");
 
-    // Módulo -> módulos que ele pode usar (além dele mesmo).
+    // Modulo -> modulos que ele pode usar (alem dele mesmo).
     private static final Map<String, Set<String>> PERMITIDOS = new HashMap<>();
 
     static {
@@ -141,14 +143,14 @@ public class VerificacaoArquitetura {
                 conteudoFxml.contains("fx:controller=\"minipascal.gui.AnalisadorController\""));
     }
 
-    // As classes que o usuário executa existem e têm main público e estático.
+    // As classes que o usuario executa existem e tem main publico e estatico.
     private static void verificarPontosDeEntrada() {
         for (String classe : new String[]{"minipascal.cli.AnaliseLexica", "minipascal.cli.AnaliseSintatica",
                 "minipascal.cli.AnaliseSemantica", "minipascal.cli.GeradorTabelas"}) {
             checar("ponto de entrada " + classe + " com main público", temMainPublico(classe));
         }
         // A interface depende do JavaFX (embutido no JDK 8 da Oracle). Sem ele, a
-        // classe não pode ser carregada; aí confere-se ao menos que ela está no lugar.
+        // classe nao pode ser carregada; ai confere-se ao menos que ela esta no lugar.
         if (javaFxDisponivel()) {
             checar("ponto de entrada minipascal.gui.MainApp com main público", temMainPublico("minipascal.gui.MainApp"));
         } else {
@@ -176,7 +178,7 @@ public class VerificacaoArquitetura {
         }
     }
 
-    // Os recursos que o programa carrega pelo classpath estão junto das classes (no jar ou em out/).
+    // Os recursos que o programa carrega pelo classpath estao junto das classes (no jar ou em out/).
     private static void verificarRecursos() {
         String[][] recursos = {
                 {"/minipascal/gui/Main.fxml", "tela da interface"},
@@ -190,7 +192,7 @@ public class VerificacaoArquitetura {
         }
     }
 
-    // Tira comentários, strings e chars, para que só o código conte como dependência.
+    // Tira comentarios, strings e chars, para que so o codigo conte como dependencia.
     static String semComentariosNemTextos(String texto) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
@@ -230,17 +232,17 @@ public class VerificacaoArquitetura {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações de arquitetura, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes de arquitetura, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

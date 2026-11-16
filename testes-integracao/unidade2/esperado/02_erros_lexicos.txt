@@ -1,19 +1,21 @@
-Erro léxico na linha 11: Caractere inválido: #
-Erro léxico na linha 12: Caractere inválido: $
-Erro léxico na linha 13: Caractere inválido: !
-Erro léxico na linha 16: Caractere inválido: {
-Erro léxico na linha 16: Caractere inválido: }
-Erro léxico na linha 17: Caractere inválido: ?
-Erro léxico na linha 18: Caractere inválido: π
-Erro léxico na linha 21: Comentário não fechado (falta */): /*
+Erro léxico na linha 13: Caractere inválido: #
+Erro léxico na linha 14: Caractere inválido: $
+Erro léxico na linha 15: Caractere inválido: !
+Erro léxico na linha 18: Caractere inválido: {
+Erro léxico na linha 18: Caractere inválido: }
+Erro léxico na linha 19: Caractere inválido: ?
+Erro léxico na linha 20: Caractere inválido: π
+Erro léxico na linha 21: Número mal formado: 12abc
+Erro léxico na linha 22: Char deve ter 1 caractere: 'ab'
+Erro léxico na linha 25: Comentário não fechado (falta */): /*
 
 Tabela de símbolos:
 Escopo   Nível  Nome                                                             Categoria                 Tipo     Linha  Parâmetros
 externo  0      read                                                             procedimento predefinido  -        -
 externo  0      write                                                            procedimento predefinido  -        -
 externo  0      writeln                                                          procedimento predefinido  -        -
-externo  0      Lexico                                                           programa                  -        6
-global   1      média                                                            variável                  integer  7
-global   1      total                                                            variável                  integer  7
-global   1      identificador_com_mais_de_sessenta_e_tres_caracteres_que_sera_t  variável                  real     8
-global   1      msg                                                              variável                  string   9
+externo  0      Lexico                                                           programa                  -        8
+global   1      média                                                            variável                  integer  9
+global   1      total                                                            variável                  integer  9
+global   1      identificador_com_mais_de_sessenta_e_tres_caracteres_que_sera_t  variável                  real     10
+global   1      msg                                                              variável                  string   11

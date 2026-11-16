@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Uma entrada da tabela de símbolos: um nome declarado, com o que ele é
- * (categoria), o tipo (para variáveis e parâmetros), onde foi declarado
- * (escopo, nível e linha) e, para procedimentos, os parâmetros.
+ * Uma entrada da tabela de simbolos: um nome declarado, com o que ele e
+ * (categoria), o tipo (para variaveis e parametros), onde foi declarado
+ * (escopo, nivel e linha) e, para procedimentos, os parametros.
  */
 public final class Simbolo {
 
@@ -20,10 +20,10 @@ public final class Simbolo {
     private final List<Simbolo> parametros = new ArrayList<>();
 
     /**
-     * @param nome      como foi escrito na declaração
+     * @param nome      como foi escrito na declaracao
      * @param categoria o que o nome representa
-     * @param tipo      tipo de variáveis e parâmetros (null para procedimentos e programa)
-     * @param linha     linha da declaração (0 para os predefinidos)
+     * @param tipo      tipo de variaveis e parametros (null para procedimentos e programa)
+     * @param linha     linha da declaracao (0 para os predefinidos)
      */
     public Simbolo(String nome, CategoriaSimbolo categoria, Tipo tipo, int linha) {
         this.nome = nome;
@@ -32,13 +32,13 @@ public final class Simbolo {
         this.linha = linha;
     }
 
-    // Preenchidos pela TabelaSimbolos quando o símbolo é declarado.
+    // Preenchidos pela TabelaSimbolos quando o simbolo e declarado.
     void registrarEscopo(String escopo, int nivel) {
         this.escopo = escopo;
         this.nivel = nivel;
     }
 
-    // Parâmetros de um procedimento, na ordem da declaração.
+    // Parametros de um procedimento, na ordem da declaracao.
     void adicionarParametro(Simbolo parametro) {
         parametros.add(parametro);
     }
@@ -59,7 +59,7 @@ public final class Simbolo {
         return linha;
     }
 
-    // Nome do escopo da declaração ("externo", "global", "soma", "soma.aux"...).
+    // Nome do escopo da declaracao ("externo", "global", "soma", "soma.aux"...).
     public String getEscopo() {
         return escopo;
     }
@@ -73,7 +73,7 @@ public final class Simbolo {
         return Collections.unmodifiableList(parametros);
     }
 
-    // Parâmetros como na declaração: "(var r: integer; x: real)", ou "" se não houver.
+    // Parametros como na declaracao: "(var r: integer; x: real)", ou "" se nao houver.
     public String descreverParametros() {
         if (parametros.isEmpty()) {
             return "";

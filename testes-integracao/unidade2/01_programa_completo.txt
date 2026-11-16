@@ -1,7 +1,7 @@
 /* Teste 01 - programa correto que usa toda a linguagem:
    variáveis dos quatro tipos, procedimentos com parâmetros por valor
    e por referência (var), recursão, if/else, while, blocos begin/end,
-   todos os operadores e as conversões permitidas.
+   todos os operadores (inclusive / and or not) e as conversões permitidas.
    Resultado esperado: OK */
 program Completo;
 var i, n, soma: integer;
@@ -62,6 +62,8 @@ begin
   if letra < 'Z' then saudar(frase, letra, 2) else saudar("x", 'y', media);
   IF n = 0 THEN Writeln("vazio");
   while (i >= 1) do i := i - 1;
+  media := soma / n + taxa / 2;
+  if (n > 0) and not (soma = 0) or (letra = 'T') then writeln("ok");
   begin
     LINHA;
     write(+media, -taxa, Soma);

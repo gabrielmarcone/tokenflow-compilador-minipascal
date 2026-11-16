@@ -1,14 +1,15 @@
 package minipascal.lexico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
 /**
- * Foca em comentários e erros léxicos: casos que a Fase 4 já cobria em
- * parte, mais os casos de borda que faltavam (comentário sem fechamento,
- * string/char sem fechamento, sequência de erros seguida de código válido).
+ * Foca em comentarios e erros lexicos: casos que a Fase 4 ja cobria em
+ * parte, mais os casos de borda que faltavam (comentario sem fechamento,
+ * string/char sem fechamento, sequencia de erros seguida de codigo valido).
  */
 public class VerificacaoFase5 {
 
@@ -26,7 +27,7 @@ public class VerificacaoFase5 {
         checarLinhaDoErroDeComentario();
 
         System.out.println();
-        System.out.println(total + " verificações, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -88,10 +89,10 @@ public class VerificacaoFase5 {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

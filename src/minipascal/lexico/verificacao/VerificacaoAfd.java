@@ -1,5 +1,6 @@
 package minipascal.lexico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.model.Token;
@@ -16,7 +17,7 @@ import java.util.Set;
 
 /**
  * Compara o AnalisadorLexico com o AFD representado em docs/automato_completo.jpg
- * O AFD esta escrito aqui como tabela de transicoes (estados q0..q37) e nao
+ * O AFD esta escrito aqui como tabela de transicoes (estados q0..q38) e nao
  * compartilha codigo com o analisador: o modelo avanca ate travar e volta ao
  * ultimo estado final visitado. Cada entrada passa pelos dois e as listas de
  * lexemas e classes devem ser iguais.
@@ -62,19 +63,21 @@ public class VerificacaoAfd {
                 r(";", "q21"), r(":", "q22"), r(".", "q24"), r("\"", "q25"), r("'", "q27"),
                 r(OUTRO, "q34"));
         monta("q1", r(LETRA, "q1"), r(DIGITO, "q1"), r("_", "q1"));
-        monta("q2", r(DIGITO, "q2"), r(".", "q3"));
+        monta("q2", r(DIGITO, "q2"), r(".", "q3"), r("e", "q5"), r("E", "q5"), r(LETRA, "q30"), r("_", "q30"));
         monta("q3", r(DIGITO, "q4"));
-        monta("q4", r(DIGITO, "q4"), r("e", "q5"), r("E", "q5"));
-        monta("q5", r("+", "q6"), r("-", "q6"), r(DIGITO, "q7"));
+        monta("q4", r(DIGITO, "q4"), r("e", "q5"), r("E", "q5"), r(LETRA, "q30"), r("_", "q30"));
+        monta("q5", r("+", "q6"), r("-", "q6"), r(DIGITO, "q7"), r(LETRA, "q30"), r("_", "q30"));
         monta("q6", r(DIGITO, "q7"));
-        monta("q7", r(DIGITO, "q7"));
+        monta("q7", r(DIGITO, "q7"), r(LETRA, "q30"), r("_", "q30"));
+        monta("q30", r(LETRA, "q30"), r(DIGITO, "q30"), r("_", "q30"));
         monta("q11", r("*", "q31"));
         monta("q13", r("=", "q14"));
         monta("q15", r("=", "q16"), r(">", "q17"));
         monta("q22", r("=", "q23"));
         monta("q25", r("\"", "q26"), s(NL, "q35"), s(EOF, "q35"), r(OUTRO, "q25"));
-        monta("q27", s("'", "q36"), s(NL, "q36"), s(EOF, "q36"), r(OUTRO, "q28"));
-        monta("q28", r("'", "q29"), s(OUTRO, "q36"));
+        monta("q27", r("'", "q38"), s(NL, "q36"), s(EOF, "q36"), r(OUTRO, "q28"));
+        monta("q28", r("'", "q29"), s(NL, "q36"), s(EOF, "q36"), r(OUTRO, "q33"));
+        monta("q33", r("'", "q38"), s(NL, "q36"), s(EOF, "q36"), r(OUTRO, "q33"));
         monta("q31", r("*", "q32"), s(EOF, "q37"), r(OUTRO, "q31"));
         monta("q32", r("/", "q0"), r("*", "q32"), s(EOF, "q37"), r(OUTRO, "q31"));
 
@@ -95,7 +98,9 @@ public class VerificacaoAfd {
         FINAIS.put("q24", TipoToken.FIM);
         FINAIS.put("q26", TipoToken.CONSTANTE_STRING);
         FINAIS.put("q29", TipoToken.CONSTANTE_CHAR);
-        for (String q : Arrays.asList("q34", "q35", "q36", "q37")) {
+        // q5: "2e" sem digitos no expoente; q30: numero colado em letra;
+        // q38: char fechado sem exatamente 1 caractere ('' ou 'ab').
+        for (String q : Arrays.asList("q5", "q30", "q34", "q35", "q36", "q37", "q38")) {
             FINAIS.put(q, TipoToken.ERRO_LEXICO);
         }
     }
@@ -134,22 +139,29 @@ public class VerificacaoAfd {
                 estados.add(regra.destino);
             }
         }
-        checar("AFD tem 36 estados (q0-q29, q31, q32, q34-q37)", estados.size() == 36);
-        checar("AFD tem 27 estados finais", FINAIS.size() == 27);
+        checar("AFD tem 39 estados (q0-q38)", estados.size() == 39);
+        checar("AFD tem 30 estados finais", FINAIS.size() == 30);
         checar("AFD tem 9 estados nao finais", estados.size() - FINAIS.size() == 9);
     }
 
     private static void checarCasosFixos() {
         checarCaso("1.a", "1", ".", "a");
-        checarCaso("1.5e", "1.5", "e");
-        checarCaso("1.5e+", "1.5", "e", "+");
-        checarCaso("5e3", "5", "e3");
+        checarCaso("1.5e", "1.5e");
+        checarCaso("1.5e+", "1.5e", "+");
+        checarCaso("2e+x", "2e", "+", "x");
+        checarCaso("5e3", "5e3");
+        checarCaso("2E-3;", "2E-3", ";");
+        checarCaso("12abc", "12abc");
+        checarCaso("1.5x2_y z", "1.5x2_y", "z");
+        checarCaso("2end", "2end");
         checarCaso("24.40e-04", "24.40e-04");
         checarCaso("/* x */ a", "a");
         checarCaso("/* aberto", "/*");
         checarCaso("\"aberta\nx", "\"aberta", "x");
-        checarCaso("''", "'", "'");
-        checarCaso("'ab'", "'a", "b", "'");
+        checarCaso("''", "''");
+        checarCaso("'ab';", "'ab'", ";");
+        checarCaso("'a;\nx", "'a;", "x");
+        checarCaso("'x'", "'x'");
         checarCaso("a:=b<>c", "a", ":=", "b", "<>", "c");
     }
 
@@ -246,7 +258,9 @@ public class VerificacaoAfd {
                 if (FINAIS.containsKey(estado)) {
                     ultimoFinal = estado;
                     fimDoUltimoFinal = atual;
-                    if (FINAIS.get(estado) == TipoToken.ERRO_LEXICO) {
+                    // Um erro sem saida (q34 a q38) termina o token; q5 e q30
+                    // ainda podem continuar (expoente, letras coladas).
+                    if (FINAIS.get(estado) == TipoToken.ERRO_LEXICO && !TRANSICOES.containsKey(estado)) {
                         break;
                     }
                 }
@@ -326,10 +340,10 @@ public class VerificacaoAfd {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

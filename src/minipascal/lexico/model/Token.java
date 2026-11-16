@@ -28,6 +28,7 @@ public class Token {
     }
 
     @Override
+    // Formato da listagem da Unidade I: lexema, tab, classe.
     public String toString() {
         return lexema + "\t" + tipo.getDescricao();
     }

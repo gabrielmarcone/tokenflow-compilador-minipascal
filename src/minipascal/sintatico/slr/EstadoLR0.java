@@ -5,8 +5,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Estado do autômato LR(0): um conjunto de itens já fechado (closure),
- * com o número que ele recebe na tabela.
+ * Estado do automato LR(0): um conjunto de itens ja fechado (closure),
+ * com o numero que ele recebe na tabela.
  */
 public final class EstadoLR0 {
 

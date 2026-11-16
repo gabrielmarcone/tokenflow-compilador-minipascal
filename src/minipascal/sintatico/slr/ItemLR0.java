@@ -4,10 +4,10 @@ import minipascal.sintatico.gramatica.Gramatica;
 import minipascal.sintatico.gramatica.Producao;
 
 /**
- * Item LR(0): uma produção com um ponto marcando quanto do corpo já foi
- * reconhecido. Ex.: TERMO -> TERMO • * FATOR (ponto = 1).
- * A ordem natural (produção, depois ponto) dá uma ordem fixa aos itens de
- * cada estado, o que torna a numeração dos estados sempre a mesma.
+ * Item LR(0): uma producao com um ponto marcando quanto do corpo ja foi
+ * reconhecido. Ex.: TERMO -> TERMO . * FATOR (ponto = 1).
+ * A ordem natural (producao, depois ponto) da uma ordem fixa aos itens de
+ * cada estado, o que torna a numeracao dos estados sempre a mesma.
  */
 public final class ItemLR0 implements Comparable<ItemLR0> {
 
@@ -27,21 +27,23 @@ public final class ItemLR0 implements Comparable<ItemLR0> {
         return ponto;
     }
 
-    // Símbolo logo após o ponto, ou null se o item está completo.
+    // Simbolo logo apos o ponto, ou null se o item esta completo.
     public String simboloAposPonto(Gramatica g) {
         Producao p = g.getProducao(producao);
         return ponto < p.tamanho() ? p.getCorpo().get(ponto) : null;
     }
 
+    // Ponto no fim do corpo: o item pede uma reducao.
     public boolean isCompleto(Gramatica g) {
         return ponto == g.getProducao(producao).tamanho();
     }
 
+    // O mesmo item com o ponto uma posicao a frente (usado no goto).
     public ItemLR0 avancar() {
         return new ItemLR0(producao, ponto + 1);
     }
 
-    // "TERMO -> TERMO • * FATOR"
+    // "TERMO -> TERMO . * FATOR"
     public String descrever(Gramatica g) {
         Producao p = g.getProducao(producao);
         StringBuilder sb = new StringBuilder(p.getCabeca()).append(" ->");
@@ -58,6 +60,7 @@ public final class ItemLR0 implements Comparable<ItemLR0> {
     }
 
     @Override
+    // Ordena por producao e depois pela posicao do ponto.
     public int compareTo(ItemLR0 outro) {
         if (producao != outro.producao) {
             return Integer.compare(producao, outro.producao);

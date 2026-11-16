@@ -7,21 +7,21 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Gera programas Mini_Pascal aleatórios e bem tipados, para VerificacaoSemantica.
+ * Gera programas Mini_Pascal aleatorios e bem tipados, para VerificacaoSemantica.
  *
- * O gerador não usa o analisador semântico: ele mesmo sabe o tipo de cada
- * expressão que escreve (escreve uma expressão "de um tipo" a partir de regras
- * próprias) e o que é visível em cada ponto (variáveis globais, parâmetros,
- * variáveis locais, procedimentos já declarados, procedimentos aninhados).
- * Por isso serve de oráculo: o programa gerado tem de dar OK.
+ * O gerador nao usa o analisador semantico: ele mesmo sabe o tipo de cada
+ * expressao que escreve (escreve uma expressao "de um tipo" a partir de regras
+ * proprias) e o que e visivel em cada ponto (variaveis globais, parametros,
+ * variaveis locais, procedimentos ja declarados, procedimentos aninhados).
+ * Por isso serve de oraculo: o programa gerado tem de dar OK.
  *
- * Com um Defeito, um comando (ou uma declaração) do programa é trocado por um
+ * Com um Defeito, um comando (ou uma declaracao) do programa e trocado por um
  * com exatamente aquele erro, e o gerador informa a linha e a mensagem que a
- * análise tem de dar. As mensagens são montadas aqui, de forma independente
+ * analise tem de dar. As mensagens sao montadas aqui, de forma independente
  * do AnalisadorSemantico.
  *
- * Todos os nomes são diferentes entre si (g0, a1, l2, p3...), então não há
- * nome escondido por outro: o que é visível é exatamente o que foi declarado
+ * Todos os nomes sao diferentes entre si (g0, a1, l2, p3...), entao nao ha
+ * nome escondido por outro: o que e visivel e exatamente o que foi declarado
  * no escopo e nos escopos de fora.
  */
 final class GeradorDeProgramas {
@@ -45,11 +45,11 @@ final class GeradorDeProgramas {
 
     private static final Tipo[] DECLARAVEIS = {Tipo.INTEGER, Tipo.REAL, Tipo.CHAR, Tipo.STRING};
 
-    // Uma variável ou parâmetro visível.
+    // Uma variavel ou parametro visivel.
     private static final class Var {
         final String nome;
         final Tipo tipo;
-        final String descricao; // "uma variável", "um parâmetro", "um parâmetro var"
+        final String descricao; // "uma variavel", "um parametro", "um parametro var"
         final boolean porReferencia;
 
         Var(String nome, Tipo tipo, String descricao, boolean porReferencia) {
@@ -72,7 +72,7 @@ final class GeradorDeProgramas {
         }
     }
 
-    // O que é visível num ponto do programa.
+    // O que e visivel num ponto do programa.
     private static final class Contexto {
         final List<Var> vars = new ArrayList<>();
         final List<Proc> procs = new ArrayList<>();
@@ -109,7 +109,7 @@ final class GeradorDeProgramas {
 
     /**
      * @param defeito null para um programa correto
-     * @return o programa, ou null se o programa sorteado não tem onde pôr o defeito
+     * @return o programa, ou null se o programa sorteado nao tem onde por o defeito
      */
     String gerar(Defeito defeito) {
         // ---- modelo
@@ -335,7 +335,7 @@ final class GeradorDeProgramas {
         }
     }
 
-    // Um comando com o defeito (e só ele); guarda a mensagem esperada.
+    // Um comando com o defeito (e so ele); guarda a mensagem esperada.
     private String comandoComDefeito(Defeito d, Contexto c) {
         switch (d) {
             case ATRIBUICAO_REAL_EM_INTEGER: {
@@ -364,7 +364,7 @@ final class GeradorDeProgramas {
                 List<String> args = argumentosCorretos(p, c);
                 int i = indiceDeParametro(p, true);
                 Var a = p.parametros.get(i);
-                // Entre parênteses, ou uma constante: não é mais uma variável.
+                // Entre parenteses, ou uma constante: nao e mais uma variavel.
                 args.set(i, rnd.nextBoolean() ? "(" + args.get(i) + ")" : literal(a.tipo));
                 mensagemDoDefeito = "Argumento " + (i + 1) + " de '" + p.nome + "': o parâmetro '" + a.nome
                         + "' é var e precisa receber uma variável";
@@ -465,7 +465,7 @@ final class GeradorDeProgramas {
 
     // ---------------------------------------------------- chamadas e argumentos
 
-    // Procedimentos que dá para chamar: para cada parâmetro var há uma variável do mesmo tipo.
+    // Procedimentos que da para chamar: para cada parametro var ha uma variavel do mesmo tipo.
     private List<Proc> chamaveis(Contexto c) {
         List<Proc> lista = new ArrayList<>();
         for (Proc p : c.procs) {
@@ -527,9 +527,9 @@ final class GeradorDeProgramas {
         return String.join(", ", lista);
     }
 
-    // ------------------------------------------------------------ expressões
+    // ------------------------------------------------------------ expressoes
 
-    // Uma expressão que pode ser atribuída a uma variável do tipo dado.
+    // Uma expressao que pode ser atribuida a uma variavel do tipo dado.
     private String expressaoAtribuivelA(Tipo destino, Contexto c, int profundidade) {
         if (destino == Tipo.REAL && rnd.nextInt(3) == 0) {
             return expressao(Tipo.INTEGER, c, profundidade);
@@ -540,7 +540,7 @@ final class GeradorDeProgramas {
         return expressao(destino, c, profundidade);
     }
 
-    // Uma expressão exatamente do tipo dado.
+    // Uma expressao exatamente do tipo dado.
     private String expressao(Tipo t, Contexto c, int profundidade) {
         if (t == Tipo.LOGICO) {
             if (profundidade > 0 && rnd.nextInt(5) == 0) {
@@ -615,12 +615,12 @@ final class GeradorDeProgramas {
         return sortear(new String[]{"=", "<", ">", "<>", "<=", ">="});
     }
 
-    // Uma expressão composta vai entre parênteses quando é parte de outra.
+    // Uma expressao composta vai entre parenteses quando e parte de outra.
     private static String embrulhar(String expressao) {
         return ehAtomo(expressao) ? expressao : "(" + expressao + ")";
     }
 
-    // Um nome, um número, uma constante char ou string sozinha, ou algo já entre parênteses do começo ao fim.
+    // Um nome, um numero, uma constante char ou string sozinha, ou algo ja entre parenteses do comeco ao fim.
     private static boolean ehAtomo(String e) {
         int n = e.length();
         if (n >= 2 && e.charAt(0) == '"' && e.indexOf('"', 1) == n - 1) {
@@ -634,7 +634,7 @@ final class GeradorDeProgramas {
 
     // ----------------------------------------------------------------- apoio
 
-    // Regras de atribuição do gerador (independentes de Tipo.podeSerAtribuidoA).
+    // Regras de atribuicao do gerador (independentes de Tipo.podeSerAtribuidoA).
     private static boolean atribuivel(Tipo valor, Tipo destino) {
         if (valor == destino) {
             return true;

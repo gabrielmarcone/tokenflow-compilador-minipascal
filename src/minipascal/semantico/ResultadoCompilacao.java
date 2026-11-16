@@ -8,11 +8,11 @@ import minipascal.sintatico.parser.ResultadoAnalise;
 import java.util.List;
 
 /**
- * Resultado da análise completa de um programa (léxica, sintática e
- * semântica): os erros das três fases, em ordem de linha e, na mesma linha, na
- * ordem do texto; os tokens lidos; e a tabela de símbolos montada.
+ * Resultado da analise completa de um programa (lexica, sintatica e
+ * semantica): os erros das tres fases, em ordem de linha e, na mesma linha, na
+ * ordem do texto; os tokens lidos; e a tabela de simbolos montada.
  *
- * A saída pedida pelo enunciado é a de formatar(): "OK" se o programa estiver
+ * A saida pedida pelo enunciado e a de formatar(): "OK" se o programa estiver
  * correto, ou um erro por linha, com o tipo do erro e a linha.
  */
 public final class ResultadoCompilacao {
@@ -48,9 +48,9 @@ public final class ResultadoCompilacao {
     }
 
     /**
-     * Falso quando houve erro sintático: a análise semântica parou nele (ver
-     * AnalisadorSemantico), e a tabela de símbolos tem só o que foi declarado
-     * até ali.
+     * Falso quando houve erro sintatico: a analise semantica parou nele (ver
+     * AnalisadorSemantico), e a tabela de simbolos tem so o que foi declarado
+     * ate ali.
      */
     public boolean isSemanticaCompleta() {
         return semanticaCompleta;

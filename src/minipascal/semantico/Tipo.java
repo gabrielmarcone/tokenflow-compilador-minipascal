@@ -3,15 +3,15 @@ package minipascal.semantico;
 import java.util.Locale;
 
 /**
- * Tipos da análise semântica.
+ * Tipos da analise semantica.
  *
- * Os quatro primeiros são os tipos da linguagem (o terminal "tipo" da
- * gramática). LOGICO é o tipo do resultado de uma comparação: a linguagem não
- * tem variáveis lógicas, mas a condição de um if ou de um while tem de ser
- * lógica, e uma comparação entre parênteses pode aparecer dentro de outra
- * expressão. ERRO é o tipo de uma expressão que já teve um erro relatado:
- * qualquer operação com ele dá ERRO sem nova mensagem, para que um único erro
- * não gere uma cascata de erros.
+ * Os quatro primeiros sao os tipos da linguagem (o terminal "tipo" da
+ * gramatica). LOGICO e o tipo do resultado de uma comparacao: a linguagem nao
+ * tem variaveis logicas, mas a condicao de um if ou de um while tem de ser
+ * logica, e uma comparacao entre parenteses pode aparecer dentro de outra
+ * expressao. ERRO e o tipo de uma expressao que ja teve um erro relatado:
+ * qualquer operacao com ele da ERRO sem nova mensagem, para que um unico erro
+ * nao gere uma cascata de erros.
  */
 public enum Tipo {
 
@@ -48,15 +48,15 @@ public enum Tipo {
         return this == INTEGER || this == REAL;
     }
 
-    // char e string: comparáveis entre si e concatenáveis com '+'.
+    // char e string: comparaveis entre si e concatenaveis com '+'.
     public boolean isTexto() {
         return this == CHAR || this == STRING;
     }
 
     /*
-     * Um valor deste tipo pode ser guardado numa variável do tipo destino?
-     * Iguais; integer em real (conversão sem perda); char em string.
-     * O contrário (real em integer, string em char) é erro.
+     * Um valor deste tipo pode ser guardado numa variavel do tipo destino?
+     * Iguais; integer em real (conversao sem perda); char em string.
+     * O contrario (real em integer, string em char) e erro.
      */
     public boolean podeSerAtribuidoA(Tipo destino) {
         return this == destino

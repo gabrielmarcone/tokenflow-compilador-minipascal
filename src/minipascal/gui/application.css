@@ -1,7 +1,7 @@
 /*
  * Estilo do TokenFlow: o visual "vidro azul" da Unidade I, com cores por
- * significado: verde = correto, vermelho = erro, âmbar = atenção.
- * Fases dos erros: léxico (laranja), sintático (vermelho), semântico (roxo).
+ * significado: verde = correto, vermelho = erro, ambar = atencao.
+ * Fases dos erros: lexico (laranja), sintatico (vermelho), semantico (roxo).
  */
 
 /* ============ BASE ============ */
@@ -16,7 +16,7 @@
     -fx-text-fill: #0c3a52;
 }
 
-/* ============ CABEÇALHO ============ */
+/* ============ CABECALHO ============ */
 
 .header {
     -fx-background-color:
@@ -51,7 +51,7 @@
     -fx-padding: 0 0 0 6;
 }
 
-/* ============ BOTÕES (vidro, em pílula) ============ */
+/* ============ BOTOES (vidro, em pilula) ============ */
 
 .button {
     -fx-background-color:
@@ -95,7 +95,7 @@
     -fx-effect: none;
 }
 
-/* Ação principal (Analisar): vidro verde */
+/* Acao principal (Analisar): vidro verde */
 .botao-destaque {
     -fx-background-color:
         linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.0) 100%),
@@ -117,7 +117,7 @@
         linear-gradient(to bottom, #146a45 0%, #0c4c32 100%);
 }
 
-/* Botões secundários, dentro das abas */
+/* Botoes secundarios, dentro das abas */
 .botao-pequeno {
     -fx-font-size: 12px;
     -fx-padding: 4 12 4 12;
@@ -133,7 +133,7 @@
     -fx-font-size: 14px;
 }
 
-/* Ícones (SVG) */
+/* Icones (SVG) */
 .icone {
     -fx-fill: white;
     -fx-scale-x: 0.8;
@@ -152,7 +152,7 @@
     -fx-scale-y: 1.1;
 }
 
-/* ============ PAINÉIS ============ */
+/* ============ PAINEIS ============ */
 
 .painel {
     -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.15));
@@ -186,7 +186,7 @@
     -fx-padding: 1;
 }
 
-/* A fonte de largura fixa é escolhida na abertura (ver Fontes.java). */
+/* A fonte de largura fixa e escolhida na abertura (ver Fontes.java). */
 .codigo-fonte,
 .numeros-linha {
     -fx-font-size: 13px;
@@ -208,7 +208,7 @@
 .codigo-fonte:focused {
     -fx-faint-focus-color: transparent;
     -fx-focus-color: transparent;
-    /* O tema padrão esconde a dica com o foco; aqui ela continua até o usuário digitar. */
+    /* O tema padrao esconde a dica com o foco; aqui ela continua ate o usuario digitar. */
     -fx-prompt-text-fill: #8aa9ba;
 }
 
@@ -398,7 +398,7 @@
     -fx-text-fill: #4a3200;
 }
 
-/* Texto que quebra em várias linhas (conjuntos FIRST e FOLLOW). */
+/* Texto que quebra em varias linhas (conjuntos FIRST e FOLLOW). */
 .texto-quebrado {
     -fx-fill: #0c3a52;
 }
@@ -477,7 +477,7 @@
     -fx-font-weight: bold;
 }
 
-/* ACTION e GOTO cobrem dezenas de colunas: o rótulo fica no começo, à vista. */
+/* ACTION e GOTO cobrem dezenas de colunas: o rotulo fica no comeco, a vista. */
 .tabela-slr .column-header.grupo-slr > .label {
     -fx-alignment: center-left;
     -fx-padding: 0 0 0 10;

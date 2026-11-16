@@ -1,6 +1,7 @@
 package minipascal.lexico.verificacao;
 
 import minipascal.cli.AnaliseLexica;
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.io.EscritorArquivoSaida;
 import minipascal.io.LeitorArquivoFonte;
@@ -18,7 +19,7 @@ import java.util.Locale;
 
 /**
  * Entradas e ambientes fora do comum: Unicode, quebras de linha antigas,
- * codificações diferentes de UTF-8, locale do sistema e caminhos do CLI.
+ * codificacoes diferentes de UTF-8, locale do sistema e caminhos do CLI.
  */
 public class VerificacaoRobustez {
 
@@ -41,7 +42,7 @@ public class VerificacaoRobustez {
         checarVolumeGrande();
 
         System.out.println();
-        System.out.println(total + " verificações de robustez, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes de robustez, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -197,7 +198,7 @@ public class VerificacaoRobustez {
                 t.size() == 1 && t.get(0).getLexema().length() == 63);
     }
 
-    // ---------- utilitários ----------
+    // ---------- utilitarios ----------
 
     private static File temporario(String prefixo, String sufixo) throws IOException {
         File f = File.createTempFile(prefixo, sufixo);
@@ -227,10 +228,10 @@ public class VerificacaoRobustez {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

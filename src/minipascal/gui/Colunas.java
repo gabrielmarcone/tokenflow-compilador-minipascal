@@ -12,31 +12,31 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Larguras e células das colunas das tabelas da interface.
+ * Larguras e celulas das colunas das tabelas da interface.
  *
- * O ajuste automático do JavaFX (CONSTRAINED_RESIZE_POLICY) reparte a
- * largura em proporção às larguras iniciais: colunas curtas como "Nº" ficam
+ * O ajuste automatico do JavaFX (CONSTRAINED_RESIZE_POLICY) reparte a
+ * largura em proporcao as larguras iniciais: colunas curtas como "No" ficam
  * largas demais e as de texto longo ficam cortadas. Aqui as colunas curtas
- * mantêm a sua largura e só as de texto ocupam o espaço que sobra.
+ * mantem a sua largura e so as de texto ocupam o espaco que sobra.
  */
 final class Colunas {
 
-    // Espaço da barra de rolagem vertical (16) e uma folga, para não aparecer a horizontal.
+    // Espaco da barra de rolagem vertical (16) e uma folga, para nao aparecer a horizontal.
     private static final double BARRA_DE_ROLAGEM = 17;
 
     private Colunas() {
     }
 
     /*
-     * A coluna dada fica com a largura útil da tabela (sem as bordas e a barra
+     * A coluna dada fica com a largura util da tabela (sem as bordas e a barra
      * de rolagem vertical) menos a das outras colunas, mas nunca menos que o
-     * mínimo.
+     * minimo.
      */
     static void ocuparEspacoQueSobra(TableView<?> tabela, TableColumn<?, ?> coluna, double minimo) {
         repartirEspacoQueSobra(tabela, minimo, coluna);
     }
 
-    // Como ocuparEspacoQueSobra, mas o espaço é dividido igualmente entre as colunas dadas.
+    // Como ocuparEspacoQueSobra, mas o espaco e dividido igualmente entre as colunas dadas.
     static void repartirEspacoQueSobra(TableView<?> tabela, double minimo, TableColumn<?, ?>... colunas) {
         List<TableColumn<?, ?>> elas = Arrays.asList(colunas);
         List<Observable> dependencias = new ArrayList<>();
@@ -62,8 +62,8 @@ final class Colunas {
     }
 
     /*
-     * Célula que quebra o texto em várias linhas quando ele não cabe na
-     * largura da coluna (a linha da tabela fica mais alta), em vez de cortá-lo.
+     * Celula que quebra o texto em varias linhas quando ele nao cabe na
+     * largura da coluna (a linha da tabela fica mais alta), em vez de corta-lo.
      */
     static <T> TableCell<T, String> celulaQueQuebra() {
         return new TableCell<T, String>() {
@@ -71,8 +71,8 @@ final class Colunas {
 
             {
                 texto.getStyleClass().add("texto-quebrado");
-                // A largura da coluna já é conhecida antes do desenho da célula
-                // (a da célula, não), e a altura da linha depende dela.
+                // A largura da coluna ja e conhecida antes do desenho da celula
+                // (a da celula, nao), e a altura da linha depende dela.
                 tableColumnProperty().addListener((obs, antiga, nova) -> {
                     if (nova != null) {
                         texto.wrappingWidthProperty().bind(nova.widthProperty().subtract(12));

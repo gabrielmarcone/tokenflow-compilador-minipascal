@@ -1,11 +1,12 @@
 package minipascal.lexico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
 /**
- * Verificação manual da Fase 3, sem JUnit — dá pra apagar quando os testes
+ * Verificacao manual da Fase 3, sem JUnit - da pra apagar quando os testes
  * de verdade estiverem configurados na IDE.
  */
 public class VerificacaoFase3 {
@@ -63,7 +64,7 @@ public class VerificacaoFase3 {
         checar("getLinha() deve retornar 3", t2.getLinha() == 3);
 
         System.out.println();
-        System.out.println(total + " verificações, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -72,10 +73,10 @@ public class VerificacaoFase3 {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

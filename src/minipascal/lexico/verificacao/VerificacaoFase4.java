@@ -1,5 +1,6 @@
 package minipascal.lexico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
@@ -37,8 +38,12 @@ public class VerificacaoFase4 {
         checarToken("@", "@", TipoToken.ERRO_LEXICO);
 
         checarToken("1.a", "1", TipoToken.NUMERO_INTEIRO);
-        checarToken("1.5e", "1.5", TipoToken.NUMERO_REAL);
-        checarToken("1.5e+", "1.5", TipoToken.NUMERO_REAL);
+        checarToken("1.5e", "1.5e", TipoToken.ERRO_LEXICO);
+        checarToken("1.5e+", "1.5e", TipoToken.ERRO_LEXICO);
+        checarToken("2e3", "2e3", TipoToken.NUMERO_REAL);
+        checarToken("2E-3;", "2E-3", TipoToken.NUMERO_REAL);
+        checarToken("12abc", "12abc", TipoToken.ERRO_LEXICO);
+        checarToken("'ab'", "'ab'", TipoToken.ERRO_LEXICO);
 
         checarSemTokenDeComentario();
         checarNaoConfundeDivisaoComComentario();
@@ -47,7 +52,7 @@ public class VerificacaoFase4 {
         checarProgramaPiloto();
 
         System.out.println();
-        System.out.println(total + " verificações, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -175,10 +180,10 @@ public class VerificacaoFase4 {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

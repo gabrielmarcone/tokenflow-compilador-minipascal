@@ -1,5 +1,6 @@
 package minipascal.semantico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.semantico.CategoriaSimbolo;
 import minipascal.semantico.Simbolo;
 import minipascal.semantico.TabelaSimbolos;
@@ -9,15 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Verifica a tabela de símbolos (escopos aninhados) e as regras de tipos
- * usadas pela análise semântica, isoladas do analisador:
- *   - escopos: externo (nível 0), global (1), procedimentos (2, 3...), com
+ * Verifica a tabela de simbolos (escopos aninhados) e as regras de tipos
+ * usadas pela analise semantica, isoladas do analisador:
+ *   - escopos: externo (nivel 0), global (1), procedimentos (2, 3...), com
  *     nomes "q" e "q.r";
  *   - declarar recusa nome repetido no mesmo escopo e aceita em escopos
  *     diferentes; buscar acha o mais interno; fechar o escopo esconde os locais;
- *   - nomes sem diferença de maiúsculas e minúsculas;
- *   - histórico (inclusive de escopos fechados) e a listagem em texto;
- *   - Tipo: tipos declarados e a tabela completa de atribuição.
+ *   - nomes sem diferenca de maiusculas e minusculas;
+ *   - historico (inclusive de escopos fechados) e a listagem em texto;
+ *   - Tipo: tipos declarados e a tabela completa de atribuicao.
  */
 public class VerificacaoTabelaSimbolos {
 
@@ -63,7 +64,7 @@ public class VerificacaoTabelaSimbolos {
         checar("o escopo externo não pode ser fechado", recusou && t.nivelAtual() == 0);
     }
 
-    // ----------------------------------------------------- declaração e busca
+    // ----------------------------------------------------- declaracao e busca
 
     private static void verificarDeclaracao() {
         TabelaSimbolos t = new TabelaSimbolos();
@@ -101,7 +102,7 @@ public class VerificacaoTabelaSimbolos {
                 acentos.buscar("VARIÁVEL") == v && acentos.buscar("variavel") == null);
     }
 
-    // ---------------------------------------------------- histórico e listagem
+    // ---------------------------------------------------- historico e listagem
 
     private static void verificarListagem() {
         TabelaSimbolos t = new TabelaSimbolos();
@@ -125,8 +126,8 @@ public class VerificacaoTabelaSimbolos {
         checar("histórico na ordem da declaração, inclusive o escopo já fechado: " + nomes,
                 nomes.toString().equals("[writeln, x, q, r, n, zz]"));
 
-        // Os parâmetros são ligados ao procedimento pelo analisador semântico (a
-        // descrição com parâmetros é conferida em VerificacaoSemantica).
+        // Os parametros sao ligados ao procedimento pelo analisador semantico (a
+        // descricao com parametros e conferida em VerificacaoSemantica).
         Simbolo comParametros = new Simbolo("soma", CategoriaSimbolo.PROCEDIMENTO, null, 1);
         checar("procedimento sem parâmetros: descrição vazia", comParametros.descreverParametros().isEmpty());
 
@@ -160,15 +161,15 @@ public class VerificacaoTabelaSimbolos {
         checar("textos: char e string", Tipo.CHAR.isTexto() && Tipo.STRING.isTexto()
                 && !Tipo.INTEGER.isTexto() && !Tipo.LOGICO.isTexto());
 
-        // Tabela completa: linha = tipo do valor, coluna = tipo da variável.
+        // Tabela completa: linha = tipo do valor, coluna = tipo da variavel.
         Tipo[] tipos = {Tipo.INTEGER, Tipo.REAL, Tipo.CHAR, Tipo.STRING, Tipo.LOGICO};
         String[] permitido = {
-                // integer real  char  string lógico   (destino)
+                // integer real  char  string logico   (destino)
                 "s s n n n",  // integer
                 "n s n n n",  // real
                 "n n s s n",  // char
                 "n n n s n",  // string
-                "n n n n s"}; // lógico
+                "n n n n s"}; // logico
         List<String> errados = new ArrayList<>();
         for (int i = 0; i < tipos.length; i++) {
             String[] linha = permitido[i].split(" ");
@@ -196,17 +197,17 @@ public class VerificacaoTabelaSimbolos {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações da tabela de símbolos, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes da tabela de simbolos, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

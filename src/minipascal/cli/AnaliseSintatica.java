@@ -13,22 +13,22 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 
 /**
- * Linha de comando do analisador sintático:
+ * Linha de comando do analisador sintatico:
  *
  *   java -cp TokenFlow.jar minipascal.cli.AnaliseSintatica <programa.txt> [saida.txt]
  *
  * Imprime "OK" se o programa estiver correto, ou o conjunto dos erros, um por
- * linha, com o tipo e a linha de ocorrência (como pede o enunciado da Unidade
- * II): a análise se recupera de cada erro sintático e continua até o fim do
+ * linha, com o tipo e a linha de ocorrencia (como pede o enunciado da Unidade
+ * II): a analise se recupera de cada erro sintatico e continua ate o fim do
  * arquivo (ver AnalisadorSintatico). Com
- * [saida.txt], grava o mesmo resultado em UTF-8. No console, os acentos são
+ * [saida.txt], grava o mesmo resultado em UTF-8. No console, os acentos sao
  * removidos (ver Console).
  *
- * Código de saída: 0 quando o resultado é "OK"; 1 quando há erros no programa
- * ou falha de leitura/gravação.
+ * Codigo de saida: 0 quando o resultado e "OK"; 1 quando ha erros no programa
+ * ou falha de leitura/gravacao.
  *
- * A gramática usada é a completa (gramatica.txt): o arquivo deve conter um
- * programa Mini_Pascal inteiro, de "program" até o "." final.
+ * A gramatica usada e a completa (gramatica.txt): o arquivo deve conter um
+ * programa Mini_Pascal inteiro, de "program" ate o "." final.
  */
 public final class AnaliseSintatica {
 

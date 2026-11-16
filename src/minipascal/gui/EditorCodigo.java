@@ -13,13 +13,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * O editor do código-fonte: a área de texto com uma coluna de números de linha
- * ao lado, que marca com "●" as linhas que têm erro, e a posição do cursor
- * ("Linha 12, coluna 5"). Como as mensagens de erro citam a linha, os números
- * evitam que o usuário tenha de contar linhas.
+ * O editor do codigo-fonte: a area de texto com uma coluna de numeros de linha
+ * ao lado, que marca com "*" as linhas que tem erro, e a posicao do cursor
+ * ("Linha 12, coluna 5"). Como as mensagens de erro citam a linha, os numeros
+ * evitam que o usuario tenha de contar linhas.
  *
- * A coluna de números é uma segunda área de texto, não editável, com a mesma
- * fonte, que rola junto com o código.
+ * A coluna de numeros e uma segunda area de texto, nao editavel, com a mesma
+ * fonte, que rola junto com o codigo.
  */
 public final class EditorCodigo extends BorderPane {
 
@@ -53,9 +53,10 @@ public final class EditorCodigo extends BorderPane {
         posicao.getStyleClass().add("posicao-cursor");
         setBottom(posicao);
 
+        // Os numeros acompanham o texto, o cursor e a rolagem do codigo.
         area.textProperty().addListener((obs, antigo, novo) -> atualizarNumeros(false));
         area.caretPositionProperty().addListener((obs, antigo, novo) -> atualizarPosicao());
-        // Os números rolam junto com o código (nos dois sentidos, sem laço).
+        // Os numeros rolam junto com o codigo (nos dois sentidos, sem laco).
         area.scrollTopProperty().addListener((obs, antigo, novo) -> {
             if (!sincronizando) {
                 sincronizando = true;
@@ -84,15 +85,15 @@ public final class EditorCodigo extends BorderPane {
         area.setScrollTop(0);
     }
 
-    // Marca com "●" as linhas com erro (vazio para tirar as marcas).
+    // Marca com "*" as linhas com erro (vazio para tirar as marcas).
     public void marcarLinhasComErro(Set<Integer> linhas) {
         linhasComErro = new HashSet<>(linhas);
         atualizarNumeros(true);
     }
 
     /**
-     * Seleciona a linha inteira e rola até ela, deixando-a no terço de cima da
-     * área visível. Linha fora do texto é ignorada.
+     * Seleciona a linha inteira e rola ate ela, deixando-a no terco de cima da
+     * area visivel. Linha fora do texto e ignorada.
      */
     public void selecionarLinha(int linha) {
         String texto = area.getText();
@@ -100,6 +101,7 @@ public final class EditorCodigo extends BorderPane {
             return;
         }
         int inicio = 0;
+        // Acha o inicio da linha pulando as quebras anteriores.
         for (int l = 1; l < linha; l++) {
             int quebra = texto.indexOf('\n', inicio);
             if (quebra < 0) {
@@ -111,10 +113,13 @@ public final class EditorCodigo extends BorderPane {
         if (fim < 0) {
             fim = texto.length();
         }
+        // arquivo com CRLF: nao seleciona o \r
         if (fim > inicio && texto.charAt(fim - 1) == '\r') {
             fim--;
         }
+        // do fim para o inicio: o cursor fica no comeco da linha
         area.selectRange(fim, inicio);
+        // Rola para a linha ficar no terco de cima da area visivel.
         double alturaLinha = alturaDaLinha();
         double visivel = area.getHeight() > 0 ? area.getHeight() : 400;
         area.setScrollTop(Math.max(0, (linha - 1) * alturaLinha - visivel / 3));
@@ -147,9 +152,9 @@ public final class EditorCodigo extends BorderPane {
     }
 
     /*
-     * Reescreve a coluna de números quando o número de linhas muda (ou quando
+     * Reescreve a coluna de numeros quando o numero de linhas muda (ou quando
      * as marcas de erro mudam). Uma linha a mais no fim compensa a barra de
-     * rolagem horizontal do código, para que o fim fique alinhado.
+     * rolagem horizontal do codigo, para que o fim fique alinhado.
      */
     private void atualizarNumeros(boolean forcar) {
         String texto = area.getText();

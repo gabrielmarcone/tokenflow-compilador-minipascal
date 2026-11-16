@@ -9,15 +9,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * Lê o conteúdo de um arquivo-fonte. Tenta UTF-8 estrito; se os bytes não
- * forem UTF-8 válido (arquivo salvo como "ANSI" pelo Bloco de Notas, por
- * exemplo), decodifica como ISO-8859-1 para não perder a acentuação.
- * Arquivos UTF-16 com BOM também são reconhecidos.
+ * Le o conteudo de um arquivo-fonte. Tenta UTF-8 estrito; se os bytes nao
+ * forem UTF-8 valido (arquivo salvo como "ANSI" pelo Bloco de Notas, por
+ * exemplo), decodifica como ISO-8859-1 para nao perder a acentuacao.
+ * Arquivos UTF-16 com BOM tambem sao reconhecidos.
  */
 public class LeitorArquivoFonte {
 
     private static final char BOM = '﻿';
 
+    // Le o arquivo inteiro e tira o BOM do comeco, se houver.
     public static String ler(String caminho) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(caminho));
         String conteudo = decodificar(bytes);

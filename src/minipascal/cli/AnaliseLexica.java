@@ -12,6 +12,13 @@ import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Linha de comando da analise lexica (a saida da Unidade I):
+ *
+ *   java -cp TokenFlow.jar minipascal.cli.AnaliseLexica <entrada.txt> [saida.txt]
+ *
+ * Grava um par lexema/classe por linha, em UTF-8.
+ */
 public class AnaliseLexica {
 
     // Modo linha de comando: le o arquivo, chama o analisador ate ele devolver
@@ -39,6 +46,7 @@ public class AnaliseLexica {
 
             List<Token> tokens = new ArrayList<>();
             Token token;
+            // o analisador devolve null quando o texto acaba
             while ((token = lexer.proximoToken()) != null) {
                 tokens.add(token);
             }
@@ -52,6 +60,7 @@ public class AnaliseLexica {
         }
     }
 
+    // "prog.txt" -> "prog_saida.txt", na mesma pasta da entrada.
     private static String gerarNomeSaida(String caminhoEntrada) {
         File entrada = new File(caminhoEntrada);
         return new File(entrada.getParentFile(), EscritorArquivoSaida.nomeDeSaidaPara(entrada.getName())).getPath();

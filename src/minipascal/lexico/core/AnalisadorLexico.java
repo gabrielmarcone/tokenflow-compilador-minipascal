@@ -5,10 +5,10 @@ import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
 /**
- * Lê uma cadeia de caracteres e devolve, a cada chamada de proximoToken(),
- * o próximo par lexema/token. Retorna null quando o código-fonte acaba.
+ * Le uma cadeia de caracteres e devolve, a cada chamada de proximoToken(),
+ * o proximo par lexema/token. Retorna null quando o codigo-fonte acaba.
  *
- * Espaços, tabs, quebras de linha e comentários de bloco são consumidos
+ * Espacos, tabs, quebras de linha e comentarios de bloco sao consumidos
  * sem gerar token, antes de cada chamada tentar reconhecer algo.
  */
 public class AnalisadorLexico {
@@ -52,6 +52,7 @@ public class AnalisadorLexico {
         // Linha onde o token comeca, guardada antes de a leitura avancar pos.
         int linhaToken = linha;
 
+        // O primeiro caractere decide qual parte do AFD reconhece o token.
         if (ehLetra(c)) {
             return lerIdentificadorOuPalavra(linhaToken);
         }
@@ -65,6 +66,7 @@ public class AnalisadorLexico {
             return lerChar(linhaToken);
         }
 
+        // Operadores e simbolos: de um caractere, ou de dois (>=, <=, <>, :=).
         switch (c) {
             case '+':
                 pos++;
@@ -112,9 +114,9 @@ public class AnalisadorLexico {
         }
     }
 
-    // Consome espaço/tab/enter e comentários de bloco. Se cair num '/' que
-    // não é seguido de '*', para aqui e devolve pro switch tratar como
-    // divisão - é o mesmo prefixo comum resolvido com 1 caractere de lookahead.
+    // Consome espaco/tab/enter e comentarios de bloco. Se cair num '/' que
+    // nao e seguido de '*', para aqui e devolve pro switch tratar como
+    // divisao - e o mesmo prefixo comum resolvido com 1 caractere de lookahead.
     private void pularNaoSignificativos() {
         while (pos < fonte.length()) {
             char c = fonte.charAt(pos);
@@ -149,9 +151,9 @@ public class AnalisadorLexico {
         return true;
     }
 
-    // Avança um caractere e soma uma linha se ele for uma quebra. O "\r\n"
-    // do Windows conta uma vez só (na hora do '\n'); um '\r' sozinho
-    // (arquivos de Mac antigo) também encerra a linha.
+    // Avanca um caractere e soma uma linha se ele for uma quebra. O "\r\n"
+    // do Windows conta uma vez so (na hora do '\n'); um '\r' sozinho
+    // (arquivos de Mac antigo) tambem encerra a linha.
     private void avancarContandoLinha() {
         char c = fonte.charAt(pos);
         if (c == '\n' || (c == '\r' && !caractereSeguinteEh('\n'))) {
@@ -168,8 +170,8 @@ public class AnalisadorLexico {
         return c == ' ' || c == '\t' || c == '\f' || c == '\u000B';
     }
 
-    // Letras do alfabeto latino, com ou sem acento (o enunciado usa "variável"
-    // como exemplo de identificador). Letras de outros alfabetos são erro.
+    // Letras do alfabeto latino, com ou sem acento (o enunciado usa "variavel"
+    // como exemplo de identificador). Letras de outros alfabetos sao erro.
     private static boolean ehLetra(char c) {
         return Character.isLetter(c) && Character.UnicodeScript.of(c) == Character.UnicodeScript.LATIN;
     }
@@ -187,64 +189,86 @@ public class AnalisadorLexico {
         while (pos < fonte.length() && (ehLetra(fonte.charAt(pos)) || ehDigito(fonte.charAt(pos)) || fonte.charAt(pos) == '_')) {
             pos++;
         }
+        // so os 63 primeiros caracteres ficam no lexema
         int fim = Math.min(pos, inicio + TAMANHO_MAXIMO_IDENTIFICADOR);
         String lexema = fonte.substring(inicio, fim);
+        // null: nao e palavra reservada nem operador de palavra, e identificador
         TipoToken tipo = palavrasReservadas.buscar(lexema);
         return new Token(lexema, tipo != null ? tipo : TipoToken.IDENTIFICADOR, linhaToken);
     }
 
-    // Cobre inteiro, real e real com expoente (com ou sem sinal). Se depois
-    // do "." não vier dígito, ou depois do "e/E" não vier sinal/dígito, o
-    // ponteiro volta pra onde estava e o número fica só com a parte válida.
+    /*
+     * Numeros (estados q2 a q7 e q30 do AFD):
+     *   inteiro      12
+     *   real         1.5   1.5e-3   2e3   2E+10
+     * Se depois do "." nao vier digito, o ponto nao faz parte do numero
+     * ("3." e "3" seguido de "."). Um numero colado numa letra ou em "_"
+     * ("12abc", "1.5x", "2end", "2e" sem digitos no expoente) vira um unico
+     * erro lexico, "numero mal formado", com todas as letras e digitos colados.
+     */
     private Token lerNumero(int linhaToken) {
         int inicio = pos;
-        while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
+        pularDigitos();
+        boolean real = false;
+        boolean malFormado = false;
+
+        // Parte fracionaria: so se o ponto for seguido de digito.
+        if (proximoCaractereEh('.') && proximoCaractereEhDigito()) {
             pos++;
+            pularDigitos();
+            real = true;
         }
 
-        if (pos < fonte.length() && fonte.charAt(pos) == '.' && proximoCaractereEhDigito()) {
+        // Expoente: e/E, sinal opcional e pelo menos um digito. Um "e" sem
+        // digitos depois ja e numero mal formado (estado q5 do AFD).
+        if (proximoCaractereEh('e') || proximoCaractereEh('E')) {
             pos++;
-            while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
+            boolean temSinal = proximoCaractereEh('+') || proximoCaractereEh('-');
+            int depoisDoSinal = temSinal ? pos + 1 : pos;
+            if (depoisDoSinal < fonte.length() && ehDigito(fonte.charAt(depoisDoSinal))) {
+                pos = depoisDoSinal;
+                pularDigitos();
+                real = true;
+            } else {
+                malFormado = true;
+            }
+        }
+
+        // Letra ou "_" colado no numero: consome tudo o que estiver colado (q30).
+        if (pos < fonte.length() && (ehLetra(fonte.charAt(pos)) || fonte.charAt(pos) == '_')) {
+            malFormado = true;
+            while (pos < fonte.length()
+                    && (ehLetra(fonte.charAt(pos)) || ehDigito(fonte.charAt(pos)) || fonte.charAt(pos) == '_')) {
                 pos++;
             }
-            lerExpoenteSePresente();
         }
 
         String lexema = fonte.substring(inicio, pos);
-        TipoToken tipo = lexema.indexOf('.') >= 0 ? TipoToken.NUMERO_REAL : TipoToken.NUMERO_INTEIRO;
-        return new Token(lexema, tipo, linhaToken);
+        if (malFormado) {
+            return new Token(lexema, TipoToken.ERRO_LEXICO, linhaToken);
+        }
+        return new Token(lexema, real ? TipoToken.NUMERO_REAL : TipoToken.NUMERO_INTEIRO, linhaToken);
     }
 
-    private void lerExpoenteSePresente() {
-        if (pos >= fonte.length() || (fonte.charAt(pos) != 'e' && fonte.charAt(pos) != 'E')) {
-            return;
-        }
-        int marca = pos;
-        pos++;
-        if (pos < fonte.length() && (fonte.charAt(pos) == '+' || fonte.charAt(pos) == '-')) {
+    private void pularDigitos() {
+        while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
             pos++;
         }
-        if (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
-            while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
-                pos++;
-            }
-        } else {
-            pos = marca;
-        }
     }
 
-    // Strings da linguagem são sempre de uma linha só (nenhum exemplo do
-    // enunciado mostra string multi-linha). Por isso, se não fechar antes
-    // de uma quebra de linha, paramos ali — sem consumir o '\r' ou '\n' — e
+    // Strings da linguagem sao sempre de uma linha so (nenhum exemplo do
+    // enunciado mostra string multi-linha). Por isso, se nao fechar antes
+    // de uma quebra de linha, paramos ali - sem consumir o '\r' ou '\n' - e
     // devolvemos o controle pro scanner normal, que trata a quebra de
-    // linha como não-significativa e segue tokenizando o resto do arquivo.
-    // Isso evita que uma aspa esquecida engula o programa inteiro até o EOF.
+    // linha como nao-significativa e segue tokenizando o resto do arquivo.
+    // Isso evita que uma aspa esquecida engula o programa inteiro ate o EOF.
     private Token lerString(int linhaToken) {
         int inicio = pos;
         pos++;
         while (pos < fonte.length() && fonte.charAt(pos) != '"' && !ehQuebraDeLinha(fonte.charAt(pos))) {
             pos++;
         }
+        // parou na aspa de fechamento ou numa quebra de linha / fim do texto?
         boolean fechada = pos < fonte.length() && fonte.charAt(pos) == '"';
         if (fechada) {
             pos++;
@@ -253,23 +277,29 @@ public class AnalisadorLexico {
         return new Token(lexema, fechada ? TipoToken.CONSTANTE_STRING : TipoToken.ERRO_LEXICO, linhaToken);
     }
 
-    // Constante char precisa ter exatamente 1 caractere entre aspas simples.
-    // "''" (vazio) e "'ab'" (mais de um) devem ser rejeitados como erro —
-    // só "'x'" é válido.
+    /*
+     * Constante char (estados q27, q28, q29, q33, q36 e q38 do AFD): exatamente
+     * um caractere entre aspas simples, como 'x'. Erros:
+     *   ''  e  'ab'   aspas fechadas, mas sem 1 caractere: um erro so, ate a
+     *                 aspa que fecha;
+     *   'a  e  'ab    sem a aspa que fecha: o erro vai ate o fim da linha
+     *                 (como na string), sem consumir a quebra de linha.
+     */
     private Token lerChar(int linhaToken) {
         int inicio = pos;
         pos++;
-        boolean temUmCaractere = pos < fonte.length()
-                && fonte.charAt(pos) != '\'' && !ehQuebraDeLinha(fonte.charAt(pos));
-        if (temUmCaractere) {
+        int caracteres = 0;
+        while (pos < fonte.length() && fonte.charAt(pos) != '\'' && !ehQuebraDeLinha(fonte.charAt(pos))) {
             pos += Character.charCount(fonte.codePointAt(pos));
+            caracteres++;
         }
-        boolean fechado = temUmCaractere && pos < fonte.length() && fonte.charAt(pos) == '\'';
+        boolean fechado = pos < fonte.length() && fonte.charAt(pos) == '\'';
         if (fechado) {
             pos++;
         }
         String lexema = fonte.substring(inicio, pos);
-        return new Token(lexema, fechado ? TipoToken.CONSTANTE_CHAR : TipoToken.ERRO_LEXICO, linhaToken);
+        boolean valido = fechado && caracteres == 1;
+        return new Token(lexema, valido ? TipoToken.CONSTANTE_CHAR : TipoToken.ERRO_LEXICO, linhaToken);
     }
 
     // lerMaior, lerMenor e lerDoisPontos leem o operador mais longo possivel
