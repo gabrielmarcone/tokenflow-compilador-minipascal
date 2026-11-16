@@ -63,7 +63,7 @@ public class AdaptadorLexico {
             }
             // Erro léxico: registra e pede o próximo token (modo pânico do léxico).
             errosLexicos.add(new ErroCompilacao(CategoriaErro.LEXICO, token.getLinha(),
-                    DescricaoErroLexico.descrever(token) + ": " + token.getLexema()));
+                    DescricaoErroLexico.descrever(token) + ": " + token.getLexema(), posicao));
             posicoesDosErrosLexicos.add(posicao);
         }
         return Terminal.fimDeArquivo(ultimaLinha, tokensLidos.size());
