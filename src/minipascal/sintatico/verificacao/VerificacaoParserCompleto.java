@@ -75,14 +75,28 @@ public class VerificacaoParserCompleto {
 
     // ------------------------------------------------------------- gramática
 
+    private static boolean temProducao(Gramatica g, String texto) {
+        for (Producao p : g.getProducoes()) {
+            if (p.toString().equals(texto)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static void verificarGramatica() {
         Gramatica g = TABELA.getGramatica();
-        checar("gramatica.txt: 56 produções (mais a aumentada)", g.getProducoes().size() == 57);
-        checar("gramatica.txt: 21 não terminais, símbolo inicial PROG",
-                g.getNaoTerminais().size() == 21 && g.getSimboloInicial().equals("PROG"));
+        checar("gramatica.txt: 57 produções (mais a aumentada)", g.getProducoes().size() == 58);
+        checar("gramatica.txt: 22 não terminais, símbolo inicial PROG",
+                g.getNaoTerminais().size() == 22 && g.getSimboloInicial().equals("PROG"));
         checar("gramatica.txt: 33 terminais mais $", g.getTerminais().size() == 34);
-        checar("gramatica.txt: 111 estados LR(0) e nenhum conflito (a tabela foi construída)",
-                TABELA.numeroDeEstados() == 111 && !TABELA.getAnalise().temConflitos());
+        checar("gramatica.txt: 112 estados LR(0) e nenhum conflito (a tabela foi construída)",
+                TABELA.numeroDeEstados() == 112 && !TABELA.getAnalise().temConflitos());
+        // O cabeçalho do procedimento é um não terminal próprio: a análise semântica
+        // abre o escopo do procedimento quando ele é reduzido, antes do bloco.
+        checar("gramatica.txt: CAB_PROC -> procedure id PALIST e BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;",
+                temProducao(g, "CAB_PROC -> procedure id PALIST")
+                        && temProducao(g, "BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;"));
         checar("tabela da gramática completa é montada uma única vez",
                 AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_COMPLETA) == TABELA);
 
