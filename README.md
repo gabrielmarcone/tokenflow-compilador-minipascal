@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-583%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-601%20passing-success)
 
 </div>
 
@@ -30,14 +30,34 @@ simplificada inspirada em Pascal.
   feita nas reduções, com **tabela de símbolos** de escopos aninhados e verificação de
   **tipos**. Recebe um programa e devolve `OK` ou o conjunto das mensagens de erro, cada uma
   com o tipo (léxico, sintático ou semântico) e a linha: a análise se recupera de cada erro
-  sintático e segue até o fim do arquivo. Ainda falta a integração com a interface gráfica,
-  que por enquanto mostra só a análise léxica.
+  sintático e segue até o fim do arquivo.
+- **Interface gráfica:** mostra o resultado das três fases e o funcionamento do analisador:
+  os tokens, a pilha do SLR(1) passo a passo, a tabela de símbolos, a gramática, FIRST e
+  FOLLOW, os estados LR(0) e a tabela ACTION/GOTO, com a célula usada em cada passo
+  destacada.
 
 ## Como é
 
-A interface gráfica (por enquanto, a análise léxica da Unidade I):
+À esquerda fica o código, sempre visível, com números de linha e uma marca `●` nas linhas
+com erro. À direita, uma faixa diz se o programa está correto ou quantos erros há, e as abas
+seguem a ordem das fases do compilador:
 
-![Tela do TokenFlow](docs/screenshot.png)
+| Aba | O que mostra |
+|---|---|
+| **Erros** | Erros léxicos, sintáticos e semânticos em ordem de linha, com a fase e a mensagem |
+| **Tokens** | A análise léxica: lexema e classe de cada token (a saída da Unidade I) |
+| **Pilha** | A análise SLR(1) passo a passo: pilha de estados, símbolos, entrada que falta ler e ação (empilha, reduz, aceita). Erros e recuperações aparecem como passos, e há botões para andar pelos passos e pular para o próximo erro |
+| **Símbolos** | A tabela de símbolos montada pela análise semântica: escopo, nível, nome, categoria, tipo, linha e parâmetros |
+| **Gramática e SLR(1)** | A tabela ACTION/GOTO, a gramática numerada, FIRST e FOLLOW e os estados LR(0) com itens e transições |
+
+Clicar num erro, token, passo ou símbolo seleciona a linha correspondente no código. Com um
+passo selecionado, **Ver na tabela SLR** abre a tabela ACTION/GOTO na célula que o analisador
+usou naquele passo. Atalhos: `Ctrl+O` abre um arquivo, `F5` ou `Ctrl+Enter` analisa e `Ctrl+S`
+salva o resultado; o botão `?` resume tudo isso.
+
+![Tela do TokenFlow: pilha da análise parada num erro sintático](docs/screenshot.png)
+
+![Tabela ACTION/GOTO com a célula do passo selecionado destacada](docs/screenshot_slr.png)
 
 ## Autômato
 
@@ -59,7 +79,6 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
   fecharem
 - ✅ Strings e chars mal formados geram erro léxico **sem travar o resto do arquivo**
 - ✅ Limite de 63 caracteres em identificadores (truncamento, não erro)
-- ✅ Interface gráfica: carregar um `.txt` **ou** digitar/colar código direto na tela
 
 **Análise sintática**
 
@@ -87,13 +106,22 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
   mesmo tipo
 - ✅ Sem cascatas: uma expressão com erro não gera mais mensagens
 
+**Interface gráfica**
+
+- ✅ Carregar um `.txt` **ou** digitar/colar código direto na tela, com números de linha
+- ✅ Resultado da análise completa (`OK` ou os erros) e salvamento em arquivo UTF-8
+- ✅ Pilha do SLR(1) passo a passo, ligada ao código e à tabela ACTION/GOTO
+- ✅ Tokens, tabela de símbolos, gramática, FIRST/FOLLOW e estados LR(0)
+- ✅ Aviso quando o código muda depois da análise; atalhos de teclado e ajuda
+
 **Testes**
 
-- ✅ **583 verificações automatizadas** em 15 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **601 verificações automatizadas** em 16 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
-  (vários erros, cascata, textos aleatórios, desempenho), análise semântica (cada regra,
+  (vários erros, cascata, textos aleatórios, desempenho), passos da pilha mostrados na
+  interface (conferidos com a figura 4.38 do livro do Dragão), análise semântica (cada regra,
   escopos, programas gerados bem tipados e com um erro injetado de cada tipo) e regras de
   arquitetura
 - ✅ 8 arquivos de teste de integração do léxico, incluindo os dois exemplos do enunciado
@@ -115,7 +143,8 @@ src/minipascal/
 ├── sintatico/     → análise sintática
 │   ├── gramatica/    Gramatica, Producao, LeitorGramatica + gramatica.txt e expressoes.txt
 │   ├── slr/          FIRST/FOLLOW, coleção LR(0), TabelaSLR, ExportadorTabela
-│   ├── parser/       AnalisadorSintatico, AdaptadorLexico, Terminal, ResultadoAnalise
+│   ├── parser/       AnalisadorSintatico, AdaptadorLexico, Terminal, ResultadoAnalise,
+│   │                 RastroAnalise e PassoAnalise (os passos da pilha, para a interface)
 │   └── verificacao/  suítes da análise sintática
 ├── semantico/     → análise semântica: AnalisadorSemantico (as ações de redução),
 │   │                TabelaSimbolos, Simbolo, Tipo, Compilador (as três fases juntas)
@@ -123,7 +152,7 @@ src/minipascal/
 ├── cli/           → linha de comando: AnaliseLexica, AnaliseSintatica, AnaliseSemantica,
 │                    GeradorTabelas, Console
 ├── gui/           → interface JavaFX: MainApp, AnalisadorController, Main.fxml,
-│                    application.css, icon.png
+│                    EditorCodigo, PainelSLR, application.css, icon.png
 └── verificacao/   → VerificacaoArquitetura (regras entre os módulos)
 ```
 
@@ -235,6 +264,7 @@ java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoGeradorSLR   
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserExpressoes # parser com a gramática das expressões
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserCompleto   # parser com a gramática completa
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoRecuperacao      # recuperação de erros sintáticos
+java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoRastro           # passos da pilha (aba Pilha)
 java -cp TokenFlow.jar minipascal.semantico.verificacao.VerificacaoTabelaSimbolos    # tabela de símbolos e tipos
 java -cp TokenFlow.jar minipascal.semantico.verificacao.VerificacaoSemantica         # análise semântica
 java -cp TokenFlow.jar minipascal.verificacao.VerificacaoArquitetura                # regras entre os módulos
@@ -440,7 +470,7 @@ Respostas às perguntas de projeto (a-e) da especificação:
   `Erro léxico`, o analisador descarta só o trecho inválido e continua a partir do próximo
   caractere. Caractere fora da linguagem gera um erro por caractere; string e char mal
   fechados param no fim da linha; comentário sem `*/` gera um erro `/*` na linha de abertura.
-  Na interface, a tabela de erros mostra a linha, o lexema e uma descrição do problema.
+  Na interface, a aba Erros mostra a linha, a fase e a descrição de cada erro.
 
 ## Unidade II: o que já foi feito
 
@@ -460,9 +490,11 @@ Respostas às perguntas de projeto (a-e) da especificação:
   comandos da linha de comando passaram a ficar em `minipascal.cli`.
 - Análise semântica com tabela de símbolos e verificação de tipos, descrita acima, e a linha
   de comando `AnaliseSemantica`, que faz a análise completa pedida pelo enunciado.
+- Interface gráfica com a análise completa, descrita em "Como é". O analisador sintático
+  pode avisar um observador (`OuvinteAnalise`) a cada ação; a interface usa isso para mostrar
+  a pilha passo a passo, e sem observador a análise é a mesma de antes.
 
-Próximas etapas: interface gráfica com a análise completa e os arquivos de teste da
-Unidade II.
+Próximas etapas: os arquivos de teste da Unidade II e a documentação.
 
 ## Contexto acadêmico
 
