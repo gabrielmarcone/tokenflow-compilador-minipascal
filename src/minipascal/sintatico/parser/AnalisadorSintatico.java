@@ -10,6 +10,7 @@ import minipascal.sintatico.slr.Acao;
 import minipascal.sintatico.slr.TabelaSLR;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -112,6 +113,17 @@ public class AnalisadorSintatico {
     }
 
     public ResultadoAnalise analisar(String fonte) {
+        return analisar(fonte, null);
+    }
+
+    /**
+     * Analisa avisando cada passo ao ouvinte (por exemplo, um RastroAnalise,
+     * para mostrar os movimentos da pilha). O ouvinte só observa: o resultado
+     * é o mesmo de analisar(fonte).
+     *
+     * @param ouvinte pode ser null
+     */
+    public ResultadoAnalise analisar(String fonte, OuvinteAnalise ouvinte) {
         AdaptadorLexico adaptador = new AdaptadorLexico(new AnalisadorLexico(fonte, palavrasReservadas));
         Entrada entrada = new Entrada(adaptador);
         List<Integer> estados = new ArrayList<>();
@@ -135,12 +147,19 @@ public class AnalisadorSintatico {
             if (acao == null) {
                 // Erros léxicos anteriores a este token vêm antes deste erro.
                 lexicosIncluidos = incluirLexicos(adaptador, erros, lexicosIncluidos, atual.getPosicao());
-                erros.add(erroSintatico(estadosAoLerAtual, atual));
+                ErroCompilacao erro = erroSintatico(estadosAoLerAtual, atual);
+                erros.add(erro);
                 houveErroSintatico = true;
                 acoes.aoErroSintatico(atual);
-                atual = recuperar(estados, valores, linhas, atual, entrada);
+                if (ouvinte != null) {
+                    ouvinte.erro(Collections.unmodifiableList(estados), atual, erro);
+                }
+                atual = recuperar(estados, valores, linhas, atual, entrada, ouvinte);
                 estadosAoLerAtual = new ArrayList<>(estados);
                 continue;
+            }
+            if (ouvinte != null) {
+                ouvinte.acao(Collections.unmodifiableList(estados), atual, acao);
             }
             if (acao.isEmpilhar()) {
                 estados.add(acao.getAlvo());
@@ -195,13 +214,14 @@ public class AnalisadorSintatico {
      * da base da pilha, GOTO[0, S], aceita o '$'.
      */
     private Terminal recuperar(List<Integer> estados, List<Object> valores, List<Integer> linhas,
-                               Terminal erro, Entrada entrada) {
+                               Terminal erro, Entrada entrada, OuvinteAnalise ouvinte) {
         entrada.devolver(erro);
         for (int descartados = 0; ; descartados++) {
             Terminal retomada = entrada.ver(descartados);
             int melhorAlcance = 0;
             int melhorNivel = -1;
             int melhorDestino = -1;
+            String melhorNaoTerminal = null;
             String melhorInsercao = null;
 
             // Modo pânico: no empate, vale a mais próxima do topo (a primeira encontrada).
@@ -218,6 +238,7 @@ public class AnalisadorSintatico {
                         melhorAlcance = alcance;
                         melhorNivel = nivel;
                         melhorDestino = destino;
+                        melhorNaoTerminal = naoTerminal;
                     }
                     if (melhorAlcance >= ALCANCE_DA_SIMULACAO) {
                         break pesquisa; // nenhuma outra candidata pode ir mais longe
@@ -241,19 +262,45 @@ public class AnalisadorSintatico {
             }
 
             if (melhorAlcance >= MINIMO_PARA_RETOMAR) { // ATE_O_FIM também conta
+                StringBuilder descricao = new StringBuilder();
+                if (ouvinte != null && descartados > 0) {
+                    List<String> lexemas = new ArrayList<>();
+                    for (int i = 0; i < descartados; i++) {
+                        lexemas.add("'" + entrada.ver(i).getLexema() + "'");
+                    }
+                    descricao.append("descarta ").append(String.join(", ", lexemas)).append("; ");
+                }
                 for (int i = 0; i < descartados; i++) {
                     entrada.consumir();
                 }
                 if (melhorInsercao != null) {
-                    return Terminal.inserido(melhorInsercao, retomada.getLinha());
+                    Terminal inserido = Terminal.inserido(melhorInsercao, retomada.getLinha());
+                    if (ouvinte != null) {
+                        descricao.append("insere '").append(melhorInsercao).append("', que faltava");
+                        ouvinte.recuperacao(Collections.unmodifiableList(estados), inserido, retomada.getPosicao(),
+                                descricao.toString());
+                    }
+                    return inserido;
                 }
+                int desempilhados = estados.size() - (melhorNivel + 1);
                 truncar(estados, melhorNivel + 1);
                 truncar(valores, melhorNivel + 1);
                 truncar(linhas, melhorNivel + 1);
                 estados.add(melhorDestino);
                 valores.add(null);
                 linhas.add(retomada.getLinha());
-                return entrada.consumir();
+                Terminal proximo = entrada.consumir();
+                if (ouvinte != null) {
+                    if (desempilhados > 0) {
+                        descricao.append("desempilha ").append(desempilhados)
+                                .append(desempilhados == 1 ? " estado, " : " estados, ");
+                    }
+                    descricao.append("considera ").append(melhorNaoTerminal).append(" reconhecido e vai para o estado ")
+                            .append(melhorDestino);
+                    ouvinte.recuperacao(Collections.unmodifiableList(estados), proximo, proximo.getPosicao(),
+                            descricao.toString());
+                }
+                return proximo;
             }
             if (retomada.isFimDeArquivo()) {
                 // Não acontece: no fim do arquivo, a candidata da base da pilha

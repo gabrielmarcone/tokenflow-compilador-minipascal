@@ -2,6 +2,7 @@ package minipascal.semantico;
 
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 import minipascal.sintatico.parser.AnalisadorSintatico;
+import minipascal.sintatico.parser.OuvinteAnalise;
 import minipascal.sintatico.parser.ResultadoAnalise;
 import minipascal.sintatico.slr.TabelaSLR;
 
@@ -37,8 +38,24 @@ public final class Compilador {
     }
 
     public ResultadoCompilacao analisar(String fonte) {
+        return analisar(fonte, null);
+    }
+
+    /**
+     * Analisa avisando cada passo da análise sintática ao ouvinte (por
+     * exemplo, um RastroAnalise, para mostrar os movimentos da pilha).
+     *
+     * @param ouvinte pode ser null
+     */
+    public ResultadoCompilacao analisar(String fonte, OuvinteAnalise ouvinte) {
         AnalisadorSemantico semantico = new AnalisadorSemantico(tabela.getGramatica());
-        ResultadoAnalise analise = new AnalisadorSintatico(tabela, palavrasReservadas, semantico).analisar(fonte);
+        ResultadoAnalise analise = new AnalisadorSintatico(tabela, palavrasReservadas, semantico)
+                .analisar(fonte, ouvinte);
         return new ResultadoCompilacao(analise, semantico.getTabela(), !semantico.isInterrompida());
+    }
+
+    // A tabela SLR(1) usada (gramática, estados, ACTION e GOTO).
+    public TabelaSLR getTabelaSLR() {
+        return tabela;
     }
 }
