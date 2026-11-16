@@ -9,12 +9,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Resultado de uma análise: os erros encontrados (léxicos, sintáticos e os
- * que as ações de redução encontrarem, como os semânticos), em ordem de linha
+ * Resultado de uma analise: os erros encontrados (lexicos, sintaticos e os
+ * que as acoes de reducao encontrarem, como os semanticos), em ordem de linha
  * e, na mesma linha, na ordem do texto; os tokens lidos; e o valor produzido
- * pelas ações de redução.
+ * pelas acoes de reducao.
  *
- * Como pede o enunciado da Unidade II, a saída é "OK" quando o programa está
+ * Como pede o enunciado da Unidade II, a saida e "OK" quando o programa esta
  * correto, ou a lista de erros, cada um com o tipo e a linha.
  */
 public final class ResultadoAnalise {
@@ -27,8 +27,8 @@ public final class ResultadoAnalise {
 
     public ResultadoAnalise(List<ErroCompilacao> erros, List<Token> tokens, Object valor) {
         List<ErroCompilacao> ordenados = new ArrayList<>(erros);
-        // Por linha e, na mesma linha, pela posição do token no texto. A ordenação
-        // é estável: erros com a mesma posição (ou sem posição, -1) mantêm a ordem
+        // Por linha e, na mesma linha, pela posicao do token no texto. A ordenacao
+        // e estavel: erros com a mesma posicao (ou sem posicao, -1) mantem a ordem
         // em que foram encontrados.
         ordenados.sort((a, b) -> a.getLinha() != b.getLinha() ? Integer.compare(a.getLinha(), b.getLinha())
                 : Integer.compare(a.getPosicao(), b.getPosicao()));
@@ -45,6 +45,7 @@ public final class ResultadoAnalise {
         return erros;
     }
 
+    // So os erros de uma fase (lexicos, sintaticos ou semanticos).
     public List<ErroCompilacao> errosDa(CategoriaErro categoria) {
         List<ErroCompilacao> lista = new ArrayList<>();
         for (ErroCompilacao e : erros) {
@@ -55,12 +56,12 @@ public final class ResultadoAnalise {
         return lista;
     }
 
-    // Todos os tokens lidos pelo léxico, inclusive os de erro léxico.
+    // Todos os tokens lidos pelo lexico, inclusive os de erro lexico.
     public List<Token> getTokens() {
         return tokens;
     }
 
-    // Valor do símbolo inicial produzido pelas ações (null se houve erro sintático).
+    // Valor do simbolo inicial produzido pelas acoes (null se houve erro sintatico).
     public Object getValor() {
         return valor;
     }

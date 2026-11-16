@@ -15,17 +15,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Lê uma gramática escrita em texto, uma regra por linha:
+ * Le uma gramatica escrita em texto, uma regra por linha:
  *
- *   # comentário (linha inteira)
+ *   # comentario (linha inteira)
  *   EXPR -> SIEXPR | SIEXPR OPREL SIEXPR
  *   FATOR -> numero | id | ( EXPR )
- *        | constante_string          (linha começando com | continua a regra anterior)
- *   LISTA -> ε                        (produção vazia; "eps" também é aceito)
+ *        | constante_string          (linha comecando com | continua a regra anterior)
+ *   LISTA -> eps                        (producao vazia; "eps" tambem e aceito)
  *
- * Os símbolos são separados por espaços, inclusive em volta de "->" e "|".
- * Cada alternativa vira uma produção, numerada a partir de 1 na ordem do
- * arquivo. O símbolo "|" não pode ser terminal.
+ * Os simbolos sao separados por espacos, inclusive em volta de "->" e "|".
+ * Cada alternativa vira uma producao, numerada a partir de 1 na ordem do
+ * arquivo. O simbolo "|" nao pode ser terminal.
  */
 public final class LeitorGramatica {
 
@@ -36,7 +36,7 @@ public final class LeitorGramatica {
     private LeitorGramatica() {
     }
 
-    // Lê um arquivo do disco (UTF-8, com recuo para ANSI, como os fontes Mini_Pascal).
+    // Le um arquivo do disco (UTF-8, com recuo para ANSI, como os fontes Mini_Pascal).
     public static Gramatica lerArquivo(String caminho) throws IOException {
         return lerTexto(LeitorArquivoFonte.ler(caminho));
     }
@@ -45,12 +45,14 @@ public final class LeitorGramatica {
         return LeitorGramatica.class.getResource(nome) != null;
     }
 
-    // Lê uma gramática que acompanha o programa (pasta minipascal/sintatico/gramatica do jar).
+    // Le uma gramatica que acompanha o programa (pasta minipascal/sintatico/gramatica do jar).
+    // Le uma gramatica que acompanha o programa (pasta minipascal/sintatico/gramatica do jar).
     public static Gramatica lerRecurso(String nome) {
         try (InputStream in = LeitorGramatica.class.getResourceAsStream(nome)) {
             if (in == null) {
                 throw new GramaticaInvalidaException("arquivo de gramática '" + nome + "' não encontrado.");
             }
+            // Le o recurso inteiro (Java 8 nao tem readAllBytes em InputStream).
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] buffer = new byte[4096];
             int lidos;
@@ -67,18 +69,21 @@ public final class LeitorGramatica {
         }
     }
 
+    // Le o texto da gramatica linha por linha e monta as producoes.
     public static Gramatica lerTexto(String texto) {
         List<Producao> producoes = new ArrayList<>();
-        // Primeira linha em que cada símbolo em MAIÚSCULAS aparece num corpo,
-        // para apontar a linha quando ele não tiver produção.
+        // Primeira linha em que cada simbolo em MAIUSCULAS aparece num corpo,
+        // para apontar a linha quando ele nao tiver producao.
         Map<String, Integer> primeiroUso = new LinkedHashMap<>();
         Set<String> cabecas = new HashSet<>();
+        // cabeca da ultima regra, para as linhas que comecam com |
         String cabecaAtual = null;
 
         String[] linhas = texto.split("\r\n|\r|\n", -1);
         for (int i = 0; i < linhas.length; i++) {
             int numeroLinha = i + 1;
             String linha = linhas[i].trim();
+            // linha vazia ou comentario
             if (linha.isEmpty() || linha.startsWith("#")) {
                 continue;
             }
@@ -91,7 +96,7 @@ public final class LeitorGramatica {
                             "a linha começa com '|', mas não há regra anterior para continuar.");
                 }
                 cabeca = cabecaAtual;
-                // tira o "|" inicial; o resto da linha são alternativas da mesma cabeça
+                // tira o "|" inicial; o resto da linha sao alternativas da mesma cabeca
                 simbolos.remove(0);
             } else {
                 if (simbolos.size() < 2 || !simbolos.get(1).equals(SETA)) {
@@ -108,12 +113,14 @@ public final class LeitorGramatica {
             }
             cabecas.add(cabeca);
 
+            // Cada alternativa separada por | vira uma producao numerada.
             for (List<String> alternativa : separarAlternativas(simbolos)) {
                 producoes.add(new Producao(producoes.size() + 1, cabeca,
                         corpoDaAlternativa(alternativa, numeroLinha, primeiroUso)));
             }
         }
 
+        // Nome em MAIUSCULAS usado num corpo sem nenhuma regra: erro, com a linha do primeiro uso.
         for (Map.Entry<String, Integer> uso : primeiroUso.entrySet()) {
             if (!cabecas.contains(uso.getKey())) {
                 throw new GramaticaInvalidaException(uso.getValue(), "o não terminal '" + uso.getKey()
@@ -123,6 +130,7 @@ public final class LeitorGramatica {
         return new Gramatica(producoes);
     }
 
+    // Divide "a B | c | d E" em [a, B], [c] e [d, E].
     private static List<List<String>> separarAlternativas(List<String> simbolos) {
         List<List<String>> alternativas = new ArrayList<>();
         List<String> atual = new ArrayList<>();
@@ -138,6 +146,7 @@ public final class LeitorGramatica {
         return alternativas;
     }
 
+    // Corpo de uma alternativa: eps vira a producao vazia (lista vazia).
     private static List<String> corpoDaAlternativa(List<String> alternativa, int numeroLinha,
                                                    Map<String, Integer> primeiroUso) {
         if (alternativa.isEmpty()) {

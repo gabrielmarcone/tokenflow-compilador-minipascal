@@ -28,26 +28,26 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Verifica a análise semântica (AnalisadorSemantico, pelo Compilador):
+ * Verifica a analise semantica (AnalisadorSemantico, pelo Compilador):
  *
- *   - as regras cobrem exatamente as produções de gramatica.txt;
- *   - programas corretos dão OK;
- *   - cada verificação, com a mensagem exata e a linha: declarações, nomes e
+ *   - as regras cobrem exatamente as producoes de gramatica.txt;
+ *   - programas corretos dao OK;
+ *   - cada verificacao, com a mensagem exata e a linha: declaracoes, nomes e
  *     categorias, tipos, chamadas e os procedimentos predefinidos;
  *   - escopos: nomes locais escondem os de fora, procedimentos aninhados,
- *     recursão, procedimento declarado depois não é visível;
- *   - sem cascatas: expressão com erro não gera novos erros; nome não
- *     declarado é relatado uma vez por escopo;
- *   - convivência com as outras fases: a semântica para no primeiro erro
- *     sintático; erros das três fases na ordem do texto; erros só léxicos não
- *     param a semântica;
- *   - a tabela de símbolos montada e a linha de comando AnaliseSemantica;
- *   - um gerador de programas bem tipados (que sabe o tipo de cada expressão,
- *     sem usar o analisador) dá OK em todos; com um erro injetado de cada
- *     tipo, a saída tem de ser exatamente aquele erro, naquela linha;
- *   - as ações semânticas não mudam a análise sintática: em textos
- *     aleatórios, os erros léxicos e sintáticos são os mesmos do analisador
- *     sem ações, e nenhum erro semântico vem depois do primeiro sintático.
+ *     recursao, procedimento declarado depois nao e visivel;
+ *   - sem cascatas: expressao com erro nao gera novos erros; nome nao
+ *     declarado e relatado uma vez por escopo;
+ *   - convivencia com as outras fases: a semantica para no primeiro erro
+ *     sintatico; erros das tres fases na ordem do texto; erros so lexicos nao
+ *     param a semantica;
+ *   - a tabela de simbolos montada e a linha de comando AnaliseSemantica;
+ *   - um gerador de programas bem tipados (que sabe o tipo de cada expressao,
+ *     sem usar o analisador) da OK em todos; com um erro injetado de cada
+ *     tipo, a saida tem de ser exatamente aquele erro, naquela linha;
+ *   - as acoes semanticas nao mudam a analise sintatica: em textos
+ *     aleatorios, os erros lexicos e sintaticos sao os mesmos do analisador
+ *     sem acoes, e nenhum erro semantico vem depois do primeiro sintatico.
  */
 public class VerificacaoSemantica {
 
@@ -94,7 +94,7 @@ public class VerificacaoSemantica {
         }
         checar("toda produção de gramatica.txt tem regra semântica, e toda regra, produção", montou);
 
-        // Uma gramática com uma produção a mais (e outra a menos) é recusada.
+        // Uma gramatica com uma producao a mais (e outra a menos) e recusada.
         String texto = textoDaGramaticaCompleta()
                 .replace("FATOR -> numero | id", "FATOR -> numero | id | nil");
         String mensagem = "";
@@ -189,7 +189,7 @@ public class VerificacaoSemantica {
                 "end."), "OK");
     }
 
-    // ---------------------------------------------------------- declarações
+    // ---------------------------------------------------------- declaracoes
 
     private static void verificarDeclaracoes() {
         checarSaida("variável declarada duas vezes na mesma lista", linhas(
@@ -505,7 +505,7 @@ public class VerificacaoSemantica {
         checar("erros da categoria semântica separáveis das outras",
                 comErro.errosDa(CategoriaErro.SEMANTICO).size() == 1 && comErro.errosDa(CategoriaErro.SINTATICO).isEmpty());
 
-        // A análise sintática sozinha (AnaliseSintatica) continua sem semântica.
+        // A analise sintatica sozinha (AnaliseSintatica) continua sem semantica.
         ResultadoAnalise soSintatica = new AnalisadorSintatico(
                 AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_COMPLETA)).analisar(
                 "program p; begin x := 1; end.");
@@ -513,7 +513,7 @@ public class VerificacaoSemantica {
                 soSintatica.isSucesso());
     }
 
-    // ----------------------------------------------------------- tabela de símbolos
+    // ----------------------------------------------------------- tabela de simbolos
 
     private static void verificarTabela() {
         ResultadoCompilacao r = COMPILADOR.analisar(linhas(
@@ -605,7 +605,7 @@ public class VerificacaoSemantica {
         }
     }
 
-    // Roda AnaliseSemantica.executar com o console capturado: {código, texto}.
+    // Roda AnaliseSemantica.executar com o console capturado: {codigo, texto}.
     private static String[] rodar(String... args) {
         PrintStream original = System.out;
         ByteArrayOutputStream capturado = new ByteArrayOutputStream();
@@ -654,7 +654,7 @@ public class VerificacaoSemantica {
                 GeradorDeProgramas g = new GeradorDeProgramas(rnd);
                 String programa = g.gerar(defeito);
                 if (programa == null) {
-                    continue; // o programa sorteado não tinha onde pôr esse defeito
+                    continue; // o programa sorteado nao tinha onde por esse defeito
                 }
                 tentativas++;
                 String esperado = SEM + g.getLinhaDoDefeito() + ": " + g.getMensagemDoDefeito();
@@ -670,7 +670,7 @@ public class VerificacaoSemantica {
         }
     }
 
-    // --------------------------------------------------------- textos aleatórios
+    // --------------------------------------------------------- textos aleatorios
 
     private static void verificarAleatorios() {
         Random rnd = new Random(77);
@@ -768,7 +768,7 @@ public class VerificacaoSemantica {
 
     // ------------------------------------------------------------------ apoio
 
-    // O texto de gramatica.txt, como está no classpath (para montar variações dele).
+    // O texto de gramatica.txt, como esta no classpath (para montar variacoes dele).
     private static String textoDaGramaticaCompleta() {
         try (java.io.InputStream in = LeitorGramatica.class.getResourceAsStream(AnalisadorSintatico.GRAMATICA_COMPLETA)) {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();

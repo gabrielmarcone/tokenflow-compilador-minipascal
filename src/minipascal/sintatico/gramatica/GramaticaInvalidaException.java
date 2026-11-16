@@ -1,8 +1,8 @@
 package minipascal.sintatico.gramatica;
 
 /**
- * Erro no arquivo da gramática (sintaxe do arquivo ou gramática mal formada).
- * Quando o problema está numa linha específica, a mensagem traz o número dela.
+ * Erro no arquivo da gramatica (sintaxe do arquivo ou gramatica mal formada).
+ * Quando o problema esta numa linha especifica, a mensagem traz o numero dela.
  */
 public class GramaticaInvalidaException extends RuntimeException {
 

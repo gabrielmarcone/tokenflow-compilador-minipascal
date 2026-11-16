@@ -25,18 +25,18 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * Verifica o analisador sintático com a gramática completa (gramatica.txt):
- * a própria gramática, programas corretos, a associação do else, erros com
+ * Verifica o analisador sintatico com a gramatica completa (gramatica.txt):
+ * a propria gramatica, programas corretos, a associacao do else, erros com
  * mensagem exata (tipo, linha, encontrado e esperado), programas da Unidade I,
- * programas gerados a partir da gramática, programas grandes e a linha de
+ * programas gerados a partir da gramatica, programas grandes e a linha de
  * comando.
  *
  * As mensagens esperadas foram conferidas contra um reconhecedor de Earley
  * independente: o primeiro erro sai no primeiro token em que o programa deixa
- * de ser começo de um programa válido, e os "esperados" são exatamente os
- * terminais que manteriam o programa válido naquele ponto. Os erros seguintes
- * vêm da recuperação de erros (verificada em detalhe em VerificacaoRecuperacao);
- * aqui, cada um dos que aparecem foi conferido à mão no programa.
+ * de ser comeco de um programa valido, e os "esperados" sao exatamente os
+ * terminais que manteriam o programa valido naquele ponto. Os erros seguintes
+ * vem da recuperacao de erros (verificada em detalhe em VerificacaoRecuperacao);
+ * aqui, cada um dos que aparecem foi conferido a mao no programa.
  */
 public class VerificacaoParserCompleto {
 
@@ -47,8 +47,8 @@ public class VerificacaoParserCompleto {
     private static AnalisadorSintatico ANALISADOR;
 
     public static void main(String[] args) {
-        // Se a gramática tiver conflito, a tabela não é construída: isso vira uma
-        // falha relatada (e não uma exceção solta) e as demais partes não rodam.
+        // Se a gramatica tiver conflito, a tabela nao e construida: isso vira uma
+        // falha relatada (e nao uma excecao solta) e as demais partes nao rodam.
         try {
             TABELA = AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_COMPLETA);
             ANALISADOR = new AnalisadorSintatico(TABELA);
@@ -74,7 +74,7 @@ public class VerificacaoParserCompleto {
         }
     }
 
-    // ------------------------------------------------------------- gramática
+    // ------------------------------------------------------------- gramatica
 
     private static boolean temProducao(Gramatica g, String texto) {
         for (Producao p : g.getProducoes()) {
@@ -93,15 +93,15 @@ public class VerificacaoParserCompleto {
         checar("gramatica.txt: 37 terminais mais $", g.getTerminais().size() == 38);
         checar("gramatica.txt: 120 estados LR(0) e nenhum conflito (a tabela foi construída)",
                 TABELA.numeroDeEstados() == 120 && !TABELA.getAnalise().temConflitos());
-        // O cabeçalho do procedimento é um não terminal próprio: a análise semântica
-        // abre o escopo do procedimento quando ele é reduzido, antes do bloco.
+        // O cabecalho do procedimento e um nao terminal proprio: a analise semantica
+        // abre o escopo do procedimento quando ele e reduzido, antes do bloco.
         checar("gramatica.txt: CAB_PROC -> procedure id PALIST e BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;",
                 temProducao(g, "CAB_PROC -> procedure id PALIST")
                         && temProducao(g, "BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;"));
         checar("tabela da gramática completa é montada uma única vez",
                 AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_COMPLETA) == TABELA);
 
-        // Os terminais da gramática têm de ser exatamente os nomes que o
+        // Os terminais da gramatica tem de ser exatamente os nomes que o
         // AdaptadorLexico produz; um nome digitado errado seria um terminal
         // que nunca aparece na entrada.
         Set<String> esperados = new HashSet<>();
@@ -114,7 +114,7 @@ public class VerificacaoParserCompleto {
         }
         checar("terminais da gramática = nomes produzidos pelo adaptador", esperados.equals(g.getTerminais()));
 
-        // A parte das expressões é a mesma nas duas gramáticas embutidas.
+        // A parte das expressoes e a mesma nas duas gramaticas embutidas.
         Gramatica expressoes = LeitorGramatica.lerRecurso(AnalisadorSintatico.GRAMATICA_EXPRESSOES);
         Set<String> completa = new HashSet<>();
         for (Producao p : g.getProducoes()) {
@@ -129,7 +129,7 @@ public class VerificacaoParserCompleto {
         checar("as 22 produções de expressoes.txt estão em gramatica.txt", contidas);
     }
 
-    // ------------------------------------------------------------- válidos
+    // ------------------------------------------------------------- validos
 
     private static void verificarValidos() {
         checarOk("programa com todas as construções", linhas(
@@ -195,10 +195,10 @@ public class VerificacaoParserCompleto {
                 "program p; begin x := \"a\" + 'b'; read(x); write(\"fim\"); end."));
     }
 
-    // ------------------------------------------------------- associação do else
+    // ------------------------------------------------------- associacao do else
 
     private static void verificarElse() {
-        // As ações montam o programa com colchetes em volta de cada comando if.
+        // As acoes montam o programa com colchetes em volta de cada comando if.
         checarEstrutura("program p; begin if a then if b then x := 1 else x := 2; end.",
                 "program p ; begin [if a then [if b then x := 1 else x := 2]] ; end .");
         checarEstrutura("program p; begin if a then x := 1 else if b then x := 2 else x := 3; end.",
@@ -232,14 +232,14 @@ public class VerificacaoParserCompleto {
                 "Erro sintático na linha 1: Encontrado 'for'; esperado identificador, 'begin', 'if' ou 'while'");
         checarSaida("'const' não existe na gramática", "program p; const c = 1; begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'const'; esperado 'begin', 'var' ou 'procedure'");
-        // '/', 'and', 'or' e 'not' entraram na gramática (com a precedência do Pascal).
+        // '/', 'and', 'or' e 'not' entraram na gramatica (com a precedencia do Pascal).
         checarSaida("'/' faz parte da gramática", "program p; begin x := a / b; end.", "OK");
         checarSaida("'and', 'or' e 'not' fazem parte da gramática",
                 "program p; begin if (a < b) and not (c = d) or (e > f) then x := 1; end.", "OK");
         checarSaida("'not' tem a prioridade mais alta: not not (a < b)",
                 "program p; begin while not not (a < b) do x := 1; end.", "OK");
-        // Como no Pascal, 'and' liga com mais força que '<': "a < b and c < d" é
-        // "a < (b and c) < d", e a segunda comparação é erro de sintaxe.
+        // Como no Pascal, 'and' liga com mais forca que '<': "a < b and c < d" e
+        // "a < (b and c) < d", e a segunda comparacao e erro de sintaxe.
         checarSaida("comparações ligadas por 'and' precisam de parênteses",
                 "program p; begin if a < b and c < d then x := 1; end.",
                 "Erro sintático na linha 1: Encontrado '<'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
@@ -265,8 +265,8 @@ public class VerificacaoParserCompleto {
                 "Erro léxico na linha 1: Caractere inválido: @");
         checarSaida("falta ';' depois do nome do programa (erro na linha 2)", "program p\nbegin x := 1; end.",
                 "Erro sintático na linha 2: Encontrado 'begin'; esperado ';' (depois de 'p' na linha 1)");
-        // Erro numa linha depois do token anterior: a mensagem diz onde ele está.
-        // Erros léxicos não contam como token anterior (não chegam ao parser).
+        // Erro numa linha depois do token anterior: a mensagem diz onde ele esta.
+        // Erros lexicos nao contam como token anterior (nao chegam ao parser).
         checarSaida("falta ';' no fim da linha: aponta o token anterior, pulando o erro léxico",
                 "program p;\nbegin\n  x := 1 @\n\n  y := 2;\nend.",
                 "Erro léxico na linha 3: Caractere inválido: @\n"
@@ -282,8 +282,8 @@ public class VerificacaoParserCompleto {
                 "Erro sintático na linha 1: Encontrado 'begin'; esperado ';'");
         checarSaida("'then' sem comando antes do 'else'", "program p; begin if x then else x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'if' ou 'while'");
-        // A recuperação insere o 'begin' que falta; o "begin q; end" passa a ser o
-        // fim do corpo do procedimento, e falta então o bloco do programa principal
+        // A recuperacao insere o 'begin' que falta; o "begin q; end" passa a ser o
+        // fim do corpo do procedimento, e falta entao o bloco do programa principal
         // (o '.' chega onde se esperava o ';' depois do procedimento).
         checarSaida("procedimento sem 'begin'", "program p; procedure q; x := 1; begin q; end.",
                 "Erro sintático na linha 1: Encontrado identificador 'x'; esperado 'begin', 'var' ou 'procedure'\n"
@@ -307,7 +307,7 @@ public class VerificacaoParserCompleto {
                 "writeln(x);",
                 "write(y);",
                 "end."),
-                // const não existe no Mini_Pascal; o ';' antes do else também é erro.
+                // const nao existe no Mini_Pascal; o ';' antes do else tambem e erro.
                 "Erro sintático na linha 3: Encontrado 'const'; esperado identificador, 'begin', 'var' ou 'procedure'"
                 + " (depois de ';' na linha 2)\n"
                 + "Erro sintático na linha 9: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'"
@@ -335,7 +335,7 @@ public class VerificacaoParserCompleto {
                 "end;",
                 "write(\"Media Geral = \", Media_das_medias/total);",
                 "end."),
-                // for não existe no Mini_Pascal (o '/' das linhas 17 e 21 é aceito).
+                // for nao existe no Mini_Pascal (o '/' das linhas 17 e 21 e aceito).
                 "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'"
                 + " (depois de ';' na linha 10)");
         checarSaida("programa demo da apresentação da Unidade I", linhas(
@@ -353,9 +353,9 @@ public class VerificacaoParserCompleto {
                 "  x := 5 @ 2;",
                 "  writeln(\"sem fechar);",
                 "end."),
-                // O '/', o 'and' e o 'not' são aceitos. Sem o '@' (erro léxico), sobra
-                // "5 2", que é erro sintático. A string não fechada vai até o fim da
-                // linha 13 (erro léxico); sem ela, sobra "writeln(" e o 'end' da linha 14
+                // O '/', o 'and' e o 'not' sao aceitos. Sem o '@' (erro lexico), sobra
+                // "5 2", que e erro sintatico. A string nao fechada vai ate o fim da
+                // linha 13 (erro lexico); sem ela, sobra "writeln(" e o 'end' da linha 14
                 // chega onde se esperava o argumento.
                 "Erro léxico na linha 12: Caractere inválido: @" + "\n"
                 + "Erro sintático na linha 12: Encontrado número '2'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
@@ -539,7 +539,7 @@ public class VerificacaoParserCompleto {
         return String.join("\n", linhas);
     }
 
-    // Junta os valores com espaço; cada comando if fica entre colchetes.
+    // Junta os valores com espaco; cada comando if fica entre colchetes.
     private static final class AcoesEstrutura implements AcoesReducao {
         @Override
         public Object aoEmpilhar(Terminal terminal) {

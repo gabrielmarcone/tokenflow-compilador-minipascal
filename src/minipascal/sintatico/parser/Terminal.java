@@ -3,13 +3,13 @@ package minipascal.sintatico.parser;
 import minipascal.lexico.model.Token;
 
 /**
- * Símbolo terminal entregue ao analisador sintático. O nome é o terminal da
- * gramática ("id", "numero", "begin", ":=", "$"...); o token de origem guarda
- * o lexema e a linha, usados nas mensagens de erro e nas ações semânticas.
+ * Simbolo terminal entregue ao analisador sintatico. O nome e o terminal da
+ * gramatica ("id", "numero", "begin", ":=", "$"...); o token de origem guarda
+ * o lexema e a linha, usados nas mensagens de erro e nas acoes semanticas.
  */
 public final class Terminal {
 
-    // Terminais que representam classes de lexemas (os demais são o próprio lexema).
+    // Terminais que representam classes de lexemas (os demais sao o proprio lexema).
     public static final String ID = "id";
     public static final String NUMERO = "numero";
     public static final String TIPO = "tipo";
@@ -27,9 +27,9 @@ public final class Terminal {
     }
 
     /**
-     * @param posicao índice do token na sequência de todos os tokens lidos pelo
-     *                léxico (inclusive os de erro léxico); ordena erros léxicos e
-     *                sintáticos que caem na mesma linha
+     * @param posicao indice do token na sequencia de todos os tokens lidos pelo
+     *                lexico (inclusive os de erro lexico); ordena erros lexicos e
+     *                sintaticos que caem na mesma linha
      */
     public Terminal(String nome, Token token, int posicao) {
         this.nome = nome;
@@ -38,7 +38,7 @@ public final class Terminal {
         this.posicao = posicao;
     }
 
-    // Construtor do fim de arquivo, que não tem token de origem.
+    // Construtor do fim de arquivo, que nao tem token de origem.
     private Terminal(int linha, int posicao) {
         this.nome = FIM_DE_ARQUIVO;
         this.token = null;
@@ -55,8 +55,8 @@ public final class Terminal {
     }
 
     /**
-     * Terminal que não está no texto: inserido pela recuperação de erros para
-     * que a análise possa continuar (por exemplo, um 'begin' que faltava).
+     * Terminal que nao esta no texto: inserido pela recuperacao de erros para
+     * que a analise possa continuar (por exemplo, um 'begin' que faltava).
      */
     public static Terminal inserido(String nome, int linha) {
         if (FIM_DE_ARQUIVO.equals(nome)) {
@@ -76,7 +76,7 @@ public final class Terminal {
         return nome;
     }
 
-    // null no fim de arquivo e nos terminais inseridos pela recuperação de erros
+    // null no fim de arquivo e nos terminais inseridos pela recuperacao de erros
     public Token getToken() {
         return token;
     }
@@ -88,7 +88,7 @@ public final class Terminal {
         return isFimDeArquivo() ? "fim do arquivo" : nome;
     }
 
-    // Verdadeiro para um terminal inserido pela recuperação de erros (não está no texto).
+    // Verdadeiro para um terminal inserido pela recuperacao de erros (nao esta no texto).
     public boolean isInserido() {
         return token == null && !FIM_DE_ARQUIVO.equals(nome);
     }
@@ -97,7 +97,7 @@ public final class Terminal {
         return linha;
     }
 
-    // Posição na sequência de tokens lidos (-1 se desconhecida).
+    // Posicao na sequencia de tokens lidos (-1 se desconhecida).
     public int getPosicao() {
         return posicao;
     }

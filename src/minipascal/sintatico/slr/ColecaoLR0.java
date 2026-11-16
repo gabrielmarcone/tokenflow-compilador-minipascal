@@ -14,13 +14,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Coleção canônica de conjuntos de itens LR(0) e as transições entre eles.
+ * Colecao canonica de conjuntos de itens LR(0) e as transicoes entre eles.
  *
- * O estado 0 é closure({S' -> • S}). Os estados são processados na ordem de
- * criação; em cada um, os símbolos após o ponto são visitados na ordem dos
- * itens, e cada goto ainda não visto vira o próximo estado. Com isso a
- * numeração é determinística e, para a gramática de expressões do livro do
- * Dragão (Aho et al.), coincide com a do livro (I0 a I11).
+ * O estado 0 e closure({S' -> . S}). Os estados sao processados na ordem de
+ * criacao; em cada um, os simbolos apos o ponto sao visitados na ordem dos
+ * itens, e cada goto ainda nao visto vira o proximo estado. Com isso a
+ * numeracao e deterministica e, para a gramatica de expressoes do livro do
+ * Dragao (Aho et al.), coincide com a do livro (I0 a I11).
  */
 public final class ColecaoLR0 {
 
@@ -34,14 +34,20 @@ public final class ColecaoLR0 {
     }
 
     private void construir() {
+        // Cada conjunto de itens ja criado e o numero do estado dele: um goto que
+        // da num conjunto conhecido reaproveita o estado em vez de criar outro.
         Map<SortedSet<ItemLR0>, Integer> numeroPorConjunto = new HashMap<>();
         SortedSet<ItemLR0> inicial = new TreeSet<>();
+        // Estado 0: closure({S' -> . S}), a producao 0 com o ponto no inicio.
         inicial.add(new ItemLR0(0, 0));
         adicionarEstado(fechamento(inicial), numeroPorConjunto);
 
+        // A lista cresce enquanto e percorrida: cada estado novo tambem sera
+        // visitado, ate nao surgir nenhum (e o ponto fixo da construcao).
         for (int i = 0; i < estados.size(); i++) {
             EstadoLR0 estado = estados.get(i);
             for (String simbolo : simbolosAposPonto(estado)) {
+                // goto(I, X): para onde o automato vai ao ler X neste estado.
                 SortedSet<ItemLR0> destino = desvio(estado.getItens(), simbolo);
                 Integer numero = numeroPorConjunto.get(destino);
                 if (numero == null) {
@@ -60,18 +66,21 @@ public final class ColecaoLR0 {
         return numero;
     }
 
-    // closure(I): para cada item A -> α • B β, acrescenta B -> • γ para toda produção de B.
+    // closure(I): para cada item A -> alfa . B beta, acrescenta B -> . gama para toda producao de B.
     public SortedSet<ItemLR0> fechamento(Set<ItemLR0> itens) {
         SortedSet<ItemLR0> resultado = new TreeSet<>(itens);
+        // Itens ainda nao examinados; cada item novo entra aqui uma vez so.
         List<ItemLR0> pendentes = new ArrayList<>(itens);
         while (!pendentes.isEmpty()) {
             ItemLR0 item = pendentes.remove(pendentes.size() - 1);
             String b = item.simboloAposPonto(gramatica);
+            // So um nao terminal depois do ponto traz itens novos.
             if (b == null || gramatica.ehTerminal(b)) {
                 continue;
             }
             for (Producao p : gramatica.producoesDe(b)) {
                 ItemLR0 novo = new ItemLR0(p.getNumero(), 0);
+                // add devolve false se o item ja estava: evita laco em B -> B ...
                 if (resultado.add(novo)) {
                     pendentes.add(novo);
                 }
@@ -80,18 +89,19 @@ public final class ColecaoLR0 {
         return resultado;
     }
 
-    // goto(I, X) = closure dos itens de I com o ponto antes de X, avançados sobre X.
+    // goto(I, X) = closure dos itens de I com o ponto antes de X, avancados sobre X.
     public SortedSet<ItemLR0> desvio(Set<ItemLR0> itens, String simbolo) {
         Set<ItemLR0> avancados = new LinkedHashSet<>();
         for (ItemLR0 item : itens) {
             if (simbolo.equals(item.simboloAposPonto(gramatica))) {
+                // o ponto passa por cima de X
                 avancados.add(item.avancar());
             }
         }
         return fechamento(avancados);
     }
 
-    // Símbolos após o ponto, sem repetição, na ordem dos itens do estado.
+    // Simbolos apos o ponto, sem repeticao, na ordem dos itens do estado.
     private List<String> simbolosAposPonto(EstadoLR0 estado) {
         Set<String> simbolos = new LinkedHashSet<>();
         for (ItemLR0 item : estado.getItens()) {
@@ -111,7 +121,7 @@ public final class ColecaoLR0 {
         return estados.size();
     }
 
-    // Estado de destino da transição, ou -1 se não houver.
+    // Estado de destino da transicao, ou -1 se nao houver.
     public int transicao(int estado, String simbolo) {
         Integer destino = transicoes.get(estado).get(simbolo);
         return destino == null ? -1 : destino;

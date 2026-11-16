@@ -17,17 +17,17 @@ import java.util.List;
 
 /**
  * Roda os arquivos de teste da Unidade II (testes-integracao/unidade2) pela
- * linha de comando da análise completa, como o usuário faria:
+ * linha de comando da analise completa, como o usuario faria:
  *
  *   java -cp TokenFlow.jar minipascal.cli.AnaliseSemantica --tabela programa.txt saida.txt
  *
  * e compara o arquivo gravado com o resultado esperado, em
  * testes-integracao/unidade2/esperado (os erros, com tipo, linha e mensagem,
- * ou "OK", e a tabela de símbolos). Os resultados esperados foram escritos e
- * conferidos à mão, campo por campo (ver o README da pasta).
+ * ou "OK", e a tabela de simbolos). Os resultados esperados foram escritos e
+ * conferidos a mao, campo por campo (ver o README da pasta).
  *
- * Também confere o código de saída (0 só para "OK"), o texto do console (o
- * mesmo, sem acentos) e que o resultado não muda se o arquivo tiver quebras
+ * Tambem confere o codigo de saida (0 so para "OK"), o texto do console (o
+ * mesmo, sem acentos) e que o resultado nao muda se o arquivo tiver quebras
  * de linha do Windows (CRLF).
  *
  * Rodar a partir da raiz do projeto, como faz o build.bat.
@@ -86,7 +86,7 @@ public final class VerificacaoTestesUnidade2 {
 
     /*
      * Roda o programa pela linha de comando e compara arquivo, console e
-     * código de saída com o esperado; depois repete com o arquivo em CRLF.
+     * codigo de saida com o esperado; depois repete com o arquivo em CRLF.
      */
     private static void conferir(Path programa, String esperado) throws IOException {
         String nome = programa.getFileName().toString();

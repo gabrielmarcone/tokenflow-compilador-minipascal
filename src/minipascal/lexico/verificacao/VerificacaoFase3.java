@@ -6,7 +6,7 @@ import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
 /**
- * Verificação manual da Fase 3, sem JUnit — dá pra apagar quando os testes
+ * Verificacao manual da Fase 3, sem JUnit - da pra apagar quando os testes
  * de verdade estiverem configurados na IDE.
  */
 public class VerificacaoFase3 {

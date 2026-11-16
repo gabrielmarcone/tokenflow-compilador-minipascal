@@ -54,23 +54,24 @@ import java.util.TreeSet;
 import java.util.function.Function;
 
 /**
- * Controlador da janela (Main.fxml). Liga o editor, a análise completa
- * (Compilador: léxica, sintática e semântica, com o rastro da pilha) e as abas.
+ * Controlador da janela (Main.fxml). Liga o editor, a analise completa
+ * (Compilador: lexica, sintatica e semantica, com o rastro da pilha) e as abas.
  *
- * Decisões de interface:
- *   - o código fica sempre visível à esquerda; o resultado, à direita;
- *   - a faixa de resultado responde à pergunta principal (o programa está
- *     certo?) e avisa quando o código mudou depois da última análise;
- *   - as abas seguem as fases do compilador: Erros, Tokens (léxica), Pilha
- *     (sintática), Símbolos (semântica) e a descrição da linguagem (Gramática
- *     e SLR(1)); o título de cada aba mostra quantos itens ela tem;
- *   - selecionar um erro, um token, um passo ou um símbolo mostra a linha no
- *     código; selecionar um passo também destaca a célula da tabela SLR(1)
+ * Decisoes de interface:
+ *   - o codigo fica sempre visivel a esquerda; o resultado, a direita;
+ *   - a faixa de resultado responde a pergunta principal (o programa esta
+ *     certo?) e avisa quando o codigo mudou depois da ultima analise;
+ *   - as abas seguem as fases do compilador: Erros, Tokens (lexica), Pilha
+ *     (sintatica), Simbolos (semantica) e a descricao da linguagem (Gramatica
+ *     e SLR(1)); o titulo de cada aba mostra quantos itens ela tem;
+ *   - selecionar um erro, um token, um passo ou um simbolo mostra a linha no
+ *     codigo; selecionar um passo tambem destaca a celula da tabela SLR(1)
  *     que o analisador usou;
  *   - atalhos: Ctrl+O abre, Ctrl+S salva o resultado, F5 ou Ctrl+Enter analisa.
  */
 public class AnalisadorController implements Initializable {
 
+    // Componentes declarados em Main.fxml (o fx:id de cada um e o nome do campo).
     @FXML private BorderPane raiz;
     @FXML private Button btnAbrir;
     @FXML private Button btnSalvar;
@@ -135,13 +136,16 @@ public class AnalisadorController implements Initializable {
     @FXML private Label labelContagemPassos;
     @FXML private Label labelStatus;
 
-    // Quantos lexemas a coluna Entrada mostra (o resto vira "…"; o detalhe do passo mostra mais).
+    // Quantos lexemas a coluna Entrada mostra (o resto vira "..."; o detalhe do passo mostra mais).
     private static final int LEXEMAS_NA_ENTRADA = 8;
     private static final int LEXEMAS_NO_DETALHE = 40;
 
+    // Montado uma vez: as tabelas SLR(1) ficam prontas para todas as analises.
     private final Compilador compilador = new Compilador();
     private PainelSLR painelSLR;
 
+    // Resultado da ultima analise (null antes da primeira) e o texto analisado,
+    // para saber se o codigo mudou depois dela.
     private ResultadoCompilacao resultado;
     private RastroAnalise rastro;
     private String textoAnalisado;
@@ -149,14 +153,16 @@ public class AnalisadorController implements Initializable {
     private File pastaAtual;
 
     @Override
+    // Chamado pelo FXMLLoader depois de ligar os campos @FXML: monta o que o FXML
+    // nao descreve (painel SLR, colunas, icones, atalhos) e deixa a janela pronta.
     public void initialize(URL location, ResourceBundle resources) {
         painelSLR = new PainelSLR(compilador.getTabelaSLR());
         abaSLR.setContent(painelSLR.getConteudo());
 
         Fontes.usarMonoespacada(tabelaTokens, tabelaPassos, labelDetalhePasso);
-        // A última coluna de cada tabela ocupa o espaço que sobra (sem barra de
-        // rolagem horizontal enquanto couber); o texto que não cabe termina em
-        // "…" e aparece inteiro na dica.
+        // A ultima coluna de cada tabela ocupa o espaco que sobra (sem barra de
+        // rolagem horizontal enquanto couber); o texto que nao cabe termina em
+        // "..." e aparece inteiro na dica.
         Colunas.ocuparEspacoQueSobra(tabelaErros, colErroMensagem, 220);
         Colunas.ocuparEspacoQueSobra(tabelaTokens, colTipo, 150);
         Colunas.ocuparEspacoQueSobra(tabelaPassos, colPassoAcao, 200);
@@ -170,7 +176,9 @@ public class AnalisadorController implements Initializable {
         configurarTabelaSimbolos();
         configurarAbas();
 
+        // Cada mudanca no texto atualiza o botao Analisar e a faixa de resultado.
         editor.textProperty().addListener((obs, antigo, novo) -> textoMudou(novo));
+        // Os atalhos ficam na cena, que so existe depois que a janela e montada.
         raiz.sceneProperty().addListener((obs, antiga, nova) -> {
             if (nova != null) {
                 configurarAtalhos(nova);
@@ -178,12 +186,13 @@ public class AnalisadorController implements Initializable {
         });
         limparResultado();
         mostrarFaixaInicial();
-        // O cursor começa no editor: dá para digitar o programa logo ao abrir.
+        // O cursor comeca no editor: da para digitar o programa logo ao abrir.
         javafx.application.Platform.runLater(() -> editor.getArea().requestFocus());
     }
 
     // ------------------------------------------------------------ montagem
 
+    // Icones e dicas dos botoes.
     private void configurarBotoes() {
         btnAbrir.setGraphic(Icones.pasta());
         btnSalvar.setGraphic(Icones.disco());
@@ -205,6 +214,7 @@ public class AnalisadorController implements Initializable {
         btnSalvarTokens.setTooltip(new Tooltip("Salva a lista lexema / classe no formato da Unidade I"));
     }
 
+    // Ctrl+O, Ctrl+S, F5 e Ctrl+Enter, valendo em qualquer parte da janela.
     private void configurarAtalhos(Scene cena) {
         cena.getAccelerators().put(new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), this::abrirArquivo);
         cena.getAccelerators().put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> {
@@ -212,6 +222,7 @@ public class AnalisadorController implements Initializable {
                 salvarResultado();
             }
         });
+        // So analisa se o botao estiver habilitado (ha texto no editor).
         Runnable analisarSePuder = () -> {
             if (!btnAnalisar.isDisabled()) {
                 analisar();
@@ -229,12 +240,14 @@ public class AnalisadorController implements Initializable {
         abaSLR.setTooltip(new Tooltip("A gramática e as tabelas SLR(1) geradas a partir dela"));
     }
 
+    // Aba Erros: linha, fase e mensagem; a cor da linha depende da fase.
     private void configurarTabelaErros() {
         colErroLinha.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getLinha()));
         colErroFase.setCellValueFactory(d -> new SimpleStringProperty(fase(d.getValue().getCategoria())));
         colErroMensagem.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getMensagem()));
         colErroMensagem.setCellFactory(c -> celulaComDica(OverrunStyle.ELLIPSIS));
         tabelaErros.setRowFactory(t -> linhaComClasse(e -> "erro-" + e.getCategoria().name().toLowerCase()));
+        // Clicar num erro seleciona a linha dele no codigo.
         tabelaErros.getSelectionModel().selectedItemProperty().addListener((obs, antigo, erro) -> {
             if (erro != null) {
                 editor.selecionarLinha(erro.getLinha());
@@ -242,6 +255,7 @@ public class AnalisadorController implements Initializable {
         });
     }
 
+    // Aba Tokens: a saida da analise lexica; erros lexicos em destaque.
     private void configurarTabelaTokens() {
         colNumero.setCellValueFactory(d -> new SimpleIntegerProperty(tabelaTokens.getItems().indexOf(d.getValue()) + 1));
         colLexema.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getLexema()));
@@ -257,6 +271,7 @@ public class AnalisadorController implements Initializable {
         });
     }
 
+    // Aba Pilha: um passo do SLR(1) por linha (ver RastroAnalise).
     private void configurarTabelaPassos() {
         colPassoNumero.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getNumero()));
         colPassoPilha.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().pilhaComoTexto()));
@@ -264,16 +279,18 @@ public class AnalisadorController implements Initializable {
         colPassoEntrada.setCellValueFactory(d -> new SimpleStringProperty(
                 RastroAnalise.entradaRestante(d.getValue(), resultado.getTokens(), LEXEMAS_NA_ENTRADA)));
         colPassoAcao.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescricao()));
-        // Pilha e símbolos crescem para a direita: quando não cabem, o que se
-        // corta é a base (à esquerda), e o topo continua visível.
+        // Pilha e simbolos crescem para a direita: quando nao cabem, o que se
+        // corta e a base (a esquerda), e o topo continua visivel.
         colPassoPilha.setCellFactory(c -> celulaComDica(OverrunStyle.LEADING_ELLIPSIS));
         colPassoSimbolos.setCellFactory(c -> celulaComDica(OverrunStyle.LEADING_ELLIPSIS));
         colPassoEntrada.setCellFactory(c -> celulaComDica(OverrunStyle.ELLIPSIS));
         colPassoAcao.setCellFactory(c -> celulaComDica(OverrunStyle.ELLIPSIS));
         tabelaPassos.setRowFactory(t -> linhaComClasse(p -> "passo-" + p.getTipo().name().toLowerCase()));
+        // Selecionar um passo mostra o detalhe, a linha no codigo e a celula da tabela.
         tabelaPassos.getSelectionModel().selectedItemProperty().addListener((obs, antigo, passo) -> mostrarPasso(passo));
     }
 
+    // Aba Simbolos: a tabela de simbolos montada pela analise semantica.
     private void configurarTabelaSimbolos() {
         colSimboloEscopo.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getEscopo()));
         colSimboloNivel.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getNivel()));
@@ -286,15 +303,17 @@ public class AnalisadorController implements Initializable {
         colSimboloParametros.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().descreverParametros()));
         colSimboloParametros.setCellFactory(c -> celulaComDica(OverrunStyle.ELLIPSIS));
         tabelaSimbolos.getSelectionModel().selectedItemProperty().addListener((obs, antigo, s) -> {
+            // os predefinidos (linha 0) nao tem linha no codigo
             if (s != null && s.getLinha() > 0) {
                 editor.selecionarLinha(s.getLinha());
             }
         });
     }
 
-    // --------------------------------------------------------------- ações
+    // --------------------------------------------------------------- acoes
 
     @FXML
+    // Botao Abrir (Ctrl+O): escolhe um .txt e carrega no editor.
     private void abrirArquivo() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Abrir programa Mini_Pascal");
@@ -310,6 +329,7 @@ public class AnalisadorController implements Initializable {
         }
     }
 
+    // Le o arquivo (UTF-8 ou ANSI, ver LeitorArquivoFonte) e descarta o resultado anterior.
     private void carregar(File arquivo) {
         try {
             String conteudo = LeitorArquivoFonte.ler(arquivo.getAbsolutePath());
@@ -326,6 +346,7 @@ public class AnalisadorController implements Initializable {
     }
 
     @FXML
+    // Botao Analisar (F5): as tres fases de uma vez, guardando o rastro da pilha.
     void analisar() {
         String fonte = editor.getText();
         if (fonte == null || fonte.trim().isEmpty()) {
@@ -334,13 +355,14 @@ public class AnalisadorController implements Initializable {
         }
         long inicio = System.nanoTime();
         try {
+            // O rastro e o ouvinte da analise: registra cada passo para a aba Pilha.
             RastroAnalise novoRastro = new RastroAnalise(compilador.getTabelaSLR());
             ResultadoCompilacao novo = compilador.analisar(fonte, novoRastro);
             resultado = novo;
             rastro = novoRastro;
             textoAnalisado = fonte;
         } catch (RuntimeException e) {
-            // Não deveria acontecer; se acontecer, a janela continua usável e diz o que houve.
+            // Nao deveria acontecer; se acontecer, a janela continua usavel e diz o que houve.
             limparResultado();
             mostrarFaixa("faixa-erro", Icones.errado(), "Erro interno na análise",
                     e.getClass().getSimpleName() + (e.getMessage() == null ? "" : ": " + e.getMessage()));
@@ -353,6 +375,7 @@ public class AnalisadorController implements Initializable {
     }
 
     @FXML
+    // Salvar resultado (Ctrl+S): grava "OK" ou os erros, como a linha de comando.
     private void salvarResultado() {
         if (resultado == null) {
             return;
@@ -370,6 +393,7 @@ public class AnalisadorController implements Initializable {
     }
 
     @FXML
+    // Salva a lista lexema/classe no formato da Unidade I.
     private void salvarTokens() {
         if (resultado == null) {
             return;
@@ -388,6 +412,7 @@ public class AnalisadorController implements Initializable {
     }
 
     @FXML
+    // Botao ?: resumo de como usar a janela.
     private void mostrarAjuda() {
         Alert ajuda = new Alert(Alert.AlertType.INFORMATION, "", ButtonType.OK);
         ajuda.initOwner(janela());
@@ -419,9 +444,10 @@ public class AnalisadorController implements Initializable {
         ajuda.show();
     }
 
-    // ------------------------------------------------------------ navegação na pilha
+    // ------------------------------------------------------------ navegacao na pilha
 
     @FXML
+    // Botoes de navegacao da aba Pilha.
     private void primeiroPasso() {
         selecionarPasso(0);
     }
@@ -442,7 +468,7 @@ public class AnalisadorController implements Initializable {
         selecionarPasso(tabelaPassos.getItems().size() - 1);
     }
 
-    // Próximo passo de erro depois do selecionado (volta ao começo no fim).
+    // Proximo passo de erro depois do selecionado (volta ao comeco no fim).
     @FXML
     private void proximoErroNaPilha() {
         List<PassoAnalise> passos = tabelaPassos.getItems();
@@ -458,11 +484,13 @@ public class AnalisadorController implements Initializable {
     }
 
     @FXML
+    // Abre a aba Gramatica e SLR(1) na celula usada pelo passo selecionado.
     private void verPassoNaTabela() {
         abasResultado.getSelectionModel().select(abaSLR);
         painelSLR.mostrarDestaque();
     }
 
+    // Seleciona o passo e rola a tabela para ele aparecer (com alguns passos antes).
     private void selecionarPasso(int indice) {
         if (indice < 0 || indice >= tabelaPassos.getItems().size()) {
             return;
@@ -471,10 +499,12 @@ public class AnalisadorController implements Initializable {
         tabelaPassos.scrollTo(Math.max(0, indice - 5));
     }
 
+    // Atualiza tudo o que depende do passo selecionado (null = nenhum).
     private void mostrarPasso(PassoAnalise passo) {
         int total = tabelaPassos.getItems().size();
         boolean temPassos = total > 0;
         boolean selecionado = passo != null;
+        // Botoes habilitados conforme a posicao do passo.
         btnPrimeiroPasso.setDisable(!temPassos);
         btnUltimoPasso.setDisable(!temPassos);
         btnPassoAnterior.setDisable(!selecionado || passo.getNumero() <= 1);
@@ -489,6 +519,7 @@ public class AnalisadorController implements Initializable {
             painelSLR.destacar(-1, null);
             return;
         }
+        // Detalhe embaixo da tabela: a pilha inteira, sem cortes.
         labelPasso.setText("Passo " + passo.getNumero() + " de " + total);
         labelDetalhePasso.setText(String.join("\n",
                 "Estado no topo: " + passo.getTopo() + "    Entrada: " + descreverEntrada(passo)
@@ -498,6 +529,7 @@ public class AnalisadorController implements Initializable {
                 "Falta ler: " + RastroAnalise.entradaRestante(passo, resultado.getTokens(), LEXEMAS_NO_DETALHE),
                 "Ação: " + passo.getDescricao()));
         editor.selecionarLinha(passo.getLinha());
+        // Na recuperacao nao ha celula consultada: destaca so a linha do estado.
         if (passo.getTipo() == PassoAnalise.Tipo.RECUPERACAO) {
             painelSLR.destacar(passo.getTopo(), null);
         } else {
@@ -505,6 +537,7 @@ public class AnalisadorController implements Initializable {
         }
     }
 
+    // "'x' (id)", "';'", "'then' (inserido)" ou "$ (fim do arquivo)".
     private static String descreverEntrada(PassoAnalise p) {
         if (p.getTerminal().equals("$")) {
             return "$ (fim do arquivo)";
@@ -513,18 +546,20 @@ public class AnalisadorController implements Initializable {
         return p.getLexema().equals(p.getTerminal()) || p.isInserido() ? texto : texto + " (" + p.getTerminal() + ")";
     }
 
-    // Texto longo demais: mantém o fim (o topo da pilha), com "… " no começo.
+    // Texto longo demais: mantem o fim (o topo da pilha), com "... " no comeco.
     private static String limitarInicio(String texto, int maximo) {
         return texto.length() <= maximo ? texto : "… " + texto.substring(texto.length() - maximo);
     }
 
     // ------------------------------------------------------------ resultado
 
+    // Mostra o resultado da analise em todas as abas, na faixa e na barra de status.
     private void preencherResultado() {
         ResultadoCompilacao r = resultado;
         tabelaErros.setItems(FXCollections.observableArrayList(r.getErros()));
         tabelaTokens.setItems(FXCollections.observableArrayList(r.getTokens()));
         tabelaPassos.setItems(FXCollections.observableArrayList(rastro.getPassos()));
+        // Os nomes nao declarados so existem para evitar mensagens repetidas: ficam de fora.
         List<Simbolo> simbolos = new ArrayList<>();
         for (Simbolo s : r.getTabelaSimbolos().getHistorico()) {
             if (s.getCategoria() != CategoriaSimbolo.NAO_DECLARADO) {
@@ -533,18 +568,21 @@ public class AnalisadorController implements Initializable {
         }
         tabelaSimbolos.setItems(FXCollections.observableArrayList(simbolos));
 
+        // Aviso quando a semantica parou no primeiro erro sintatico (tabela incompleta).
         boolean semanticaParou = !r.isSemanticaCompleta();
         labelAvisoSimbolos.setText("A análise semântica parou no primeiro erro sintático: a tabela tem só o que "
                 + "foi declarado até ali.");
         labelAvisoSimbolos.setVisible(semanticaParou);
         labelAvisoSimbolos.setManaged(semanticaParou);
 
+        // Marcas nas linhas com erro, na coluna de numeros do editor.
         Set<Integer> linhasComErro = new TreeSet<>();
         for (ErroCompilacao e : r.getErros()) {
             linhasComErro.add(e.getLinha());
         }
         editor.marcarLinhasComErro(linhasComErro);
 
+        // Titulos das abas com as contagens; "+" quando o rastro foi limitado.
         int passos = rastro.getPassos().size();
         abaErros.setText(r.getErros().isEmpty() ? "Erros" : "Erros (" + r.getErros().size() + ")");
         abaTokens.setText("Tokens (" + r.getTokens().size() + ")");
@@ -561,6 +599,7 @@ public class AnalisadorController implements Initializable {
         mostrarFaixaDoResultado();
     }
 
+    // Volta a janela ao estado inicial (sem analise).
     private void limparResultado() {
         resultado = null;
         rastro = null;
@@ -588,6 +627,8 @@ public class AnalisadorController implements Initializable {
         mostrarPasso(null);
     }
 
+    // Codigo editado: se ficou diferente do analisado, a faixa avisa que o
+    // resultado e antigo; se voltou a ser igual, mostra o resultado de novo.
     private void textoMudou(String novo) {
         btnAnalisar.setDisable(novo == null || novo.trim().isEmpty());
         if (resultado == null) {
@@ -606,6 +647,7 @@ public class AnalisadorController implements Initializable {
                 "Digite ou abra um programa e clique em Analisar (F5).");
     }
 
+    // Faixa verde (OK) ou vermelha com quantos erros de cada fase.
     private void mostrarFaixaDoResultado() {
         ResultadoCompilacao r = resultado;
         if (r.isSucesso()) {
@@ -635,6 +677,7 @@ public class AnalisadorController implements Initializable {
                 detalhe);
     }
 
+    // Troca a cor (classe CSS), o icone e os textos da faixa de resultado.
     private void mostrarFaixa(String estilo, Node icone, String titulo, String detalhe) {
         faixaResultado.getStyleClass().removeAll("faixa-neutra", "faixa-ok", "faixa-erro", "faixa-aviso");
         faixaResultado.getStyleClass().add(estilo);
@@ -645,6 +688,7 @@ public class AnalisadorController implements Initializable {
 
     // ------------------------------------------------------------------ apoio
 
+    // Nome da fase para a coluna Fase da aba Erros.
     private static String fase(CategoriaErro c) {
         switch (c) {
             case LEXICO:
@@ -660,6 +704,7 @@ public class AnalisadorController implements Initializable {
         return n + " " + (n == 1 ? singular : plural);
     }
 
+    // "1 lexico, 2 sintaticos e 3 semanticos".
     private static String juntarComE(List<String> partes) {
         if (partes.size() <= 1) {
             return partes.isEmpty() ? "" : capitalizar(partes.get(0));
@@ -693,7 +738,7 @@ public class AnalisadorController implements Initializable {
         };
     }
 
-    // Célula de texto com o corte escolhido e o texto inteiro na dica.
+    // Celula de texto com o corte escolhido e o texto inteiro na dica.
     private static <T> TableCell<T, String> celulaComDica(OverrunStyle corte) {
         TableCell<T, String> celula = new TableCell<T, String>() {
             @Override
@@ -707,6 +752,7 @@ public class AnalisadorController implements Initializable {
         return celula;
     }
 
+    // Janela de salvar, comecando na pasta do ultimo arquivo aberto.
     private File escolherDestino(String titulo, String sugestao) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(titulo);

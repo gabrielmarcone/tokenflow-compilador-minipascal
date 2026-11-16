@@ -15,19 +15,19 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * Linha de comando do gerador: lê uma gramática, constrói a tabela SLR(1) e
- * grava o relatório (.txt) e a tabela (.csv).
+ * Linha de comando do gerador: le uma gramatica, constroi a tabela SLR(1) e
+ * grava o relatorio (.txt) e a tabela (.csv).
  *
  *   java -cp TokenFlow.jar minipascal.cli.GeradorTabelas <gramatica.txt> [pasta-saida]
  *
- * Se o argumento for só um nome (sem pasta) e não existir no disco, procura
- * uma gramática com esse nome entre as que acompanham o programa (ex.:
- * expressoes.txt). Sem pasta de saída, os
- * arquivos são gravados na pasta atual. Sai com código 1 se a
- * gramática for inválida ou tiver conflitos (o relatório é gravado mesmo
- * assim, mostrando onde estão os conflitos).
+ * Se o argumento for so um nome (sem pasta) e nao existir no disco, procura
+ * uma gramatica com esse nome entre as que acompanham o programa (ex.:
+ * expressoes.txt). Sem pasta de saida, os
+ * arquivos sao gravados na pasta atual. Sai com codigo 1 se a
+ * gramatica for invalida ou tiver conflitos (o relatorio e gravado mesmo
+ * assim, mostrando onde estao os conflitos).
  *
- * As mensagens do console não têm acentos (ver Console).
+ * As mensagens do console nao tem acentos (ver Console).
  */
 public final class GeradorTabelas {
 
@@ -38,7 +38,7 @@ public final class GeradorTabelas {
         System.exit(executar(args));
     }
 
-    // Devolve o código de saída: 0 = tabela gerada sem conflitos; 1 = qualquer problema.
+    // Devolve o codigo de saida: 0 = tabela gerada sem conflitos; 1 = qualquer problema.
     public static int executar(String[] args) {
         if (args.length < 1 || args.length > 2) {
             System.out.println("Uso: java -cp TokenFlow.jar minipascal.cli.GeradorTabelas"
@@ -59,7 +59,7 @@ public final class GeradorTabelas {
             if (Files.isRegularFile(arquivo)) {
                 gramatica = LeitorGramatica.lerArquivo(arquivo.toString());
             } else if (arquivo.getParent() == null && LeitorGramatica.existeRecurso(nomeArquivo)) {
-                // só um nome, sem pasta: pode ser uma das gramáticas embutidas
+                // so um nome, sem pasta: pode ser uma das gramaticas embutidas
                 gramatica = LeitorGramatica.lerRecurso(nomeArquivo);
                 System.out.println("Usando a gramatica embutida no programa: " + nomeArquivo);
             } else {

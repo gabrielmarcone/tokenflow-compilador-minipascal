@@ -10,12 +10,12 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
- * Ponto de entrada da interface JavaFX. Responsabilidade única: carregar o
- * FXML, montar a Scene, aplicar o CSS e abrir a janela. Nenhuma lógica de
- * análise entra aqui: isso é papel do AnalisadorController.
+ * Ponto de entrada da interface JavaFX. Responsabilidade unica: carregar o
+ * FXML, montar a Scene, aplicar o CSS e abrir a janela. Nenhuma logica de
+ * analise entra aqui: isso e papel do AnalisadorController.
  *
- * A janela abre com 1280 x 800 quando cabe; em telas menores, ocupa a área
- * útil da tela (sem passar por baixo da barra de tarefas).
+ * A janela abre com 1280 x 800 quando cabe; em telas menores, ocupa a area
+ * util da tela (sem passar por baixo da barra de tarefas).
  */
 public class MainApp extends Application {
 
@@ -26,11 +26,14 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        // O FXML descreve a janela e cria o AnalisadorController.
         Parent root = FXMLLoader.load(getClass().getResource("Main.fxml"));
+        // Area util da tela (sem a barra de tarefas): a janela nunca passa dela.
         Rectangle2D tela = Screen.getPrimary().getVisualBounds();
         double largura = Math.min(LARGURA, tela.getWidth());
         double altura = Math.min(ALTURA, tela.getHeight());
         Scene scene = new Scene(root, largura, altura);
+        // cores, fontes e espacamentos (application.css)
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
         stage.setTitle("TokenFlow - Compilador Mini_Pascal");

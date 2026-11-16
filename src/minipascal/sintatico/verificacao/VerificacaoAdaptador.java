@@ -13,9 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Verifica a tradução de tokens do analisador léxico para terminais da
- * gramática, feita pelo AdaptadorLexico. Sem JUnit, no mesmo formato das
- * verificações da Unidade I.
+ * Verifica a traducao de tokens do analisador lexico para terminais da
+ * gramatica, feita pelo AdaptadorLexico. Sem JUnit, no mesmo formato das
+ * verificacoes da Unidade I.
  */
 public class VerificacaoAdaptador {
 
@@ -35,13 +35,13 @@ public class VerificacaoAdaptador {
         checarTerminais("palavras reservadas fora da gramática mantêm o nome (for, repeat, proc)",
                 "for repeat proc", "for", "repeat", "proc");
 
-        // Identificadores e números
+        // Identificadores e numeros
         checarTerminais("identificadores viram 'id', inclusive read/write/writeln",
                 "x total read write writeln", "id", "id", "id", "id", "id");
         checarTerminais("inteiro e real viram 'numero'",
                 "13 1.33 24.40e-04", "numero", "numero", "numero");
 
-        // Operadores e símbolos
+        // Operadores e simbolos
         checarTerminais("operadores aritméticos e relacionais viram o lexema",
                 "+ - * / = < > <> <= >=", "+", "-", "*", "/", "=", "<", ">", "<>", "<=", ">=");
         checarTerminais("operadores lógicos viram o lexema em minúsculas",
@@ -63,7 +63,7 @@ public class VerificacaoAdaptador {
         ultimaLinha.proximo();
         checar("'$' recebe a linha do último token lido (3)", ultimaLinha.proximo().getLinha() == 3);
 
-        // Erros léxicos: registrados e pulados
+        // Erros lexicos: registrados e pulados
         AdaptadorLexico comErros = adaptador("x := 5 @ 2;\nwriteln(\"aberta);\n'ab'");
         List<String> nomes = nomesAteOFim(comErros);
         checar("erros léxicos não chegam ao parser",
@@ -85,8 +85,8 @@ public class VerificacaoAdaptador {
         checar("tokens lidos incluem os erros (para a aba de tokens)",
                 comErros.getTokensLidos().size() == 10);
 
-        // Posições na sequência de todos os tokens lidos (ordenam erros léxicos e
-        // sintáticos na mesma linha): x=0, @=1, y=2, $=3.
+        // Posicoes na sequencia de todos os tokens lidos (ordenam erros lexicos e
+        // sintaticos na mesma linha): x=0, @=1, y=2, $=3.
         AdaptadorLexico posicoes = adaptador("x @ y");
         Terminal px = posicoes.proximo();
         Terminal py = posicoes.proximo();
@@ -103,7 +103,7 @@ public class VerificacaoAdaptador {
                         && comentario.getErrosLexicos().get(0).getMensagem()
                                 .equals("Comentário não fechado (falta */): /*"));
 
-        // Programa completo, no formato da gramática
+        // Programa completo, no formato da gramatica
         String programa =
                 "program exemplo;\n" +
                 "var a, b: integer;\n" +
@@ -143,7 +143,7 @@ public class VerificacaoAdaptador {
         return new AdaptadorLexico(new AnalisadorLexico(fonte, TABELA));
     }
 
-    // Lê até o "$" (inclusive) e devolve os nomes dos terminais.
+    // Le ate o "$" (inclusive) e devolve os nomes dos terminais.
     private static List<String> nomesAteOFim(AdaptadorLexico adaptador) {
         List<String> nomes = new ArrayList<>();
         Terminal t;

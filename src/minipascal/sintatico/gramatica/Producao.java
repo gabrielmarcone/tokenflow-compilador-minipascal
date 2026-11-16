@@ -5,10 +5,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Uma produção da gramática: cabeça -> corpo. O corpo vazio representa a
- * produção vazia (ε). O número é a posição na gramática: 0 é a produção
- * inicial aumentada (S' -> S) e as do arquivo começam em 1, na ordem em que
- * aparecem. É esse número que aparece nas reduções da tabela ("r3").
+ * Uma producao da gramatica: cabeca -> corpo. O corpo vazio representa a
+ * producao vazia (eps). O numero e a posicao na gramatica: 0 e a producao
+ * inicial aumentada (S' -> S) e as do arquivo comecam em 1, na ordem em que
+ * aparecem. E esse numero que aparece nas reducoes da tabela ("r3").
  */
 public final class Producao {
 
@@ -34,6 +34,7 @@ public final class Producao {
         return corpo;
     }
 
+    // Numero de simbolos do corpo: quantos estados a reducao desempilha.
     public int tamanho() {
         return corpo.size();
     }
@@ -42,7 +43,7 @@ public final class Producao {
         return corpo.isEmpty();
     }
 
-    // "TERMO -> TERMO * FATOR"; a produção vazia aparece como "A -> ε".
+    // "TERMO -> TERMO * FATOR"; a producao vazia aparece como "A -> eps".
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(cabeca).append(" ->");

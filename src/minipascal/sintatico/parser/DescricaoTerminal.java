@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Textos usados nas mensagens de erro sintático: como mostrar o token
+ * Textos usados nas mensagens de erro sintatico: como mostrar o token
  * encontrado e os terminais que eram esperados.
  *
  *   encontrado identificador 'b'; esperado '+', '-', '*' ou fim do arquivo
@@ -62,6 +62,7 @@ public final class DescricaoTerminal {
         for (String nome : nomesTerminais) {
             textos.add(esperado(nome));
         }
+        // um so: sem "ou"
         if (textos.size() == 1) {
             return textos.get(0);
         }

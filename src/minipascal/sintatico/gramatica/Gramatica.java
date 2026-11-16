@@ -11,19 +11,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Gramática livre de contexto usada pelo gerador SLR(1).
+ * Gramatica livre de contexto usada pelo gerador SLR(1).
  *
- * Convenções:
- *   - não terminais são escritos em MAIÚSCULAS (letras, dígitos e _);
- *   - qualquer outro símbolo é terminal ("id", "numero", "begin", ":=", ";"...);
- *   - o símbolo inicial é a cabeça da primeira produção;
- *   - "$" é o fim de entrada e não pode aparecer nas produções.
+ * Convencoes:
+ *   - nao terminais sao escritos em MAIUSCULAS (letras, digitos e _);
+ *   - qualquer outro simbolo e terminal ("id", "numero", "begin", ":=", ";"...);
+ *   - o simbolo inicial e a cabeca da primeira producao;
+ *   - "$" e o fim de entrada e nao pode aparecer nas producoes.
  *
- * A gramática é aumentada com a produção 0, S' -> S, onde S é o símbolo inicial.
- * Na construção são recusadas gramáticas com produção repetida, não terminal
- * sem produção, não terminal inalcançável a partir do símbolo inicial e não
- * terminal que não deriva nenhuma cadeia de terminais: todos são, em geral,
- * erro de digitação.
+ * A gramatica e aumentada com a producao 0, S' -> S, onde S e o simbolo inicial.
+ * Na construcao sao recusadas gramaticas com producao repetida, nao terminal
+ * sem producao, nao terminal inalcancavel a partir do simbolo inicial e nao
+ * terminal que nao deriva nenhuma cadeia de terminais: todos sao, em geral,
+ * erro de digitacao.
  */
 public final class Gramatica {
 
@@ -38,17 +38,19 @@ public final class Gramatica {
     private final Map<String, Integer> ordemDosSimbolos;
 
     /**
-     * Recebe as produções na ordem do arquivo (numeradas a partir de 1) e
-     * acrescenta a produção 0, S' -> S.
+     * Recebe as producoes na ordem do arquivo (numeradas a partir de 1) e
+     * acrescenta a producao 0, S' -> S.
      */
     public Gramatica(List<Producao> producoesDoArquivo) {
         if (producoesDoArquivo.isEmpty()) {
             throw new GramaticaInvalidaException("a gramática não tem nenhuma produção.");
         }
+        // O simbolo inicial e a cabeca da primeira regra do arquivo.
         this.simboloInicial = producoesDoArquivo.get(0).getCabeca();
         this.simboloInicialAumentado = simboloInicial + "'";
 
         List<Producao> todas = new ArrayList<>();
+        // Producao 0, a aumentada S' -> S: reduzir por ela e aceitar o programa.
         todas.add(new Producao(0, simboloInicialAumentado, Collections.singletonList(simboloInicial)));
         for (int i = 0; i < producoesDoArquivo.size(); i++) {
             Producao p = producoesDoArquivo.get(i);
@@ -59,12 +61,13 @@ public final class Gramatica {
         }
         this.producoes = Collections.unmodifiableList(todas);
 
+        // Nao terminais: as cabecas, na ordem do arquivo; e as producoes de cada um.
         Set<String> nts = new LinkedHashSet<>();
         Map<String, List<Producao>> porCabeca = new HashMap<>();
         Map<String, Integer> jaVista = new HashMap<>();
         for (Producao p : producoesDoArquivo) {
-            // Produção repetida geraria um conflito reduzir/reduzir entre as duas
-            // cópias; quase sempre é erro de digitação, então é recusada.
+            // Producao repetida geraria um conflito reduzir/reduzir entre as duas
+            // copias; quase sempre e erro de digitacao, entao e recusada.
             Integer anterior = jaVista.put(p.toString(), p.getNumero());
             if (anterior != null) {
                 throw new GramaticaInvalidaException("a produção " + p.getNumero() + " (" + p
@@ -79,6 +82,8 @@ public final class Gramatica {
         }
         porCabeca.put(simboloInicialAumentado, Collections.singletonList(todas.get(0)));
 
+        // Terminais: todo simbolo do corpo que nao e nome de nao terminal. Um nome
+        // em MAIUSCULAS sem producao e erro (provavelmente digitado errado).
         Set<String> ts = new LinkedHashSet<>();
         for (Producao p : producoesDoArquivo) {
             for (String s : p.getCorpo()) {
@@ -96,6 +101,7 @@ public final class Gramatica {
                 }
             }
         }
+        // o $ (fim de entrada) e sempre o ultimo terminal
         ts.add(FIM_DE_ENTRADA);
 
         this.naoTerminais = Collections.unmodifiableSet(nts);
@@ -106,8 +112,8 @@ public final class Gramatica {
         }
         this.producoesPorCabeca = Collections.unmodifiableMap(porCabecaImutavel);
 
-        // Ordem fixa dos símbolos: terminais na ordem em que aparecem, "$" por
-        // último, depois os não terminais. Usada para listar conjuntos e
+        // Ordem fixa dos simbolos: terminais na ordem em que aparecem, "$" por
+        // ultimo, depois os nao terminais. Usada para listar conjuntos e
         // colunas sempre na mesma ordem.
         Map<String, Integer> ordem = new HashMap<>();
         for (String t : ts) {
@@ -122,6 +128,7 @@ public final class Gramatica {
         verificarProdutivos();
     }
 
+    // MAIUSCULAS, digitos e _, comecando por letra (EXPR, BLOCO_VAR, CAB_PROC).
     public static boolean ehNomeDeNaoTerminal(String simbolo) {
         if (simbolo.isEmpty() || simbolo.charAt(0) < 'A' || simbolo.charAt(0) > 'Z') {
             return false;
@@ -136,6 +143,8 @@ public final class Gramatica {
         return true;
     }
 
+    // Busca a partir do simbolo inicial: um nao terminal que nunca aparece em
+    // nenhuma derivacao e sinal de erro na gramatica.
     private void verificarAlcancaveis() {
         Set<String> alcancados = new HashSet<>();
         List<String> pendentes = new ArrayList<>();
@@ -159,6 +168,9 @@ public final class Gramatica {
         }
     }
 
+    // Ponto fixo: um nao terminal e produtivo se tem uma producao cujo corpo so
+    // tem terminais e nao terminais ja produtivos. Um que nunca fica produtivo
+    // so tem recursao sem saida (A -> a A) e nao gera nenhuma cadeia.
     private void verificarProdutivos() {
         Set<String> produtivos = new HashSet<>();
         boolean mudou = true;
@@ -189,7 +201,7 @@ public final class Gramatica {
         }
     }
 
-    // Todas as produções; a de índice 0 é a aumentada S' -> S.
+    // Todas as producoes; a de indice 0 e a aumentada S' -> S.
     public List<Producao> getProducoes() {
         return producoes;
     }
@@ -211,12 +223,12 @@ public final class Gramatica {
         return simboloInicialAumentado;
     }
 
-    // Não terminais na ordem das cabeças (sem o S' aumentado).
+    // Nao terminais na ordem das cabecas (sem o S' aumentado).
     public Set<String> getNaoTerminais() {
         return naoTerminais;
     }
 
-    // Terminais na ordem em que aparecem nas produções, com "$" no fim.
+    // Terminais na ordem em que aparecem nas producoes, com "$" no fim.
     public Set<String> getTerminais() {
         return terminais;
     }
@@ -229,7 +241,8 @@ public final class Gramatica {
         return naoTerminais.contains(simbolo) || simbolo.equals(simboloInicialAumentado);
     }
 
-    // Devolve os símbolos na ordem fixa da gramática (para relatórios e testes).
+    // Devolve os simbolos na ordem fixa da gramatica (para relatorios e testes).
+    // Devolve os simbolos na ordem fixa da gramatica (para relatorios, mensagens e testes).
     public List<String> ordenar(Collection<String> simbolos) {
         List<String> lista = new ArrayList<>(simbolos);
         lista.sort((a, b) -> Integer.compare(posicao(a), posicao(b)));

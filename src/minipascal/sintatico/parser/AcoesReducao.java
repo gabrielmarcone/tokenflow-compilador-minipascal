@@ -7,40 +7,40 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Ações executadas pelo analisador sintático junto com a pilha de atributos.
+ * Acoes executadas pelo analisador sintatico junto com a pilha de atributos.
  *
- * Ao lado da pilha de estados, o analisador mantém uma pilha de valores:
+ * Ao lado da pilha de estados, o analisador mantem uma pilha de valores:
  *   - ao empilhar um terminal, empilha o valor devolvido por aoEmpilhar
- *     (por padrão, o próprio Terminal);
+ *     (por padrao, o proprio Terminal);
  *   - ao reduzir por A -> X1 ... Xn, desempilha os n valores de X1 ... Xn,
  *     chama aoReduzir com eles (na ordem do corpo) e empilha o resultado
  *     como valor de A.
- * O valor final (do símbolo inicial) é devolvido no resultado da análise,
- * desde que não tenha havido erro sintático.
+ * O valor final (do simbolo inicial) e devolvido no resultado da analise,
+ * desde que nao tenha havido erro sintatico.
  *
- * Na recuperação de um erro sintático, o analisador pode:
- *   - empilhar um não terminal que não foi de fato reconhecido, com valor
+ * Na recuperacao de um erro sintatico, o analisador pode:
+ *   - empilhar um nao terminal que nao foi de fato reconhecido, com valor
  *     null; por isso aoReduzir pode receber null entre os valores;
  *   - inserir um terminal que falta no texto; aoEmpilhar o recebe com
  *     isInserido() verdadeiro e sem token (getToken() devolve null).
- * As duas coisas só acontecem depois de um erro sintático, e o analisador
+ * As duas coisas so acontecem depois de um erro sintatico, e o analisador
  * avisa o primeiro deles com aoErroSintatico.
  *
- * É assim que a análise semântica (minipascal.semantico.AnalisadorSemantico)
- * se encaixa: as verificações acontecem nas reduções, e os erros que as ações
- * encontram (getErros) entram no resultado junto com os léxicos e os
- * sintáticos; o resultado os põe na ordem do texto (ver ResultadoAnalise).
+ * E assim que a analise semantica (minipascal.semantico.AnalisadorSemantico)
+ * se encaixa: as verificacoes acontecem nas reducoes, e os erros que as acoes
+ * encontram (getErros) entram no resultado junto com os lexicos e os
+ * sintaticos; o resultado os poe na ordem do texto (ver ResultadoAnalise).
  */
 public interface AcoesReducao {
 
-    // Nenhuma ação: só reconhece a entrada.
+    // Nenhuma acao: so reconhece a entrada.
     AcoesReducao NENHUMA = (producao, valores, linha) -> null;
 
     /**
-     * @param producao produção pela qual se reduziu
-     * @param valores  valores dos símbolos do corpo, na ordem (vazia para ε)
-     * @param linha    linha do primeiro token da construção (para ε, a do próximo token)
-     * @return valor do não terminal da cabeça
+     * @param producao producao pela qual se reduziu
+     * @param valores  valores dos simbolos do corpo, na ordem (vazia para eps)
+     * @param linha    linha do primeiro token da construcao (para eps, a do proximo token)
+     * @return valor do nao terminal da cabeca
      */
     Object aoReduzir(Producao producao, List<Object> valores, int linha);
 
@@ -49,7 +49,7 @@ public interface AcoesReducao {
     }
 
     /**
-     * Chamado a cada erro sintático, antes da recuperação. Depois dele, a
+     * Chamado a cada erro sintatico, antes da recuperacao. Depois dele, a
      * pilha de valores pode receber null e terminais inseridos (ver acima).
      *
      * @param encontrado o terminal com erro
@@ -58,8 +58,8 @@ public interface AcoesReducao {
     }
 
     /**
-     * Erros encontrados pelas ações (por exemplo, os semânticos), com linha e
-     * posição. O analisador os inclui no resultado ao fim da análise.
+     * Erros encontrados pelas acoes (por exemplo, os semanticos), com linha e
+     * posicao. O analisador os inclui no resultado ao fim da analise.
      */
     default List<ErroCompilacao> getErros() {
         return Collections.emptyList();

@@ -14,13 +14,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Exporta a construção SLR(1) em dois formatos:
- *   - relatório em texto: gramática numerada, símbolos, anuláveis, FIRST,
- *     FOLLOW, estados LR(0) com itens e transições, tabela ACTION/GOTO e
- *     conflitos (serve para a documentação e para conferir a construção);
+ * Exporta a construcao SLR(1) em dois formatos:
+ *   - relatorio em texto: gramatica numerada, simbolos, anulaveis, FIRST,
+ *     FOLLOW, estados LR(0) com itens e transicoes, tabela ACTION/GOTO e
+ *     conflitos (serve para a documentacao e para conferir a construcao);
  *   - CSV separado por ";" com a tabela ACTION/GOTO (abre direto no Excel).
  *
- * A saída não tem data nem nada que mude entre execuções: a mesma gramática
+ * A saida nao tem data nem nada que mude entre execucoes: a mesma gramatica
  * sempre gera os mesmos arquivos.
  */
 public final class ExportadorTabela {
@@ -30,6 +30,7 @@ public final class ExportadorTabela {
     private ExportadorTabela() {
     }
 
+    // Relatorio em texto, secao por secao, na ordem em que a construcao acontece.
     public static String relatorio(AnaliseSLR analise, String titulo) {
         Gramatica g = analise.getGramatica();
         ConjuntosFirstFollow conj = analise.getConjuntos();
@@ -40,6 +41,7 @@ public final class ExportadorTabela {
 
         secao(sb, "Gramática (" + (g.getProducoes().size() - 1)
                 + " produções; a 0 é a produção inicial aumentada)");
+        // numeros alinhados a direita
         int largura = String.valueOf(g.getProducoes().size() - 1).length();
         for (Producao p : g.getProducoes()) {
             sb.append(String.format("%" + largura + "d  ", p.getNumero())).append(p).append(NL);
@@ -53,9 +55,11 @@ public final class ExportadorTabela {
 
         secao(sb, "Não terminais anuláveis (derivam ε)");
         List<String> anulaveis = g.ordenar(conj.getAnulaveis());
+        // S' nunca e anulavel de fato; fica fora da lista
         anulaveis.remove(g.getSimboloInicialAumentado());
         sb.append(anulaveis.isEmpty() ? "nenhum" : juntar(anulaveis)).append(NL);
 
+        // Largura do maior nome de nao terminal, para alinhar FIRST e FOLLOW.
         int largNT = 0;
         for (String n : g.getNaoTerminais()) {
             largNT = Math.max(largNT, n.length());
@@ -101,6 +105,7 @@ public final class ExportadorTabela {
         return sb.toString();
     }
 
+    // A mesma tabela em CSV (;), um campo por celula.
     public static String csv(AnaliseSLR analise) {
         List<List<String>> linhas = matriz(analise);
         StringBuilder sb = new StringBuilder();
@@ -114,7 +119,7 @@ public final class ExportadorTabela {
         return sb.toString();
     }
 
-    // Grava <nomeBase>_tabela_slr.txt e, se não houver conflitos, <nomeBase>_tabela_slr.csv.
+    // Grava <nomeBase>_tabela_slr.txt e, se nao houver conflitos, <nomeBase>_tabela_slr.csv.
     public static List<Path> gravar(AnaliseSLR analise, String titulo, Path pasta, String nomeBase)
             throws IOException {
         List<Path> gravados = new ArrayList<>();
@@ -129,7 +134,7 @@ public final class ExportadorTabela {
         return gravados;
     }
 
-    // Cabeçalho + uma linha por estado. Célula com conflito mostra as ações separadas por "/".
+    // Cabecalho + uma linha por estado. Celula com conflito mostra as acoes separadas por "/".
     private static List<List<String>> matriz(AnaliseSLR analise) {
         Gramatica g = analise.getGramatica();
         List<List<String>> linhas = new ArrayList<>();
@@ -158,6 +163,7 @@ public final class ExportadorTabela {
         return linhas;
     }
 
+    // Tabela em texto com colunas da largura do maior valor de cada uma.
     private static String tabelaAlinhada(AnaliseSLR analise) {
         List<List<String>> linhas = matriz(analise);
         int colunas = linhas.get(0).size();
@@ -172,7 +178,7 @@ public final class ExportadorTabela {
         for (List<String> linha : linhas) {
             StringBuilder l = new StringBuilder();
             for (int c = 0; c < colunas; c++) {
-                // "||" separa ACTION (terminais) de GOTO (não terminais)
+                // "||" separa ACTION (terminais) de GOTO (nao terminais)
                 l.append(c == 0 ? "" : (c == terminais + 1 ? " || " : " | "));
                 l.append(preencher(linha.get(c), larguras[c]));
             }

@@ -16,56 +16,30 @@ import java.util.Map;
 import java.util.TreeSet;
 
 /**
- * Análise semântica do Mini_Pascal, feita durante a análise sintática: são as
- * ações executadas a cada redução do analisador SLR(1) (ver AcoesReducao).
+ * Analise semantica, feita durante a analise sintatica: estas sao as acoes
+ * executadas a cada reducao do SLR(1) (ver AcoesReducao). E uma definicao
+ * S-atribuida: o atributo de cada simbolo da pilha e calculado a partir dos
+ * filhos. Terminais levam o proprio Terminal; LISTA_ID e LISTA_ID_PARAM, os
+ * nomes; PALIST, LISTA_PARAM e PARAM, os parametros declarados; CAB_PROC, o
+ * procedimento; EXPR, SIEXPR, TERMO e FATOR, uma Expressao (tipo, linha e,
+ * se for so uma variavel, qual); LISTA_ARG, os argumentos; os demais, null.
  *
- * Cada símbolo da pilha do analisador tem um atributo (o valor da pilha de
- * valores). Os terminais levam o próprio Terminal (lexema, linha, posição);
- * os não terminais levam o que a regra da sua produção montou:
- *   - LISTA_ID, LISTA_ID_PARAM: os identificadores, em ordem;
- *   - PALIST, LISTA_PARAM, PARAM: os parâmetros declarados (nome, tipo, var);
- *   - CAB_PROC: o símbolo do procedimento;
- *   - EXPR, SIEXPR, TERMO, FATOR: uma Expressao (tipo, linha e, se a
- *     expressão é só uma variável, qual é ela);
- *   - LISTA_ARG: as expressões dos argumentos;
- *   - os demais: nada (null).
- * É uma definição S-atribuída: todo atributo é calculado a partir dos filhos.
+ * Escopos (ver TabelaSimbolos): read, write, writeln e o nome do programa
+ * ficam no escopo externo; as variaveis sao declaradas ao reduzir DECL_VAR;
+ * ao reduzir CAB_PROC (antes do bloco), o procedimento e declarado e o escopo
+ * dele e aberto com os parametros; no fim do bloco do procedimento, o escopo
+ * e fechado. Como o procedimento existe antes do bloco, a recursao funciona.
  *
- * Tabela de símbolos e escopos (ver TabelaSimbolos):
- *   - read, write e writeln são predefinidos, no escopo externo;
- *   - o nome do programa vai para o escopo externo quando é empilhado, logo
- *     depois de 'program', e então o escopo global é aberto;
- *   - as variáveis são declaradas ao reduzir DECL_VAR;
- *   - ao reduzir CAB_PROC (cabeçalho do procedimento, antes do seu bloco), o
- *     procedimento é declarado no escopo atual e o escopo dele é aberto, com os
- *     parâmetros; ao reduzir BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;, o
- *     escopo é fechado. Como o procedimento é declarado antes do bloco, ele
- *     pode chamar a si mesmo (recursão).
+ * Verificacoes: nomes (nao declarado, repetido no escopo, procedimento usado
+ * como variavel e o contrario); tipos na atribuicao, nos operadores e nas
+ * comparacoes; condicao de if e while logica; chamadas (quantidade e tipo dos
+ * argumentos, parametro var recebendo variavel do mesmo tipo); read, write e
+ * writeln. A regra de cada operador esta junto do metodo que a confere.
  *
- * Verificações (cada uma com a mensagem que gera, em ErroCompilacao com a
- * categoria SEMANTICO):
- *   - nome não declarado, ou declarado duas vezes no mesmo escopo;
- *   - procedimento ou nome do programa usado como variável, e variável
- *     chamada como procedimento;
- *   - atribuição entre tipos incompatíveis (ver Tipo.podeSerAtribuidoA);
- *   - operadores: + - * e sinal só com números ('+' também junta textos);
- *     div e mod só com integer; comparação só entre números, entre textos
- *     (char e string) ou entre lógicos;
- *   - condição do if e do while tem de ser lógica (uma comparação);
- *   - chamada: número de argumentos igual ao de parâmetros; argumento de
- *     parâmetro por valor atribuível ao tipo do parâmetro; argumento de
- *     parâmetro var tem de ser uma variável do mesmo tipo;
- *   - read precisa de variáveis; read e write, de pelo menos um argumento;
- *     writeln aceita qualquer quantidade.
- *
- * Para não relatar cascatas: uma expressão com erro tem o tipo ERRO, que não
- * gera novas mensagens; um nome não declarado é registrado depois da primeira
- * mensagem, para que os usos seguintes não a repitam.
- *
- * Depois do primeiro erro sintático, a análise semântica para (os erros
- * semânticos encontrados até ali continuam valendo). A recuperação de erros
- * pode descartar declarações e inventar construções, e verificar o que vem
- * depois produziria erros semânticos que não existem no programa.
+ * Sem cascatas: expressao com erro tem o tipo ERRO, que nao gera novas
+ * mensagens; nome nao declarado e relatado uma vez por escopo. Depois do
+ * primeiro erro sintatico a semantica para: a recuperacao pode descartar
+ * declaracoes, e conferir o resto geraria erros que nao existem no programa.
  */
 public final class AnalisadorSemantico implements AcoesReducao {
 
@@ -76,7 +50,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         final Tipo tipo;
         final int linha;
         final int posicao;
-        // A variável, quando a expressão é só ela (pode ir para um parâmetro var ou para read).
+        // A variavel, quando a expressao e so ela (pode ir para um parametro var ou para read).
         final Simbolo variavel;
 
         Expressao(Tipo tipo, int linha, int posicao, Simbolo variavel) {
@@ -91,7 +65,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
-    // Atributo de PARAM, LISTA_PARAM e PALIST: um parâmetro como foi declarado.
+    // Atributo de PARAM, LISTA_PARAM e PALIST: um parametro como foi declarado.
     private static final class ParametroDeclarado {
         final Terminal nome;
         final Tipo tipo;
@@ -104,7 +78,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
-    // A ação de uma produção: recebe os atributos do corpo e devolve o da cabeça.
+    // A acao de uma producao: recebe os atributos do corpo e devolve o da cabeca.
     private interface Regra {
         Object aplicar(List<Object> v, int linha);
     }
@@ -116,16 +90,16 @@ public final class AnalisadorSemantico implements AcoesReducao {
     private final List<ErroCompilacao> erros = new ArrayList<>();
     private boolean interrompida = false;
 
-    // Último terminal empilhado (para reconhecer o nome do programa, logo depois de 'program').
+    // Ultimo terminal empilhado (para reconhecer o nome do programa, logo depois de 'program').
     private Terminal anterior;
-    // Última EXPR reduzida: ao empilhar 'then' ou 'do', é a da condição.
+    // Ultima EXPR reduzida: ao empilhar 'then' ou 'do', e a da condicao.
     private Expressao ultimaExpressao;
 
     /**
-     * @param gramatica a gramática do analisador sintático; toda produção dela
-     *                  precisa ter uma regra aqui, e toda regra, uma produção
-     *                  (se não, IllegalArgumentException: a gramática mudou e a
-     *                  semântica não acompanhou)
+     * @param gramatica a gramatica do analisador sintatico; toda producao dela
+     *                  precisa ter uma regra aqui, e toda regra, uma producao
+     *                  (se nao, IllegalArgumentException: a gramatica mudou e a
+     *                  semantica nao acompanhou)
      */
     public AnalisadorSemantico(Gramatica gramatica) {
         registrarRegras();
@@ -133,18 +107,19 @@ public final class AnalisadorSemantico implements AcoesReducao {
         if (!problemas.isEmpty()) {
             throw new IllegalArgumentException("a análise semântica não corresponde à gramática: " + problemas);
         }
+        // Os predefinidos ficam no escopo externo (nivel 0), fora do programa.
         for (String nome : new String[]{"read", "write", "writeln"}) {
             tabela.declarar(new Simbolo(nome, CategoriaSimbolo.PROCEDIMENTO_PREDEFINIDO, null, 0));
         }
     }
 
-    // Produções sem regra e regras sem produção (vazio quando correspondem).
+    // Producoes sem regra e regras sem producao (vazio quando correspondem).
     List<String> conferirCobertura(Gramatica gramatica) {
         TreeSet<String> semRegra = new TreeSet<>();
         TreeSet<String> semProducao = new TreeSet<>(regras.keySet());
         for (Producao p : gramatica.getProducoes()) {
             if (p.getNumero() == 0) {
-                continue; // S' -> PROG: nunca é reduzida (é a aceitação)
+                continue; // S' -> PROG: nunca e reduzida (e a aceitacao)
             }
             String chave = p.toString();
             if (!regras.containsKey(chave)) {
@@ -163,13 +138,13 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return tabela;
     }
 
-    // Todos os erros semânticos encontrados, na ordem em que foram encontrados.
+    // Todos os erros semanticos encontrados, na ordem em que foram encontrados.
     @Override
     public List<ErroCompilacao> getErros() {
         return Collections.unmodifiableList(erros);
     }
 
-    // Verdadeiro se a análise parou num erro sintático (ver o comentário da classe).
+    // Verdadeiro se a analise parou num erro sintatico (ver o comentario da classe).
     public boolean isInterrompida() {
         return interrompida;
     }
@@ -182,18 +157,18 @@ public final class AnalisadorSemantico implements AcoesReducao {
             return terminal;
         }
         if (terminal.getNome().equals(Terminal.ID) && anterior != null && anterior.getNome().equals("program")) {
-            // O nome do programa fica no escopo externo: não conflita com os nomes
-            // do programa (como no Pascal ISO) e não pode ser usado como variável.
-            // Se coincidir com read, write ou writeln, fica só o predefinido.
+            // O nome do programa fica no escopo externo: nao conflita com os nomes
+            // do programa (como no Pascal ISO) e nao pode ser usado como variavel.
+            // Se coincidir com read, write ou writeln, fica so o predefinido.
             tabela.declarar(new Simbolo(terminal.getLexema(), CategoriaSimbolo.PROGRAMA, null, terminal.getLinha()));
             tabela.abrirEscopo(TabelaSimbolos.ESCOPO_GLOBAL);
         }
         if (terminal.getNome().equals("then") || terminal.getNome().equals("do")) {
-            // 'then' e 'do' só aparecem depois da condição (if EXPR then, while EXPR do).
-            // Num analisador LR, o 'then' só é empilhado depois de a condição ser
-            // reduzida a EXPR, e essa é a última redução antes dele: a condição é a
-            // última EXPR reduzida. Conferir aqui, e não na redução do if inteiro,
-            // faz o erro da condição sair antes dos erros do corpo.
+            // 'then' e 'do' so aparecem depois da condicao (if EXPR then, while EXPR do).
+            // Num analisador LR, o 'then' so e empilhado depois de a condicao ser
+            // reduzida a EXPR, e essa e a ultima reducao antes dele: a condicao e a
+            // ultima EXPR reduzida. Conferir aqui, e nao na reducao do if inteiro,
+            // faz o erro da condicao sair antes dos erros do corpo.
             verificarCondicao(ultimaExpressao, terminal.getNome().equals("then") ? "if" : "while");
         }
         anterior = terminal;
@@ -205,8 +180,10 @@ public final class AnalisadorSemantico implements AcoesReducao {
         if (interrompida) {
             return null;
         }
+        // A regra da producao recebe os atributos do corpo e devolve o da cabeca.
         Regra regra = regras.get(producao.toString());
         Object valor = regra.aplicar(valores, linha);
+        // guarda a ultima EXPR: se o proximo terminal for then/do, ela e a condicao
         if (producao.getCabeca().equals("EXPR")) {
             ultimaExpressao = (Expressao) valor;
         }
@@ -226,13 +203,14 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
-    // Produções sem efeito semântico (estrutura de blocos e comandos).
+    // Producoes sem efeito semantico (estrutura de blocos e comandos).
     private void semAcao(String... producoes) {
         for (String p : producoes) {
             regra(p, (v, linha) -> null);
         }
     }
 
+    // Uma regra para cada producao de gramatica.txt (conferido em conferirCobertura).
     private void registrarRegras() {
         // Programa, blocos e listas de comandos
         semAcao("PROG -> program id ; BLOCO .",
@@ -243,13 +221,13 @@ public final class AnalisadorSemantico implements AcoesReducao {
                 "LISTA_CMD -> LISTA_CMD COMANDO ;",
                 "LISTA_CMD -> COMANDO ;");
 
-        // Declarações de variáveis
+        // Declaracoes de variaveis
         regra("DECL_VAR -> DECL_VAR LISTA_ID : tipo ;", (v, linha) -> declararVariaveis(v.get(1), v.get(3)));
         regra("DECL_VAR -> LISTA_ID : tipo ;", (v, linha) -> declararVariaveis(v.get(0), v.get(2)));
         regra("LISTA_ID -> LISTA_ID , id", (v, linha) -> mais(v.get(0), v.get(2)));
         regra("LISTA_ID -> id", (v, linha) -> mais(new ArrayList<Terminal>(), v.get(0)));
 
-        // Procedimentos e parâmetros
+        // Procedimentos e parametros
         regra("BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;", (v, linha) -> {
             tabela.fecharEscopo();
             return null;
@@ -264,7 +242,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         regra("LISTA_ID_PARAM -> LISTA_ID_PARAM , id", (v, linha) -> mais(v.get(0), v.get(2)));
         regra("LISTA_ID_PARAM -> id", (v, linha) -> mais(new ArrayList<Terminal>(), v.get(0)));
 
-        // Comandos (a condição de if e while é conferida em aoEmpilhar, no 'then' e no 'do')
+        // Comandos (a condicao de if e while e conferida em aoEmpilhar, no 'then' e no 'do')
         semAcao("COMANDO -> CMD_FECHADO",
                 "COMANDO -> CMD_ABERTO",
                 "CMD_FECHADO -> SIMPLES",
@@ -289,7 +267,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         regra("LISTA_ARG -> LISTA_ARG , EXPR", (v, linha) -> mais(v.get(0), v.get(2)));
         regra("LISTA_ARG -> EXPR", (v, linha) -> mais(new ArrayList<Expressao>(), v.get(0)));
 
-        // Expressões
+        // Expressoes
         regra("EXPR -> SIEXPR", (v, linha) -> v.get(0));
         regra("EXPR -> SIEXPR OPREL SIEXPR",
                 (v, linha) -> comparar((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
@@ -321,7 +299,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         regra("FATOR -> ( EXPR )", (v, linha) -> {
             Terminal abre = (Terminal) v.get(0);
             Expressao dentro = (Expressao) v.get(1);
-            // Entre parênteses não é mais "só uma variável": não serve para parâmetro var.
+            // Entre parenteses nao e mais "so uma variavel": nao serve para parametro var.
             return new Expressao(dentro.tipo, abre.getLinha(), abre.getPosicao(), null);
         });
         regra("FATOR -> constante_string", (v, linha) -> constante((Terminal) v.get(0), Tipo.STRING));
@@ -329,8 +307,9 @@ public final class AnalisadorSemantico implements AcoesReducao {
         regra("FATOR -> not FATOR", (v, linha) -> negar((Terminal) v.get(0), (Expressao) v.get(1)));
     }
 
-    // ---------------------------------------------------------- declarações
+    // ---------------------------------------------------------- declaracoes
 
+    // "a, b, c: integer": declara cada nome da lista com o tipo.
     private Object declararVariaveis(Object listaDeNomes, Object terminalTipo) {
         Tipo tipo = Tipo.declarado(((Terminal) terminalTipo).getLexema());
         for (Terminal nome : terminais(listaDeNomes)) {
@@ -339,6 +318,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return null;
     }
 
+    // Parametros de um grupo ("var a, b: real"); so sao declarados no CAB_PROC.
     private Object parametros(Object listaDeNomes, Object terminalTipo, boolean porReferencia) {
         Tipo tipo = Tipo.declarado(((Terminal) terminalTipo).getLexema());
         List<ParametroDeclarado> lista = new ArrayList<>();
@@ -348,6 +328,8 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return lista;
     }
 
+    // CAB_PROC: declara o procedimento no escopo de fora, abre o escopo dele e
+    // declara os parametros ali (as variaveis locais vem depois, no BLOCO).
     private Simbolo declararProcedimento(Terminal nome, Object parametrosDeclarados) {
         Simbolo procedimento = new Simbolo(nome.getLexema(), CategoriaSimbolo.PROCEDIMENTO, null, nome.getLinha());
         declarar(nome, procedimento);
@@ -356,13 +338,14 @@ public final class AnalisadorSemantico implements AcoesReducao {
             Simbolo parametro = new Simbolo(p.nome.getLexema(),
                     p.porReferencia ? CategoriaSimbolo.PARAMETRO_VAR : CategoriaSimbolo.PARAMETRO,
                     p.tipo, p.nome.getLinha());
-            // Mesmo repetido, o parâmetro conta na posição dele (a chamada passa um argumento para cada um).
+            // Mesmo repetido, o parametro conta na posicao dele (a chamada passa um argumento para cada um).
             procedimento.adicionarParametro(parametro);
             declarar(p.nome, parametro);
         }
         return procedimento;
     }
 
+    // Declara no escopo atual; nome repetido no mesmo escopo e erro.
     private void declarar(Terminal nome, Simbolo simbolo) {
         Simbolo existente = tabela.declarar(simbolo);
         if (existente != null) {
@@ -374,9 +357,9 @@ public final class AnalisadorSemantico implements AcoesReducao {
     // ------------------------------------------------------- nomes e comandos
 
     /*
-     * O símbolo visível com o nome do terminal. Se não houver, relata o erro e
-     * registra o nome como NAO_DECLARADO no escopo atual, para não repetir a
-     * mensagem nos próximos usos.
+     * O simbolo visivel com o nome do terminal. Se nao houver, relata o erro e
+     * registra o nome como NAO_DECLARADO no escopo atual, para nao repetir a
+     * mensagem nos proximos usos.
      */
     private Simbolo resolver(Terminal nome) {
         Simbolo s = tabela.buscar(nome.getLexema());
@@ -388,7 +371,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return s;
     }
 
-    // FATOR -> id: só variáveis e parâmetros têm valor.
+    // FATOR -> id: so variaveis e parametros tem valor.
     private Expressao usarNome(Terminal nome) {
         Simbolo s = resolver(nome);
         if (s.getCategoria().isVariavel()) {
@@ -400,8 +383,10 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return new Expressao(Tipo.ERRO, nome.getLinha(), nome.getPosicao(), null);
     }
 
+    // id := EXPR: o nome tem de ser variavel ou parametro, e o tipo tem de caber.
     private void atribuir(Terminal nome, Expressao valor) {
         Simbolo s = resolver(nome);
+        // o erro ja foi relatado em resolver
         if (s.getCategoria() == CategoriaSimbolo.NAO_DECLARADO) {
             return;
         }
@@ -415,6 +400,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
+    // Chamada ("p" ou "p(a, b)"): confere o que o nome e e os argumentos.
     private void chamar(Terminal nome, List<Expressao> argumentos) {
         Simbolo s = resolver(nome);
         switch (s.getCategoria()) {
@@ -431,6 +417,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
+    // Mesmo numero de argumentos e de parametros; depois, cada par argumento/parametro.
     private void conferirArgumentos(Terminal nome, Simbolo procedimento, List<Expressao> argumentos) {
         List<Simbolo> parametros = procedimento.getParametros();
         if (argumentos.size() != parametros.size()) {
@@ -441,10 +428,13 @@ public final class AnalisadorSemantico implements AcoesReducao {
         for (int i = 0; i < argumentos.size(); i++) {
             Expressao arg = argumentos.get(i);
             Simbolo par = parametros.get(i);
+            // argumento com erro: a mensagem ja saiu
             if (arg.tipo == Tipo.ERRO) {
                 continue;
             }
             String inicio = "Argumento " + (i + 1) + " de '" + nome.getLexema() + "': ";
+            // Parametro var: o procedimento muda a variavel, entao precisa de uma
+            // variavel (nao uma expressao) e do mesmo tipo (sem conversao).
             if (par.getCategoria() == CategoriaSimbolo.PARAMETRO_VAR) {
                 if (arg.variavel == null) {
                     erro(arg, inicio + "o parâmetro '" + par.getNome() + "' é var e precisa receber uma variável");
@@ -460,7 +450,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
-    // read(variáveis...); write(expressões...); writeln(expressões, ou nada).
+    // read(variaveis...); write(expressoes...); writeln(expressoes, ou nada).
     private void chamarPredefinido(Terminal nome, Simbolo s, List<Expressao> argumentos) {
         String proc = s.getNome(); // "read", "write" ou "writeln" (o texto pode vir em outra caixa)
         if (!proc.equals("writeln") && argumentos.isEmpty()) {
@@ -477,15 +467,16 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
     }
 
-    // Conferida quando 'then' ou 'do' é empilhado.
+    // Conferida quando 'then' ou 'do' e empilhado.
     private void verificarCondicao(Expressao condicao, String comando) {
         if (condicao.tipo != Tipo.ERRO && condicao.tipo != Tipo.LOGICO) {
             erro(condicao, "A condição do '" + comando + "' deve ser lógica (uma comparação), mas é " + condicao.tipo);
         }
     }
 
-    // ------------------------------------------------------------ expressões
+    // ------------------------------------------------------------ expressoes
 
+    // Constante numerica: integer ou real, conforme o lexico classificou.
     private Expressao numero(Terminal numero) {
         boolean inteiro = numero.getToken().getTipo() == TipoToken.NUMERO_INTEIRO;
         return new Expressao(inteiro ? Tipo.INTEGER : Tipo.REAL, numero.getLinha(), numero.getPosicao(), null);
@@ -495,7 +486,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return new Expressao(tipo, constante.getLinha(), constante.getPosicao(), null);
     }
 
-    // + e - unários
+    // + e - unarios
     private Expressao sinal(Terminal op, Expressao e) {
         Expressao resultado = new Expressao(e.tipo, op.getLinha(), op.getPosicao(), null);
         if (e.tipo == Tipo.ERRO || e.tipo.isNumerico()) {
@@ -505,7 +496,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return resultado.comTipo(Tipo.ERRO);
     }
 
-    // '+': números, ou textos (char e string, dando string).
+    // '+': numeros, ou textos (char e string, dando string).
     private Expressao somar(Expressao a, Terminal op, Expressao b) {
         if (a.tipo == Tipo.ERRO || b.tipo == Tipo.ERRO) {
             return a.comTipo(Tipo.ERRO);
@@ -516,7 +507,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return aritmetica(a, op, b);
     }
 
-    // '-', '*' (e '+' entre números): integer se os dois forem integer, senão real.
+    // '-', '*' (e '+' entre numeros): integer se os dois forem integer, senao real.
     private Expressao aritmetica(Expressao a, Terminal op, Expressao b) {
         if (a.tipo == Tipo.ERRO || b.tipo == Tipo.ERRO) {
             return a.comTipo(Tipo.ERRO);
@@ -558,7 +549,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return resultado.comTipo(Tipo.ERRO);
     }
 
-    // div e mod: só integer.
+    // div e mod: so integer.
     private Expressao inteira(Expressao a, Terminal op, Expressao b) {
         if (a.tipo == Tipo.ERRO || b.tipo == Tipo.ERRO) {
             return a.comTipo(Tipo.ERRO);
@@ -570,7 +561,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         return a.comTipo(Tipo.ERRO);
     }
 
-    // = < > <> <= >=: números entre si, textos entre si, lógicos entre si. Resultado lógico.
+    // = < > <> <= >=: numeros entre si, textos entre si, logicos entre si. Resultado logico.
     private Expressao comparar(Expressao a, Terminal op, Expressao b) {
         if (a.tipo == Tipo.ERRO || b.tipo == Tipo.ERRO) {
             return a.comTipo(Tipo.ERRO);
@@ -587,7 +578,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
 
     // ----------------------------------------------------------------- apoio
 
-    // "é um procedimento", "é uma variável do tipo integer", "é o nome do programa"...
+    // "e um procedimento", "e uma variavel do tipo integer", "e o nome do programa"...
     private static String descrever(Simbolo s) {
         switch (s.getCategoria()) {
             case PROGRAMA:

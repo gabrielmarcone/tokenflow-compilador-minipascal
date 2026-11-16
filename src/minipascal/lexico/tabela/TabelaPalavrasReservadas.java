@@ -8,8 +8,8 @@ import java.util.Map;
 
 /**
  * Tabela de palavras reservadas e operadores de palavra (mod, and, or, not),
- * montada uma única vez no início da execução. Busca por HashMap, O(1).
- * São 53 entradas: as 48 palavras do enunciado, "procedure" (incluída na
+ * montada uma unica vez no inicio da execucao. Busca por HashMap, O(1).
+ * Sao 53 entradas: as 48 palavras do enunciado, "procedure" (incluida na
  * Unidade II) e os quatro operadores de palavra.
  */
 public class TabelaPalavrasReservadas {
@@ -59,6 +59,7 @@ public class TabelaPalavrasReservadas {
         return tabela.get(lexema.toLowerCase(Locale.ROOT));
     }
 
+    // Atalho: o lexema esta na tabela?
     public boolean contem(String lexema) {
         return buscar(lexema) != null;
     }

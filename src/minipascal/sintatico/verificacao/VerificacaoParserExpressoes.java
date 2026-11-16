@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Verifica o analisador sintático SLR(1) sobre o subconjunto das expressões,
- * sempre a partir de texto-fonte de verdade (passando pelo léxico da Unidade I
- * e pelo adaptador): aceitação, estrutura das reduções (precedência e
- * associatividade), mensagens de erro com tipo e linha e convivência com erros
- * léxicos. A linha de comando, que usa a gramática completa, é verificada em
+ * Verifica o analisador sintatico SLR(1) sobre o subconjunto das expressoes,
+ * sempre a partir de texto-fonte de verdade (passando pelo lexico da Unidade I
+ * e pelo adaptador): aceitacao, estrutura das reducoes (precedencia e
+ * associatividade), mensagens de erro com tipo e linha e convivencia com erros
+ * lexicos. A linha de comando, que usa a gramatica completa, e verificada em
  * VerificacaoParserCompleto.
  */
 public class VerificacaoParserExpressoes {
@@ -32,7 +32,7 @@ public class VerificacaoParserExpressoes {
     private static AnalisadorSintatico RECONHECEDOR;
     private static AnalisadorSintatico ARVORE;
 
-    // Começo das mensagens mais comuns (os "esperados" saem da tabela, em ordem da gramática).
+    // Comeco das mensagens mais comuns (os "esperados" saem da tabela, em ordem da gramatica).
     private static final String INICIO_DE_EXPRESSAO =
             "'+', '-', número, identificador, '(', constante string ou constante char";
     private static final String INICIO_DE_TERMO =
@@ -41,8 +41,8 @@ public class VerificacaoParserExpressoes {
             "'=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div', 'mod'";
 
     public static void main(String[] args) {
-        // Se a gramática tiver conflito, a tabela não é construída: isso vira uma
-        // falha relatada (e não uma exceção solta) e as demais partes não rodam.
+        // Se a gramatica tiver conflito, a tabela nao e construida: isso vira uma
+        // falha relatada (e nao uma excecao solta) e as demais partes nao rodam.
         try {
             TABELA = AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_EXPRESSOES);
             RECONHECEDOR = new AnalisadorSintatico(TABELA);
@@ -66,7 +66,7 @@ public class VerificacaoParserExpressoes {
         }
     }
 
-    // ------------------------------------------------------------- válidas
+    // ------------------------------------------------------------- validas
 
     private static void verificarValidas() {
         String[] validas = {
@@ -100,7 +100,7 @@ public class VerificacaoParserExpressoes {
                 AnalisadorSintatico.tabelaEmbutida(AnalisadorSintatico.GRAMATICA_EXPRESSOES) == TABELA);
     }
 
-    // ---------------------------------------------------- estrutura (árvore)
+    // ---------------------------------------------------- estrutura (arvore)
 
     private static void verificarEstrutura() {
         checarArvore("a + b * c", "(a + (b * c))");
@@ -114,7 +114,7 @@ public class VerificacaoParserExpressoes {
         checarArvore("a = (b <> c)", "(a = (b <> c))");
         checarArvore("x + 2 * (y - 3) >= \"s\"", "((x + (2 * (y - 3))) >= \"s\")");
 
-        // Linha de uma construção = linha do primeiro token dela.
+        // Linha de uma construcao = linha do primeiro token dela.
         AcoesLinhas linhas = new AcoesLinhas();
         new AnalisadorSintatico(TABELA, new TabelaPalavrasReservadas(), linhas).analisar("\n\na\n<\n(b\n+ c)");
         checar("linha da redução EXPR -> SIEXPR OPREL SIEXPR é a do 'a' (3)",
@@ -126,7 +126,7 @@ public class VerificacaoParserExpressoes {
         checar("com erro sintático, o valor final fica null", ARVORE.analisar("a +").getValor() == null);
     }
 
-    // ------------------------------------------------------ erros sintáticos
+    // ------------------------------------------------------ erros sintaticos
 
     private static void verificarErrosSintaticos() {
         checarErro("a b", "Erro sintático na linha 1: Encontrado identificador 'b'; esperado "
@@ -158,7 +158,7 @@ public class VerificacaoParserExpressoes {
                 + DEPOIS_DE_OPERANDO + " ou fim do arquivo");
         checarErro("a \"s\"", "Erro sintático na linha 1: Encontrado constante string \"s\"; esperado "
                 + DEPOIS_DE_OPERANDO + " ou fim do arquivo");
-        // o '*' está duas linhas depois do '+': a mensagem diz onde está o '+'
+        // o '*' esta duas linhas depois do '+': a mensagem diz onde esta o '+'
         checarErro("a +\n\n* b", "Erro sintático na linha 3: Encontrado '*'; esperado " + INICIO_DE_TERMO
                 + " (depois de '+' na linha 1)");
         checarErro("(a\n+ b\n\n", "Erro sintático na linha 2: Fim do arquivo inesperado; esperado "
@@ -170,7 +170,7 @@ public class VerificacaoParserExpressoes {
         checar("o léxico lê o texto todo (4 tokens)", r.getTokens().size() == 4);
     }
 
-    // --------------------------------------------------------- erros léxicos
+    // --------------------------------------------------------- erros lexicos
 
     private static void verificarErrosLexicos() {
         checarSaida("a @ + b", "Erro léxico na linha 1: Caractere inválido: @");
@@ -182,7 +182,7 @@ public class VerificacaoParserExpressoes {
         checarSaida("a b\nc @", "Erro sintático na linha 1: Encontrado identificador 'b'; esperado "
                 + DEPOIS_DE_OPERANDO + " ou fim do arquivo\n"
                 + "Erro léxico na linha 2: Caractere inválido: @");
-        // o fim do arquivo fica na linha do último token lido (a string aberta, linha 2)
+        // o fim do arquivo fica na linha do ultimo token lido (a string aberta, linha 2)
         checarSaida("x +\n\"abc", "Erro léxico na linha 2: String não fechada (falta \"): \"abc\n"
                 + "Erro sintático na linha 2: Fim do arquivo inesperado; esperado " + INICIO_DE_TERMO
                 + " (depois de '+' na linha 1)");
@@ -203,7 +203,7 @@ public class VerificacaoParserExpressoes {
         checar("tokens incluem o de erro léxico (4)", r.getTokens().size() == 4);
     }
 
-    // --------------------------------------------- expressões geradas (aleatórias)
+    // --------------------------------------------- expressoes geradas (aleatorias)
 
     private static void verificarGeradas() {
         Gramatica g = TABELA.getGramatica();
@@ -223,7 +223,7 @@ public class VerificacaoParserExpressoes {
                 + (primeiraRecusada == null ? "" : " (recusada: " + primeiraRecusada + ")"), aceitas == 2000);
     }
 
-    // Deriva uma expressão aleatória e escreve como texto-fonte (lexemas reais).
+    // Deriva uma expressao aleatoria e escreve como texto-fonte (lexemas reais).
     private static String gerarFonte(Gramatica g, String simbolo, int profundidade, Random rnd) {
         if (g.ehTerminal(simbolo)) {
             return lexemaDe(simbolo, rnd);
@@ -231,7 +231,7 @@ public class VerificacaoParserExpressoes {
         List<Producao> opcoes = g.producoesDe(simbolo);
         Producao escolhida = opcoes.get(rnd.nextInt(opcoes.size()));
         if (profundidade > 6) {
-            // perto do limite, prefere a produção com menos não terminais
+            // perto do limite, prefere a producao com menos nao terminais
             for (Producao p : opcoes) {
                 if (contarNaoTerminais(g, p) < contarNaoTerminais(g, escolhida)) {
                     escolhida = p;
@@ -276,7 +276,7 @@ public class VerificacaoParserExpressoes {
 
     // ------------------------------------------------------------------ apoio
 
-    // Monta a expressão totalmente parentesada a partir das reduções.
+    // Monta a expressao totalmente parentesada a partir das reducoes.
     private static final class AcoesArvore implements AcoesReducao {
         @Override
         public Object aoEmpilhar(Terminal terminal) {
@@ -298,7 +298,7 @@ public class VerificacaoParserExpressoes {
         }
     }
 
-    // Guarda a linha da primeira redução de cada produção.
+    // Guarda a linha da primeira reducao de cada producao.
     private static final class AcoesLinhas implements AcoesReducao {
         private final List<String> producoes = new ArrayList<>();
         private final List<Integer> linhas = new ArrayList<>();

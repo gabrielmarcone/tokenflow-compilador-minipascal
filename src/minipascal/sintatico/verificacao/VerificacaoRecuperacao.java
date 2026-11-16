@@ -19,23 +19,23 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Verifica a recuperação de erros do analisador sintático: uma análise relata
- * o conjunto dos erros do programa (e não só o primeiro), sem erros em cascata.
+ * Verifica a recuperacao de erros do analisador sintatico: uma analise relata
+ * o conjunto dos erros do programa (e nao so o primeiro), sem erros em cascata.
  *
- *   - vários erros independentes, cada um com sua linha;
- *   - um erro só não gera outros (inserção de 'then', 'do', 'begin', ';',
+ *   - varios erros independentes, cada um com sua linha;
+ *   - um erro so nao gera outros (insercao de 'then', 'do', 'begin', ';',
  *     ')'... e descarte de tokens);
- *   - contra cascata: uma retomada só vale se empilhar 4 tokens sem erro, então
- *     um erro a 3 tokens da retomada não é relatado (a recuperação descarta
- *     mais tokens); a 4 tokens, é;
- *   - ordem dos erros léxicos e sintáticos na mesma linha;
- *   - o que as ações semânticas recebem durante a recuperação (terminais
- *     inseridos, valores null) e o valor final (null com erro sintático);
- *   - a gramática das expressões também se recupera;
- *   - robustez: textos aleatórios terminam sem exceção, com os erros em ordem
- *     e saída determinística; textos patológicos terminam em tempo razoável.
+ *   - contra cascata: uma retomada so vale se empilhar 4 tokens sem erro, entao
+ *     um erro a 3 tokens da retomada nao e relatado (a recuperacao descarta
+ *     mais tokens); a 4 tokens, e;
+ *   - ordem dos erros lexicos e sintaticos na mesma linha;
+ *   - o que as acoes semanticas recebem durante a recuperacao (terminais
+ *     inseridos, valores null) e o valor final (null com erro sintatico);
+ *   - a gramatica das expressoes tambem se recupera;
+ *   - robustez: textos aleatorios terminam sem excecao, com os erros em ordem
+ *     e saida deterministica; textos patologicos terminam em tempo razoavel.
  *
- * O primeiro erro de cada programa é exatamente o da análise sem recuperação
+ * O primeiro erro de cada programa e exatamente o da analise sem recuperacao
  * (conferido contra o reconhecedor de Earley; ver VerificacaoParserCompleto).
  */
 public class VerificacaoRecuperacao {
@@ -69,7 +69,7 @@ public class VerificacaoRecuperacao {
         terminar();
     }
 
-    // ------------------------------------------------------------ vários erros
+    // ------------------------------------------------------------ varios erros
 
     private static void verificarVariosErros() {
         checarSaida("três erros independentes, um em cada linha", linhas(
@@ -137,7 +137,7 @@ public class VerificacaoRecuperacao {
                 "Erro sintático na linha 8: Encontrado 'end'; esperado ';', " + OPERADORES + " (depois de 'y' na linha 7)");
     }
 
-    // -------------------------------------------------------------- um erro só
+    // -------------------------------------------------------------- um erro so
 
     private static void verificarUmErroSo() {
         checarSaida("falta 'then' (o resto do programa segue normal)", linhas(
@@ -184,29 +184,29 @@ public class VerificacaoRecuperacao {
     // ----------------------------------------------------- janela contra cascata
 
     private static void verificarJanela() {
-        // Retomando no ';', só 3 tokens (';', 'y', ':=') seriam empilhados antes do
-        // novo erro: essa retomada não vale, a recuperação descarta mais tokens e o
-        // segundo erro (tão perto que provavelmente é consequência do primeiro) não
-        // é relatado.
+        // Retomando no ';', so 3 tokens (';', 'y', ':=') seriam empilhados antes do
+        // novo erro: essa retomada nao vale, a recuperacao descarta mais tokens e o
+        // segundo erro (tao perto que provavelmente e consequencia do primeiro) nao
+        // e relatado.
         checarSaida("novo erro a 3 tokens da retomada: não é relatado", "program p; begin x := 1 + ; y := ; end.",
                 "Erro sintático na linha 1: Encontrado ';'; esperado " + NUMERO_ETC);
-        // Com 4 tokens (';', 'y', ':=', '2'), a retomada vale e o novo erro é relatado.
+        // Com 4 tokens (';', 'y', ':=', '2'), a retomada vale e o novo erro e relatado.
         checarSaida("novo erro a 4 tokens da retomada: é relatado", "program p; begin x := 1 + ; y := 2 end.",
                 "Erro sintático na linha 1: Encontrado ';'; esperado " + NUMERO_ETC,
                 "Erro sintático na linha 1: Encontrado 'end'; esperado ';', " + OPERADORES);
         checarSaida("novo erro a 4 tokens (sinal unário): é relatado", "program p; begin x := 1 + ; y := + ; end.",
                 "Erro sintático na linha 1: Encontrado ';'; esperado " + NUMERO_ETC,
                 "Erro sintático na linha 1: Encontrado ';'; esperado " + NUMERO_ETC);
-        // No '*', descartá-lo (modo pânico) e inserir um 'begin' depois dele vão
-        // igualmente longe (até o erro no '('). No empate vale o modo pânico; com a
-        // inserção, sobraria um bloco aberto e um erro falso no '.' final.
+        // No '*', descarta-lo (modo panico) e inserir um 'begin' depois dele vao
+        // igualmente longe (ate o erro no '('). No empate vale o modo panico; com a
+        // insercao, sobraria um bloco aberto e um erro falso no '.' final.
         checarSaida("empate entre modo pânico e inserção: vale o modo pânico (sem erro falso no fim)", linhas(
                 "program p;", "var soma: real;", "* begin", "  x := 3.5;", "  (1);", "end."),
                 "Erro sintático na linha 3: Encontrado '*'; esperado identificador, 'begin', 'var' ou 'procedure'"
                         + " (depois de ';' na linha 2)",
                 "Erro sintático na linha 5: Encontrado '('; esperado identificador, 'begin', 'end', 'if' ou 'while'"
                         + " (depois de ';' na linha 4)");
-        // Um erro a cada 50 linhas, em 2000 linhas: os 40 são relatados, nas linhas certas.
+        // Um erro a cada 50 linhas, em 2000 linhas: os 40 sao relatados, nas linhas certas.
         StringBuilder sb = new StringBuilder("program p;\nbegin\n");
         List<Integer> esperadas = new ArrayList<>();
         for (int i = 0; i < 2000; i++) {
@@ -244,9 +244,9 @@ public class VerificacaoRecuperacao {
                 "Erro léxico na linha 3: Caractere inválido: $");
     }
 
-    // --------------------------------------------------------- ações semânticas
+    // --------------------------------------------------------- acoes semanticas
 
-    // Registra o que a análise passa às ações: terminais inseridos e valores null.
+    // Registra o que a analise passa as acoes: terminais inseridos e valores null.
     private static final class AcoesRegistro implements AcoesReducao {
         final List<String> inseridos = new ArrayList<>();
         int filhosNulos = 0;
@@ -283,8 +283,8 @@ public class VerificacaoRecuperacao {
         checar("programa correto: valor final da ação (PROG), nenhum terminal inserido, nenhum filho null",
                 rOk.isSucesso() && "PROG".equals(rOk.getValor()) && ok.inseridos.isEmpty() && ok.filhosNulos == 0);
 
-        // Modo pânico: "if x > 1" é descartado como se fosse um comando inteiro; o
-        // não terminal recuperado entra na pilha com valor null.
+        // Modo panico: "if x > 1" e descartado como se fosse um comando inteiro; o
+        // nao terminal recuperado entra na pilha com valor null.
         AcoesRegistro panico = new AcoesRegistro();
         ResultadoAnalise rPanico = analisarComRegistro(linhas(
                 "program p;", "begin", "  if x > 1 x := 2;", "  y := 3;", "end."), panico);
@@ -306,7 +306,7 @@ public class VerificacaoRecuperacao {
                 "PROG".equals(rLexico.getValor()) && !rLexico.isSucesso() && rLexico.getErros().size() == 1);
     }
 
-    // Os terminais inseridos chegam às ações marcados (isInserido, sem token), com a
+    // Os terminais inseridos chegam as acoes marcados (isInserido, sem token), com a
     // linha do token diante do qual foram inseridos.
     private static void checarInseridos(String descricao, String fonte, String... esperados) {
         AcoesRegistro acoes = new AcoesRegistro();
@@ -342,7 +342,7 @@ public class VerificacaoRecuperacao {
                         && comum.getLexema().equals("x") && comum.getPosicao() == 4);
     }
 
-    // --------------------------------------------------------------- expressões
+    // --------------------------------------------------------------- expressoes
 
     private static void verificarExpressoes() {
         AnalisadorSintatico expr = new AnalisadorSintatico(
@@ -430,7 +430,7 @@ public class VerificacaoRecuperacao {
 
     private static void verificarDesempenho() {
         Random rnd = new Random(7);
-        // Sem os pedaços que abrem comentário ou string (eles engoliriam o resto do texto).
+        // Sem os pedacos que abrem comentario ou string (eles engoliriam o resto do texto).
         List<String> pedacos = new ArrayList<>(Arrays.asList(PEDACOS));
         pedacos.removeAll(Arrays.asList("{", "/*", "\"abc"));
         StringBuilder lixo = new StringBuilder();
@@ -443,8 +443,8 @@ public class VerificacaoRecuperacao {
         checar(String.format("20000 tokens aleatórios: termina em %.2f s (limite 10 s), com %d erros (mais de 100)",
                 segundos, r.getErros().size()), segundos < 10 && r.getErros().size() > 100);
 
-        // Pilha profunda (1000 'begin' abertos) e 300 erros: cada recuperação
-        // examina a pilha inteira, então isso mede o custo dessa busca.
+        // Pilha profunda (1000 'begin' abertos) e 300 erros: cada recuperacao
+        // examina a pilha inteira, entao isso mede o custo dessa busca.
         StringBuilder fundo = new StringBuilder("program p; begin ");
         for (int i = 0; i < 1000; i++) {
             fundo.append("begin ");

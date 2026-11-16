@@ -5,10 +5,10 @@ import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
 /**
- * Lê uma cadeia de caracteres e devolve, a cada chamada de proximoToken(),
- * o próximo par lexema/token. Retorna null quando o código-fonte acaba.
+ * Le uma cadeia de caracteres e devolve, a cada chamada de proximoToken(),
+ * o proximo par lexema/token. Retorna null quando o codigo-fonte acaba.
  *
- * Espaços, tabs, quebras de linha e comentários de bloco são consumidos
+ * Espacos, tabs, quebras de linha e comentarios de bloco sao consumidos
  * sem gerar token, antes de cada chamada tentar reconhecer algo.
  */
 public class AnalisadorLexico {
@@ -52,6 +52,7 @@ public class AnalisadorLexico {
         // Linha onde o token comeca, guardada antes de a leitura avancar pos.
         int linhaToken = linha;
 
+        // O primeiro caractere decide qual parte do AFD reconhece o token.
         if (ehLetra(c)) {
             return lerIdentificadorOuPalavra(linhaToken);
         }
@@ -65,6 +66,7 @@ public class AnalisadorLexico {
             return lerChar(linhaToken);
         }
 
+        // Operadores e simbolos: de um caractere, ou de dois (>=, <=, <>, :=).
         switch (c) {
             case '+':
                 pos++;
@@ -112,9 +114,9 @@ public class AnalisadorLexico {
         }
     }
 
-    // Consome espaço/tab/enter e comentários de bloco. Se cair num '/' que
-    // não é seguido de '*', para aqui e devolve pro switch tratar como
-    // divisão - é o mesmo prefixo comum resolvido com 1 caractere de lookahead.
+    // Consome espaco/tab/enter e comentarios de bloco. Se cair num '/' que
+    // nao e seguido de '*', para aqui e devolve pro switch tratar como
+    // divisao - e o mesmo prefixo comum resolvido com 1 caractere de lookahead.
     private void pularNaoSignificativos() {
         while (pos < fonte.length()) {
             char c = fonte.charAt(pos);
@@ -149,9 +151,9 @@ public class AnalisadorLexico {
         return true;
     }
 
-    // Avança um caractere e soma uma linha se ele for uma quebra. O "\r\n"
-    // do Windows conta uma vez só (na hora do '\n'); um '\r' sozinho
-    // (arquivos de Mac antigo) também encerra a linha.
+    // Avanca um caractere e soma uma linha se ele for uma quebra. O "\r\n"
+    // do Windows conta uma vez so (na hora do '\n'); um '\r' sozinho
+    // (arquivos de Mac antigo) tambem encerra a linha.
     private void avancarContandoLinha() {
         char c = fonte.charAt(pos);
         if (c == '\n' || (c == '\r' && !caractereSeguinteEh('\n'))) {
@@ -168,8 +170,8 @@ public class AnalisadorLexico {
         return c == ' ' || c == '\t' || c == '\f' || c == '\u000B';
     }
 
-    // Letras do alfabeto latino, com ou sem acento (o enunciado usa "variável"
-    // como exemplo de identificador). Letras de outros alfabetos são erro.
+    // Letras do alfabeto latino, com ou sem acento (o enunciado usa "variavel"
+    // como exemplo de identificador). Letras de outros alfabetos sao erro.
     private static boolean ehLetra(char c) {
         return Character.isLetter(c) && Character.UnicodeScript.of(c) == Character.UnicodeScript.LATIN;
     }
@@ -187,8 +189,10 @@ public class AnalisadorLexico {
         while (pos < fonte.length() && (ehLetra(fonte.charAt(pos)) || ehDigito(fonte.charAt(pos)) || fonte.charAt(pos) == '_')) {
             pos++;
         }
+        // so os 63 primeiros caracteres ficam no lexema
         int fim = Math.min(pos, inicio + TAMANHO_MAXIMO_IDENTIFICADOR);
         String lexema = fonte.substring(inicio, fim);
+        // null: nao e palavra reservada nem operador de palavra, e identificador
         TipoToken tipo = palavrasReservadas.buscar(lexema);
         return new Token(lexema, tipo != null ? tipo : TipoToken.IDENTIFICADOR, linhaToken);
     }
@@ -252,18 +256,19 @@ public class AnalisadorLexico {
         }
     }
 
-    // Strings da linguagem são sempre de uma linha só (nenhum exemplo do
-    // enunciado mostra string multi-linha). Por isso, se não fechar antes
-    // de uma quebra de linha, paramos ali — sem consumir o '\r' ou '\n' — e
+    // Strings da linguagem sao sempre de uma linha so (nenhum exemplo do
+    // enunciado mostra string multi-linha). Por isso, se nao fechar antes
+    // de uma quebra de linha, paramos ali - sem consumir o '\r' ou '\n' - e
     // devolvemos o controle pro scanner normal, que trata a quebra de
-    // linha como não-significativa e segue tokenizando o resto do arquivo.
-    // Isso evita que uma aspa esquecida engula o programa inteiro até o EOF.
+    // linha como nao-significativa e segue tokenizando o resto do arquivo.
+    // Isso evita que uma aspa esquecida engula o programa inteiro ate o EOF.
     private Token lerString(int linhaToken) {
         int inicio = pos;
         pos++;
         while (pos < fonte.length() && fonte.charAt(pos) != '"' && !ehQuebraDeLinha(fonte.charAt(pos))) {
             pos++;
         }
+        // parou na aspa de fechamento ou numa quebra de linha / fim do texto?
         boolean fechada = pos < fonte.length() && fonte.charAt(pos) == '"';
         if (fechada) {
             pos++;

@@ -7,10 +7,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Escolhe a fonte de largura fixa (para o código, os tokens, a pilha e as
- * tabelas SLR) entre as que existem na máquina. O CSS do JavaFX não aceita uma
- * lista de alternativas como o CSS da web: se a primeira fonte não existir,
- * ele usa a fonte padrão (proporcional), e o código fica desalinhado.
+ * Escolhe a fonte de largura fixa (para o codigo, os tokens, a pilha e as
+ * tabelas SLR) entre as que existem na maquina. O CSS do JavaFX nao aceita uma
+ * lista de alternativas como o CSS da web: se a primeira fonte nao existir,
+ * ele usa a fonte padrao (proporcional), e o codigo fica desalinhado.
  */
 final class Fontes {
 
@@ -22,7 +22,7 @@ final class Fontes {
     private Fontes() {
     }
 
-    // A primeira das preferidas instalada; "Monospaced" (fonte lógica do Java) se nenhuma estiver.
+    // A primeira das preferidas instalada; "Monospaced" (fonte logica do Java) se nenhuma estiver.
     static synchronized String monoespacada() {
         if (monoespacada == null) {
             List<String> instaladas = Font.getFamilies();
@@ -37,7 +37,7 @@ final class Fontes {
         return monoespacada;
     }
 
-    // Aplica a fonte de largura fixa ao nó (e, por herança, ao que está dentro dele).
+    // Aplica a fonte de largura fixa ao no (e, por heranca, ao que esta dentro dele).
     static void usarMonoespacada(Node... nos) {
         for (Node n : nos) {
             n.setStyle("-fx-font-family: \"" + monoespacada() + "\";");

@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A gramática não é SLR(1): a construção da tabela encontrou conflitos.
+ * A gramatica nao e SLR(1): a construcao da tabela encontrou conflitos.
  * A mensagem lista todos eles.
  */
 public class ConflitoSLRException extends RuntimeException {

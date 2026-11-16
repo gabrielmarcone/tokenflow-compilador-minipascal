@@ -1,8 +1,8 @@
 package minipascal.erros;
 
 /**
- * Fase do compilador que detectou o erro. O texto de cada valor é o que
- * aparece nas mensagens mostradas ao usuário.
+ * Fase do compilador que detectou o erro. O texto de cada valor e o que
+ * aparece nas mensagens mostradas ao usuario.
  */
 public enum CategoriaErro {
 

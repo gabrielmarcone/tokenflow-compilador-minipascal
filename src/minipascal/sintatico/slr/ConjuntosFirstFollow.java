@@ -11,15 +11,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Calcula, por ponto fixo, os não terminais anuláveis (que derivam ε) e os
- * conjuntos FIRST e FOLLOW de cada não terminal.
+ * Calcula, por ponto fixo, os nao terminais anulaveis (que derivam eps) e os
+ * conjuntos FIRST e FOLLOW de cada nao terminal.
  *
- *   FIRST(X):  terminais que podem começar uma cadeia derivada de X
- *              (ε não entra no conjunto; quem deriva ε está em "anuláveis").
+ *   FIRST(X):  terminais que podem comecar uma cadeia derivada de X
+ *              (eps nao entra no conjunto; quem deriva eps esta em "anulaveis").
  *   FOLLOW(A): terminais que podem aparecer logo depois de A em alguma forma
- *              sentencial; FOLLOW(S') contém "$".
+ *              sentencial; FOLLOW(S') contem "$".
  *
- * O SLR(1) usa FOLLOW(A) para decidir em quais terminais reduzir por A -> α.
+ * O SLR(1) usa FOLLOW(A) para decidir em quais terminais reduzir por A -> alfa.
  */
 public final class ConjuntosFirstFollow {
 
@@ -38,6 +38,10 @@ public final class ConjuntosFirstFollow {
         calcularFollow();
     }
 
+    // Ponto fixo: repete a passada por todas as producoes ate nenhum conjunto
+    // mudar. Numa producao A -> X1 X2 ... Xn, FIRST(A) recebe FIRST(X1); se X1
+    // for anulavel, tambem FIRST(X2), e assim por diante. Se todos os Xi forem
+    // anulaveis (ou o corpo for vazio), A e anulavel.
     private void calcularAnulaveisEFirst() {
         boolean mudou = true;
         while (mudou) {
@@ -47,10 +51,13 @@ public final class ConjuntosFirstFollow {
                 boolean corpoAnulavel = true;
                 for (String s : p.getCorpo()) {
                     if (gramatica.ehTerminal(s)) {
+                        // um terminal comeca o corpo: entra no FIRST e a leitura do corpo para
                         mudou |= destino.add(s);
                         corpoAnulavel = false;
                         break;
                     }
+                    // nao terminal: o que ele pode comecar tambem comeca A; se ele nao
+                    // for anulavel, os simbolos seguintes nao chegam a ser o comeco
                     mudou |= destino.addAll(first.get(s));
                     if (!anulaveis.contains(s)) {
                         corpoAnulavel = false;
@@ -64,6 +71,8 @@ public final class ConjuntosFirstFollow {
         }
     }
 
+    // Tambem por ponto fixo. FOLLOW(S') = { $ }; para cada A -> alfa B beta,
+    // FOLLOW(B) recebe FIRST(beta) e, se beta puder sumir, FOLLOW(A).
     private void calcularFollow() {
         follow.get(gramatica.getSimboloInicialAumentado()).add(Gramatica.FIM_DE_ENTRADA);
         boolean mudou = true;
@@ -73,13 +82,14 @@ public final class ConjuntosFirstFollow {
                 List<String> corpo = p.getCorpo();
                 for (int i = 0; i < corpo.size(); i++) {
                     String b = corpo.get(i);
+                    // FOLLOW so existe para nao terminais
                     if (gramatica.ehTerminal(b)) {
                         continue;
                     }
-                    // FOLLOW(B) recebe FIRST(β), onde A -> α B β ...
+                    // FOLLOW(B) recebe FIRST(beta), onde A -> alfa B beta ...
                     List<String> beta = corpo.subList(i + 1, corpo.size());
                     mudou |= follow.get(b).addAll(firstDaSequencia(beta));
-                    // ... e FOLLOW(A) se β for anulável (ou vazio).
+                    // ... e FOLLOW(A) se beta for anulavel (ou vazio).
                     if (sequenciaAnulavel(beta)) {
                         mudou |= follow.get(b).addAll(follow.get(p.getCabeca()));
                     }
@@ -88,7 +98,7 @@ public final class ConjuntosFirstFollow {
         }
     }
 
-    // FIRST de uma sequência de símbolos (sem ε).
+    // FIRST de uma sequencia de simbolos (sem eps).
     public Set<String> firstDaSequencia(List<String> simbolos) {
         Set<String> resultado = new HashSet<>();
         for (String s : simbolos) {
@@ -104,6 +114,7 @@ public final class ConjuntosFirstFollow {
         return resultado;
     }
 
+    // A sequencia inteira pode derivar a cadeia vazia? (vazia tambem conta)
     public boolean sequenciaAnulavel(List<String> simbolos) {
         for (String s : simbolos) {
             if (gramatica.ehTerminal(s) || !anulaveis.contains(s)) {
@@ -121,7 +132,7 @@ public final class ConjuntosFirstFollow {
         return Collections.unmodifiableSet(anulaveis);
     }
 
-    // FIRST de um símbolo; para terminal é ele mesmo.
+    // FIRST de um simbolo; para terminal e ele mesmo.
     public Set<String> first(String simbolo) {
         if (gramatica.ehTerminal(simbolo)) {
             return Collections.singleton(simbolo);

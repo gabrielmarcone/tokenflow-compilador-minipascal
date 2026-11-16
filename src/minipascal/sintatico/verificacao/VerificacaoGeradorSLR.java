@@ -21,26 +21,26 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Verifica o gerador de tabelas SLR(1): leitura da gramática, FIRST/FOLLOW,
- * coleção LR(0), tabela ACTION/GOTO, detecção de conflitos e exportação.
+ * Verifica o gerador de tabelas SLR(1): leitura da gramatica, FIRST/FOLLOW,
+ * colecao LR(0), tabela ACTION/GOTO, deteccao de conflitos e exportacao.
  *
- * As referências externas são dois exemplos do livro do Dragão (Aho, Lam,
- * Sethi e Ullman, Compiladores: princípios, técnicas e ferramentas, 2ª ed.):
- * a gramática de expressões 4.1, cuja tabela SLR completa está na figura 4.37,
- * e a gramática 4.28, com FIRST e FOLLOW calculados no exemplo 4.30.
+ * As referencias externas sao dois exemplos do livro do Dragao (Aho, Lam,
+ * Sethi e Ullman, Compiladores: principios, tecnicas e ferramentas, 2a ed.):
+ * a gramatica de expressoes 4.1, cuja tabela SLR completa esta na figura 4.37,
+ * e a gramatica 4.28, com FIRST e FOLLOW calculados no exemplo 4.30.
  */
 public class VerificacaoGeradorSLR {
 
     private static int total = 0;
     private static int falhas = 0;
 
-    // Gramática 4.1 do livro, sem alterações.
+    // Gramatica 4.1 do livro, sem alteracoes.
     private static final String DRAGAO =
             "E -> E + T | T\n" +
             "T -> T * F | F\n" +
             "F -> ( E ) | id\n";
 
-    // Gramática 4.28 do livro (E' e T' viram E2 e T2: o apóstrofo é reservado ao S' aumentado).
+    // Gramatica 4.28 do livro (E' e T' viram E2 e T2: o apostrofo e reservado ao S' aumentado).
     private static final String DRAGAO_LL =
             "E -> T E2\n" +
             "E2 -> + T E2 | ε\n" +
@@ -49,7 +49,7 @@ public class VerificacaoGeradorSLR {
             "F -> ( E ) | id\n";
 
     public static void main(String[] args) {
-        // Cada parte roda protegida: uma exceção vira falha e as demais continuam.
+        // Cada parte roda protegida: uma excecao vira falha e as demais continuam.
         executar("leitor", VerificacaoGeradorSLR::verificarLeitor);
         executar("erros do leitor", VerificacaoGeradorSLR::verificarErrosDoLeitor);
         executar("FIRST/FOLLOW", VerificacaoGeradorSLR::verificarFirstFollow);
@@ -223,7 +223,7 @@ public class VerificacaoGeradorSLR {
                         && e2.getConflitos().get(0).getTipo().equals("reduzir/reduzir")
                         && e2.getConflitos().get(0).getAcoes().equals(Arrays.asList(Acao.reduzir(3), Acao.reduzir(4))));
 
-        // O else pendente, como na gramática original do enunciado.
+        // O else pendente, como na gramatica original do enunciado.
         ConflitoSLRException e3 = conflitoDe(
                 "C -> if e then C | if e then C else C | a\n");
         checar("else pendente: um único conflito, empilhar/reduzir em 'else'",
@@ -235,7 +235,7 @@ public class VerificacaoGeradorSLR {
                         && e3.getMessage().contains("terminal 'else'")
                         && e3.getMessage().contains(e3.getConflitos().get(0).getAcoes().get(0).toString()));
 
-        // A versão com comandos abertos/fechados (opção B do grupo) não tem conflito.
+        // A versao com comandos abertos/fechados (opcao B do grupo) nao tem conflito.
         boolean semConflito;
         try {
             TabelaSLR t = TabelaSLR.construir(LeitorGramatica.lerTexto(
@@ -262,7 +262,7 @@ public class VerificacaoGeradorSLR {
                 gravaSoRelatorio(comConflito));
     }
 
-    // ------------------------------------------------- gramática das expressões
+    // ------------------------------------------------- gramatica das expressoes
 
     private static void verificarGramaticaDasExpressoes() {
         TabelaSLR t;
@@ -302,8 +302,8 @@ public class VerificacaoGeradorSLR {
             checar("expressão inválida: " + (v.isEmpty() ? "(vazia)" : v), !aceita(t, v));
         }
 
-        // A precedência vem da gramática: em "id + id * id" a primeira redução por
-        // SIEXPR -> SIEXPR + TERMO só acontece depois de TERMO -> TERMO * FATOR.
+        // A precedencia vem da gramatica: em "id + id * id" a primeira reducao por
+        // SIEXPR -> SIEXPR + TERMO so acontece depois de TERMO -> TERMO * FATOR.
         List<Integer> reducoes = reducoes(t, "id + id * id");
         int multiplicacao = indiceDaProducao(t.getGramatica(), "TERMO -> TERMO * FATOR");
         int soma = indiceDaProducao(t.getGramatica(), "SIEXPR -> SIEXPR + TERMO");
@@ -381,7 +381,7 @@ public class VerificacaoGeradorSLR {
         }
     }
 
-    // Roda o gerador sem deixar as mensagens dele no meio do resultado da suíte.
+    // Roda o gerador sem deixar as mensagens dele no meio do resultado da suite.
     private static int executarCalado(String[] args) {
         java.io.PrintStream original = System.out;
         try {
@@ -402,7 +402,7 @@ public class VerificacaoGeradorSLR {
         }
     }
 
-    // Simula o analisador SLR sobre uma sequência de terminais (separados por espaço).
+    // Simula o analisador SLR sobre uma sequencia de terminais (separados por espaco).
     private static boolean aceita(TabelaSLR t, String entrada) {
         return reducoesOuNull(t, entrada) != null;
     }
@@ -489,7 +489,7 @@ public class VerificacaoGeradorSLR {
 
     private static boolean todasComCampos(String[] linhas, int campos) {
         for (String l : linhas) {
-            // nenhuma célula da tabela das expressões contém ";", então split simples basta
+            // nenhuma celula da tabela das expressoes contem ";", entao split simples basta
             if (l.split(";", -1).length != campos) {
                 return false;
             }

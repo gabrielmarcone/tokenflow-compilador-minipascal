@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Célula da tabela ACTION com mais de uma ação possível. Se a gramática gera
- * qualquer conflito, ela não é SLR(1) e a tabela não é construída.
+ * Celula da tabela ACTION com mais de uma acao possivel. Se a gramatica gera
+ * qualquer conflito, ela nao e SLR(1) e a tabela nao e construida.
  */
 public final class ConflitoSLR {
 
@@ -34,7 +34,7 @@ public final class ConflitoSLR {
         return acoes;
     }
 
-    // "empilhar/reduzir" quando há um empilhar entre as ações; senão "reduzir/reduzir".
+    // "empilhar/reduzir" quando ha um empilhar entre as acoes; senao "reduzir/reduzir".
     public String getTipo() {
         for (Acao a : acoes) {
             if (a.isEmpilhar()) {

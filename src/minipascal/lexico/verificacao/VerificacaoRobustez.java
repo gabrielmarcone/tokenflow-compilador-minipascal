@@ -19,7 +19,7 @@ import java.util.Locale;
 
 /**
  * Entradas e ambientes fora do comum: Unicode, quebras de linha antigas,
- * codificações diferentes de UTF-8, locale do sistema e caminhos do CLI.
+ * codificacoes diferentes de UTF-8, locale do sistema e caminhos do CLI.
  */
 public class VerificacaoRobustez {
 
@@ -198,7 +198,7 @@ public class VerificacaoRobustez {
                 t.size() == 1 && t.get(0).getLexema().length() == 63);
     }
 
-    // ---------- utilitários ----------
+    // ---------- utilitarios ----------
 
     private static File temporario(String prefixo, String sufixo) throws IOException {
         File f = File.createTempFile(prefixo, sufixo);

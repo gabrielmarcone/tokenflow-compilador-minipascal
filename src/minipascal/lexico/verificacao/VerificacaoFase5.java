@@ -7,9 +7,9 @@ import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 
 /**
- * Foca em comentários e erros léxicos: casos que a Fase 4 já cobria em
- * parte, mais os casos de borda que faltavam (comentário sem fechamento,
- * string/char sem fechamento, sequência de erros seguida de código válido).
+ * Foca em comentarios e erros lexicos: casos que a Fase 4 ja cobria em
+ * parte, mais os casos de borda que faltavam (comentario sem fechamento,
+ * string/char sem fechamento, sequencia de erros seguida de codigo valido).
  */
 public class VerificacaoFase5 {
 

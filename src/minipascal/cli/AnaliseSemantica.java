@@ -15,18 +15,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Linha de comando da análise completa (léxica, sintática e semântica):
+ * Linha de comando da analise completa (lexica, sintatica e semantica):
  *
  *   java -cp TokenFlow.jar minipascal.cli.AnaliseSemantica [--tabela] <programa.txt> [saida.txt]
  *
  * Imprime "OK" se o programa estiver correto, ou o conjunto dos erros, um por
- * linha, com o tipo (léxico, sintático ou semântico) e a linha de ocorrência,
+ * linha, com o tipo (lexico, sintatico ou semantico) e a linha de ocorrencia,
  * como pede o enunciado da Unidade II. Com --tabela, imprime em seguida a
- * tabela de símbolos. Com [saida.txt], grava o mesmo texto em UTF-8. No
- * console, os acentos são removidos (ver Console).
+ * tabela de simbolos. Com [saida.txt], grava o mesmo texto em UTF-8. No
+ * console, os acentos sao removidos (ver Console).
  *
- * Código de saída: 0 quando o resultado é "OK"; 1 quando há erros no programa
- * ou falha de leitura/gravação.
+ * Codigo de saida: 0 quando o resultado e "OK"; 1 quando ha erros no programa
+ * ou falha de leitura/gravacao.
  */
 public final class AnaliseSemantica {
 
@@ -92,6 +92,6 @@ public final class AnaliseSemantica {
             titulo += " (a análise semântica parou no primeiro erro sintático: só o que foi declarado até ali)";
         }
         String tabela = resultado.getTabelaSimbolos().listar();
-        return titulo + ":\n" + tabela.substring(0, tabela.length() - 1); // sem a última quebra de linha
+        return titulo + ":\n" + tabela.substring(0, tabela.length() - 1); // sem a ultima quebra de linha
     }
 }

@@ -35,21 +35,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A aba "Gramática e SLR(1)": tudo o que o gerador de tabelas calculou a
+ * A aba "Gramatica e SLR(1)": tudo o que o gerador de tabelas calculou a
  * partir de gramatica.txt, em quatro partes.
  *
- *   - Tabela ACTION / GOTO: uma linha por estado; as colunas de ACTION são os
- *     terminais e as de GOTO, os não terminais. A célula usada no passo
+ *   - Tabela ACTION / GOTO: uma linha por estado; as colunas de ACTION sao os
+ *     terminais e as de GOTO, os nao terminais. A celula usada no passo
  *     selecionado na aba Pilha fica destacada (destacar).
- *   - Gramática: as produções numeradas (o número é o do "rN").
- *   - FIRST e FOLLOW: dos não terminais, e quais são anuláveis.
- *   - Estados LR(0): os itens de cada estado e as suas transições.
+ *   - Gramatica: as producoes numeradas (o numero e o do "rN").
+ *   - FIRST e FOLLOW: dos nao terminais, e quais sao anulaveis.
+ *   - Estados LR(0): os itens de cada estado e as suas transicoes.
  *
- * Nada aqui depende do programa analisado: é a descrição da linguagem.
+ * Nada aqui depende do programa analisado: e a descricao da linguagem.
  */
 final class PainelSLR {
 
-    // Quadros da tela em que a rolagem até a célula destacada é repetida (ver mostrarDestaque).
+    // Quadros da tela em que a rolagem ate a celula destacada e repetida (ver mostrarDestaque).
     private static final int QUADROS_DE_ROLAGEM = 3;
 
     private final TabelaSLR tabela;
@@ -57,7 +57,7 @@ final class PainelSLR {
     private final TabPane abas = new TabPane();
     private final TableView<Integer> tabelaAcoes = new TableView<>();
     private final ListView<Integer> listaEstados = new ListView<>();
-    // Diz qual célula está destacada: ao rolar até ela, a coluna Estado pode sair de vista.
+    // Diz qual celula esta destacada: ao rolar ate ela, a coluna Estado pode sair de vista.
     private final Label labelDestaque = new Label();
     private final Tab abaAcoes;
     private final Tab abaEstados;
@@ -68,6 +68,7 @@ final class PainelSLR {
     PainelSLR(TabelaSLR tabela) {
         this.tabela = tabela;
         this.gramatica = tabela.getGramatica();
+        // Quatro abas internas, uma para cada parte da construcao SLR(1).
         abas.setId("abasSLR");
         abas.getStyleClass().add("abas-internas");
         abas.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -87,14 +88,16 @@ final class PainelSLR {
     }
 
     /**
-     * Destaca a célula [estado, símbolo] e a linha do estado (símbolo null
-     * destaca só a linha). Estado -1 tira o destaque.
+     * Destaca a celula [estado, simbolo] e a linha do estado (simbolo null
+     * destaca so a linha). Estado -1 tira o destaque.
      */
     void destacar(int estado, String simbolo) {
         estadoDestacado = estado;
         simboloDestacado = simbolo;
+        // redesenha as celulas visiveis com o destaque novo
         tabelaAcoes.refresh();
         boolean visivel = estado >= 0;
+        // Frase que diz qual celula esta destacada e o que ela significa.
         labelDestaque.setVisible(visivel);
         labelDestaque.setManaged(visivel);
         if (!visivel) {
@@ -111,11 +114,11 @@ final class PainelSLR {
     }
 
     /*
-     * Abre a tabela ACTION / GOTO e rola até a célula destacada.
+     * Abre a tabela ACTION / GOTO e rola ate a celula destacada.
      *
-     * Uma tabela que acaba de aparecer (a aba estava fechada) ainda não foi
-     * medida e ignora a rolagem, ficando onde estava. Por isso a rolagem é
-     * repetida nos próximos quadros da tela, depois que a tabela é desenhada.
+     * Uma tabela que acaba de aparecer (a aba estava fechada) ainda nao foi
+     * medida e ignora a rolagem, ficando onde estava. Por isso a rolagem e
+     * repetida nos proximos quadros da tela, depois que a tabela e desenhada.
      */
     void mostrarDestaque() {
         abas.getSelectionModel().select(abaAcoes);
@@ -140,6 +143,7 @@ final class PainelSLR {
         rolagemPendente.start();
     }
 
+    // Rola a tabela ate o estado (com 3 linhas antes) e a coluna do simbolo.
     private void rolarAteDestaque() {
         if (estadoDestacado < 0) {
             return;
@@ -150,7 +154,7 @@ final class PainelSLR {
         if (coluna == null) {
             return;
         }
-        // Se a célula cabe na tela com a coluna Estado, mostra as duas; senão, rola até a célula.
+        // Se a celula cabe na tela com a coluna Estado, mostra as duas; senao, rola ate a celula.
         double inicio = 0;
         for (TableColumn<Integer, ?> c : tabelaAcoes.getVisibleLeafColumns()) {
             if (c == coluna) {
@@ -167,10 +171,13 @@ final class PainelSLR {
 
     // ------------------------------------------------------- ACTION / GOTO
 
+    // Uma linha por estado. Colunas: Estado, o grupo ACTION (um terminal por
+    // coluna) e o grupo GOTO (um nao terminal por coluna).
     private VBox montarTabelaAcoes() {
         tabelaAcoes.setId("tabelaSLR");
         Fontes.usarMonoespacada(tabelaAcoes);
         tabelaAcoes.getStyleClass().add("tabela-slr");
+        // altura fixa: rolagem rapida com 120 linhas
         tabelaAcoes.setFixedCellSize(24);
 
         TableColumn<Integer, String> colEstado = new TableColumn<>("Estado");
@@ -194,9 +201,11 @@ final class PainelSLR {
         tabelaAcoes.getColumns().add(colEstado);
         tabelaAcoes.getColumns().add(action);
         tabelaAcoes.getColumns().add(goTo);
+        // Os itens da tabela sao os numeros dos estados; as celulas sao calculadas.
         for (int e = 0; e < tabela.numeroDeEstados(); e++) {
             tabelaAcoes.getItems().add(e);
         }
+        // Linha do estado destacado com fundo proprio.
         tabelaAcoes.setRowFactory(t -> new TableRow<Integer>() {
             @Override
             protected void updateItem(Integer estado, boolean vazio) {
@@ -215,6 +224,7 @@ final class PainelSLR {
         legenda.setWrapText(true);
         legenda.setMinHeight(Region.USE_PREF_SIZE);
 
+        // Campo "Ir para o estado": numero invalido deixa o campo vermelho.
         TextField irPara = new TextField();
         irPara.setId("campoIrParaEstado");
         irPara.setPromptText("nº");
@@ -258,18 +268,22 @@ final class PainelSLR {
         return caixa;
     }
 
+    // Uma coluna da tabela: a celula mostra sN, rN, acc (ACTION) ou o estado (GOTO),
+    // com cor por tipo de acao e a explicacao na dica.
     private TableColumn<Integer, String> colunaDaTabela(String simbolo, boolean terminal) {
         TableColumn<Integer, String> c = new TableColumn<>(simbolo);
         c.setSortable(false);
+        // o simbolo fica na coluna, para achar a coluna de um passo (colunaDe)
         c.setUserData(simbolo);
         c.setPrefWidth(Math.max(42, 9 * simbolo.length() + 18));
         c.setCellValueFactory(d -> new SimpleStringProperty(celula(d.getValue(), simbolo, terminal)));
         c.setCellFactory(col -> new TableCell<Integer, String>() {
-            // No JavaFX 8, getTableRow() devolve TableRow sem tipo: o cast é necessário lá.
+            // No JavaFX 8, getTableRow() devolve TableRow sem tipo: o cast e necessario la.
             @Override
             @SuppressWarnings("cast")
             protected void updateItem(String texto, boolean vazio) {
                 super.updateItem(texto, vazio);
+                // a celula e reaproveitada pela tabela: limpa as classes do uso anterior
                 getStyleClass().removeAll("celula-destacada", "celula-reduzir", "celula-empilhar", "celula-aceitar");
                 setTooltip(null);
                 if (vazio || texto == null) {
@@ -299,6 +313,7 @@ final class PainelSLR {
         return c;
     }
 
+    // Texto da celula [estado, simbolo]: ACTION para terminal, GOTO para nao terminal.
     private String celula(int estado, String simbolo, boolean terminal) {
         if (terminal) {
             Acao a = tabela.acao(estado, simbolo);
@@ -308,6 +323,7 @@ final class PainelSLR {
         return destino < 0 ? "" : String.valueOf(destino);
     }
 
+    // Explicacao da celula em portugues (dica e frase do destaque).
     private String explicar(int estado, String simbolo, String texto, boolean terminal) {
         String inicio = "Estado " + estado + ", " + (terminal ? "terminal " : "não terminal ") + simbolo + ": ";
         if (!terminal) {
@@ -321,6 +337,7 @@ final class PainelSLR {
                 : inicio + "reduz pela produção " + n + ": " + gramatica.getProducao(n);
     }
 
+    // A coluna (dentro de ACTION ou GOTO) de um simbolo.
     private TableColumn<Integer, ?> colunaDe(String simbolo) {
         if (simbolo == null) {
             return null;
@@ -335,8 +352,9 @@ final class PainelSLR {
         return null;
     }
 
-    // ------------------------------------------------------------- gramática
+    // ------------------------------------------------------------- gramatica
 
+    // Aba Gramatica: as producoes numeradas, como nos rN da tabela.
     private VBox montarGramatica() {
         TableView<Producao> t = new TableView<>();
         t.setId("tabelaGramatica");
@@ -366,6 +384,7 @@ final class PainelSLR {
 
     // ------------------------------------------------------- FIRST e FOLLOW
 
+    // Aba FIRST e FOLLOW: uma linha por nao terminal.
     private VBox montarFirstFollow() {
         AnaliseSLR analise = tabela.getAnalise();
         ConjuntosFirstFollow conj = analise.getConjuntos();
@@ -410,6 +429,7 @@ final class PainelSLR {
 
     // ----------------------------------------------------------- estados LR(0)
 
+    // Aba Estados LR(0): cada estado com os itens e as transicoes.
     private VBox montarEstados() {
         ColecaoLR0 colecao = tabela.getAnalise().getColecao();
         listaEstados.setId("listaEstados");
@@ -436,6 +456,7 @@ final class PainelSLR {
         return caixa;
     }
 
+    // "I5", os itens (A -> alfa . beta) e as transicoes do estado.
     private String descreverEstado(ColecaoLR0 colecao, int estado) {
         StringBuilder sb = new StringBuilder("I" + estado);
         for (ItemLR0 item : colecao.getEstados().get(estado).getItens()) {
