@@ -6,7 +6,7 @@ Erro sintático na linha 16: Encontrado '='; esperado ';', '(' ou ':='
 Erro sintático na linha 17: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'
 Erro sintático na linha 18: Encontrado '+'; esperado identificador, '(', número, constante string, constante char ou 'not'
 Erro sintático na linha 19: Encontrado '>'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'
-Erro sintático na linha 21: Encontrado identificador 'x'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'
+Erro sintático na linha 21: Encontrado identificador 'x'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and' (depois de 'y' na linha 20)
 Erro sintático na linha 23: Fim do arquivo inesperado; esperado '.'
 
 Tabela de símbolos (a análise semântica parou no primeiro erro sintático: só o que foi declarado até ali):

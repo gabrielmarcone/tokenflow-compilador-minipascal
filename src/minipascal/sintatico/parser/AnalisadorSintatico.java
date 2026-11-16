@@ -3,6 +3,8 @@ package minipascal.sintatico.parser;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.core.AnalisadorLexico;
+import minipascal.lexico.model.TipoToken;
+import minipascal.lexico.model.Token;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 import minipascal.sintatico.gramatica.LeitorGramatica;
 import minipascal.sintatico.gramatica.Producao;
@@ -147,7 +149,7 @@ public class AnalisadorSintatico {
             if (acao == null) {
                 // Erros léxicos anteriores a este token vêm antes deste erro.
                 lexicosIncluidos = incluirLexicos(adaptador, erros, lexicosIncluidos, atual.getPosicao());
-                ErroCompilacao erro = erroSintatico(estadosAoLerAtual, atual);
+                ErroCompilacao erro = erroSintatico(estadosAoLerAtual, atual, adaptador);
                 erros.add(erro);
                 houveErroSintatico = true;
                 acoes.aoErroSintatico(atual);
@@ -422,12 +424,31 @@ public class AnalisadorSintatico {
         }
     }
 
-    private ErroCompilacao erroSintatico(List<Integer> estados, Terminal atual) {
+    private ErroCompilacao erroSintatico(List<Integer> estados, Terminal atual, AdaptadorLexico adaptador) {
         String esperado = DescricaoTerminal.listaDeEsperados(terminaisValidos(estados));
         String mensagem = atual.isFimDeArquivo()
                 ? "Fim do arquivo inesperado; esperado " + esperado
                 : "Encontrado " + DescricaoTerminal.encontrado(atual) + "; esperado " + esperado;
+        // O erro e relatado na linha do simbolo encontrado. Quando ele esta numa
+        // linha depois da do token anterior (o caso tipico: falta ';' no fim da
+        // linha de cima), a mensagem diz tambem onde fica esse token anterior.
+        Token anterior = tokenAnterior(adaptador, atual.getPosicao());
+        if (anterior != null && anterior.getLinha() < atual.getLinha()) {
+            mensagem += " (depois de '" + anterior.getLexema() + "' na linha " + anterior.getLinha() + ")";
+        }
         return new ErroCompilacao(CategoriaErro.SINTATICO, atual.getLinha(), mensagem, atual.getPosicao());
+    }
+
+    // Token do texto logo antes da posicao dada, sem contar erros lexicos (que
+    // nao chegam a analise sintatica), ou null se nao houver.
+    private static Token tokenAnterior(AdaptadorLexico adaptador, int posicao) {
+        List<Token> tokens = adaptador.getTokensLidos();
+        for (int i = Math.min(posicao, tokens.size()) - 1; i >= 0; i--) {
+            if (tokens.get(i).getTipo() != TipoToken.ERRO_LEXICO) {
+                return tokens.get(i);
+            }
+        }
+        return null;
     }
 
     /*

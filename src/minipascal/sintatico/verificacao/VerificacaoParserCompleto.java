@@ -264,7 +264,18 @@ public class VerificacaoParserCompleto {
         checarSaida("só erro léxico (programa correto sem o '@')", "program p; begin x := 1; @\nend.",
                 "Erro léxico na linha 1: Caractere inválido: @");
         checarSaida("falta ';' depois do nome do programa (erro na linha 2)", "program p\nbegin x := 1; end.",
-                "Erro sintático na linha 2: Encontrado 'begin'; esperado ';'");
+                "Erro sintático na linha 2: Encontrado 'begin'; esperado ';' (depois de 'p' na linha 1)");
+        // Erro numa linha depois do token anterior: a mensagem diz onde ele está.
+        // Erros léxicos não contam como token anterior (não chegam ao parser).
+        checarSaida("falta ';' no fim da linha: aponta o token anterior, pulando o erro léxico",
+                "program p;\nbegin\n  x := 1 @\n\n  y := 2;\nend.",
+                "Erro léxico na linha 3: Caractere inválido: @\n"
+                + "Erro sintático na linha 5: Encontrado identificador 'y'; esperado ';', '=', '<', '>', '<>', '<=', "
+                + "'>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and' (depois de '1' na linha 3)");
+        checarSaida("erro na mesma linha do token anterior: sem o complemento",
+                "program p;\nbegin\n  x := 1 y := 2;\nend.",
+                "Erro sintático na linha 3: Encontrado identificador 'y'; esperado ';', '=', '<', '>', '<>', '<=', "
+                + "'>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
         checarSaida("arquivo vazio", "",
                 "Erro sintático na linha 1: Fim do arquivo inesperado; esperado 'program'");
         checarSaida("falta ';' depois do tipo", "program p; var x: integer begin x := 1; end.",
@@ -297,8 +308,10 @@ public class VerificacaoParserCompleto {
                 "write(y);",
                 "end."),
                 // const não existe no Mini_Pascal; o ';' antes do else também é erro.
-                "Erro sintático na linha 3: Encontrado 'const'; esperado identificador, 'begin', 'var' ou 'procedure'\n"
-                + "Erro sintático na linha 9: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
+                "Erro sintático na linha 3: Encontrado 'const'; esperado identificador, 'begin', 'var' ou 'procedure'"
+                + " (depois de ';' na linha 2)\n"
+                + "Erro sintático na linha 9: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'"
+                + " (depois de ';' na linha 8)");
         checarSaida("segundo exemplo do enunciado da Unidade I (usa for e /)", linhas(
                 "Program Piloto;",
                 "    /* declaracoes de variaveis e constantes globais */",
@@ -323,7 +336,8 @@ public class VerificacaoParserCompleto {
                 "write(\"Media Geral = \", Media_das_medias/total);",
                 "end."),
                 // for não existe no Mini_Pascal (o '/' das linhas 17 e 21 é aceito).
-                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
+                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'"
+                + " (depois de ';' na linha 10)");
         checarSaida("programa demo da apresentação da Unidade I", linhas(
                 "/* demonstracao */",
                 "Program Demo;",
@@ -348,7 +362,7 @@ public class VerificacaoParserCompleto {
                 + "'or', '*', '/', 'div', 'mod' ou 'and'\n"
                 + "Erro léxico na linha 13: String não fechada (falta \"): \"sem fechar);\n"
                 + "Erro sintático na linha 14: Encontrado 'end'; esperado identificador, '(', '+', '-', número, "
-                + "constante string, constante char ou 'not'");
+                + "constante string, constante char ou 'not' (depois de '(' na linha 13)");
     }
 
     // ---------------------------------------------------- programas gerados

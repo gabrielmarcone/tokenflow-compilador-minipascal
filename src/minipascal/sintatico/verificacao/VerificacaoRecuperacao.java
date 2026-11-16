@@ -100,7 +100,8 @@ public class VerificacaoRecuperacao {
                 "  if x > 1 then x := 3 else",
                 "end."),
                 "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'",
-                "Erro sintático na linha 5: Encontrado 'end'; esperado identificador, 'begin', 'if' ou 'while'");
+                "Erro sintático na linha 5: Encontrado 'end'; esperado identificador, 'begin', 'if' ou 'while'"
+                        + " (depois de 'else' na linha 4)");
         checarSaida("chamadas: falta ')' e falta ','", linhas(
                 "program p;",
                 "begin",
@@ -132,8 +133,8 @@ public class VerificacaoRecuperacao {
                 "begin",
                 "  q(a, b);",
                 "end."),
-                "Erro sintático na linha 5: Encontrado 'begin'; esperado ';'",
-                "Erro sintático na linha 8: Encontrado 'end'; esperado ';', " + OPERADORES);
+                "Erro sintático na linha 5: Encontrado 'begin'; esperado ';' (depois de 'integer' na linha 4)",
+                "Erro sintático na linha 8: Encontrado 'end'; esperado ';', " + OPERADORES + " (depois de 'y' na linha 7)");
     }
 
     // -------------------------------------------------------------- um erro só
@@ -150,7 +151,8 @@ public class VerificacaoRecuperacao {
                 "Erro sintático na linha 3: Encontrado ':='; esperado ':' ou ','");
         checarSaida("falta ';' entre comandos", linhas(
                 "program p;", "begin", "  x := 1", "  y := 2;", "  z := 3;", "end."),
-                "Erro sintático na linha 4: Encontrado identificador 'y'; esperado ';', " + OPERADORES);
+                "Erro sintático na linha 4: Encontrado identificador 'y'; esperado ';', " + OPERADORES
+                        + " (depois de '1' na linha 3)");
         checarSaida("falta ')' numa chamada", linhas(
                 "program p;", "begin", "  q(1, 2;", "  y := 3;", "  z := 4;", "end."),
                 "Erro sintático na linha 3: Encontrado ';'; esperado ',', ')', " + OPERADORES);
@@ -200,8 +202,10 @@ public class VerificacaoRecuperacao {
         // inserção, sobraria um bloco aberto e um erro falso no '.' final.
         checarSaida("empate entre modo pânico e inserção: vale o modo pânico (sem erro falso no fim)", linhas(
                 "program p;", "var soma: real;", "* begin", "  x := 3.5;", "  (1);", "end."),
-                "Erro sintático na linha 3: Encontrado '*'; esperado identificador, 'begin', 'var' ou 'procedure'",
-                "Erro sintático na linha 5: Encontrado '('; esperado identificador, 'begin', 'end', 'if' ou 'while'");
+                "Erro sintático na linha 3: Encontrado '*'; esperado identificador, 'begin', 'var' ou 'procedure'"
+                        + " (depois de ';' na linha 2)",
+                "Erro sintático na linha 5: Encontrado '('; esperado identificador, 'begin', 'end', 'if' ou 'while'"
+                        + " (depois de ';' na linha 4)");
         // Um erro a cada 50 linhas, em 2000 linhas: os 40 são relatados, nas linhas certas.
         StringBuilder sb = new StringBuilder("program p;\nbegin\n");
         List<Integer> esperadas = new ArrayList<>();

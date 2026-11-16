@@ -380,6 +380,10 @@ para que uma única execução mostre o conjunto dos erros do programa, como ped
 - **Mensagens**: o primeiro erro de cada programa é exatamente o da análise sem recuperação
   (conferido contra um reconhecedor de Earley independente). Erros léxicos e sintáticos
   saem juntos, em ordem de linha e, na mesma linha, na ordem do texto.
+- **Linha do erro**: o erro sai na linha do símbolo encontrado. Quando ele está numa linha
+  depois da do token anterior (o caso típico: falta `;` no fim da linha de cima), a mensagem
+  diz também onde está esse token:
+  `Erro sintático na linha 10: Encontrado 'end'; esperado ';' (depois de ')' na linha 9)`.
 - Um caractere inválido some da entrada da análise sintática; se o que sobra estiver errado
   (como `x := 5 @ 2`, que vira `x := 5 2`), aparecem os dois erros, o léxico e o sintático.
 

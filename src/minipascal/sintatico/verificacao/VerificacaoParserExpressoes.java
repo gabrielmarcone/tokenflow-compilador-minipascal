@@ -158,7 +158,9 @@ public class VerificacaoParserExpressoes {
                 + DEPOIS_DE_OPERANDO + " ou fim do arquivo");
         checarErro("a \"s\"", "Erro sintático na linha 1: Encontrado constante string \"s\"; esperado "
                 + DEPOIS_DE_OPERANDO + " ou fim do arquivo");
-        checarErro("a +\n\n* b", "Erro sintático na linha 3: Encontrado '*'; esperado " + INICIO_DE_TERMO);
+        // o '*' está duas linhas depois do '+': a mensagem diz onde está o '+'
+        checarErro("a +\n\n* b", "Erro sintático na linha 3: Encontrado '*'; esperado " + INICIO_DE_TERMO
+                + " (depois de '+' na linha 1)");
         checarErro("(a\n+ b\n\n", "Erro sintático na linha 2: Fim do arquivo inesperado; esperado "
                 + "'=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div', 'mod' ou ')'");
 
@@ -182,7 +184,8 @@ public class VerificacaoParserExpressoes {
                 + "Erro léxico na linha 2: Caractere inválido: @");
         // o fim do arquivo fica na linha do último token lido (a string aberta, linha 2)
         checarSaida("x +\n\"abc", "Erro léxico na linha 2: String não fechada (falta \"): \"abc\n"
-                + "Erro sintático na linha 2: Fim do arquivo inesperado; esperado " + INICIO_DE_TERMO);
+                + "Erro sintático na linha 2: Fim do arquivo inesperado; esperado " + INICIO_DE_TERMO
+                + " (depois de '+' na linha 1)");
         checarSaida("/* x", "Erro léxico na linha 1: Comentário não fechado (falta */): /*\n"
                 + "Erro sintático na linha 1: Fim do arquivo inesperado; esperado " + INICIO_DE_EXPRESSAO);
         // 'ab' e um erro so; sem ele sobra "+ 1", que e valida
