@@ -46,7 +46,7 @@ public final class ExportadorTabela {
         }
 
         secao(sb, "Símbolos");
-        sb.append("Terminais (").append(g.getTerminais().size()).append("): ")
+        sb.append("Terminais (").append(g.getTerminais().size() - 1).append(", mais o $): ")
                 .append(juntar(g.getTerminais())).append(NL);
         sb.append("Não terminais (").append(g.getNaoTerminais().size()).append("): ")
                 .append(juntar(g.getNaoTerminais())).append(NL);

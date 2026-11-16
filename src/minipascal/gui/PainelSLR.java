@@ -238,8 +238,8 @@ final class PainelSLR {
         irPara.setTooltip(new Tooltip("Digite o número do estado (0 a " + (tabela.numeroDeEstados() - 1)
                 + ") e tecle Enter"));
         Label rotuloIr = new Label("Ir para o estado:");
-        Label resumo = new Label(tabela.numeroDeEstados() + " estados, " + gramatica.getTerminais().size()
-                + " terminais, " + gramatica.getNaoTerminais().size() + " não terminais, nenhum conflito");
+        Label resumo = new Label(tabela.numeroDeEstados() + " estados, " + (gramatica.getTerminais().size() - 1)
+                + " terminais (mais o $), " + gramatica.getNaoTerminais().size() + " não terminais, nenhum conflito");
         resumo.getStyleClass().add("legenda");
         Region espaco = new Region();
         HBox.setHgrow(espaco, Priority.ALWAYS);

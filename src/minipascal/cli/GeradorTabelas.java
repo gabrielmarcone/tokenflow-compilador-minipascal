@@ -71,7 +71,7 @@ public final class GeradorTabelas {
 
             AnaliseSLR analise = new AnaliseSLR(gramatica);
             System.out.println("Gramatica: " + (gramatica.getProducoes().size() - 1) + " producoes, "
-                    + (gramatica.getTerminais().size() - 1) + " terminais (mais $), "
+                    + (gramatica.getTerminais().size() - 1) + " terminais (mais o $), "
                     + gramatica.getNaoTerminais().size() + " nao terminais.");
             System.out.println("Estados LR(0): " + analise.getColecao().tamanho() + ".");
 
