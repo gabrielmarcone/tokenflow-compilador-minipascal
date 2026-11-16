@@ -1,0 +1,29 @@
+OK
+
+Tabela de símbolos:
+Escopo    Nível  Nome      Categoria                 Tipo     Linha  Parâmetros
+externo   0      read      procedimento predefinido  -        -
+externo   0      write     procedimento predefinido  -        -
+externo   0      writeln   procedimento predefinido  -        -
+externo   0      Completo  programa                  -        6
+global    1      i         variável                  integer  7
+global    1      n         variável                  integer  7
+global    1      soma      variável                  integer  7
+global    1      media     variável                  real     8
+global    1      taxa      variável                  real     8
+global    1      letra     variável                  char     9
+global    1      nome      variável                  string   10
+global    1      frase     variável                  string   10
+global    1      contador  variável                  integer  11
+global    1      linha     procedimento              -        13
+global    1      acumular  procedimento              -        18     (valor: integer; var total: integer)
+acumular  2      valor     parâmetro                 integer  18
+acumular  2      total     parâmetro var             integer  18
+global    1      fatorial  procedimento              -        23     (k: integer; var f: integer)
+fatorial  2      k         parâmetro                 integer  23
+fatorial  2      f         parâmetro var             integer  23
+fatorial  2      anterior  variável                  integer  24
+global    1      saudar    procedimento              -        35     (quem: string; inicial: char; peso: real)
+saudar    2      quem      parâmetro                 string   35
+saudar    2      inicial   parâmetro                 char     35
+saudar    2      peso      parâmetro                 real     35

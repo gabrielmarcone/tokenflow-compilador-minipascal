@@ -1,0 +1,40 @@
+Erro semântico na linha 37: Argumento 1 de 'dobrar': o parâmetro 'n' é var e precisa receber uma variável
+Erro semântico na linha 38: Argumento 1 de 'dobrar': o parâmetro 'n' é var e precisa receber uma variável
+Erro semântico na linha 39: Argumento 1 de 'dobrar': o parâmetro 'n' é var e precisa receber uma variável
+Erro semântico na linha 40: Argumento 1 de 'dobrar': o parâmetro var 'n' é integer e a variável 'r' é real (num parâmetro var os tipos devem ser iguais)
+Erro semântico na linha 41: O procedimento 'dobrar' tem 1 parâmetro, mas a chamada passa 0 argumentos
+Erro semântico na linha 42: O procedimento 'dobrar' tem 1 parâmetro, mas a chamada passa 2 argumentos
+Erro semântico na linha 44: Argumento 3 de 'media': o parâmetro var 'm' é real e a variável 'i' é integer (num parâmetro var os tipos devem ser iguais)
+Erro semântico na linha 45: Argumento 1 de 'media': o parâmetro 'a' é real e o argumento é string
+Erro semântico na linha 46: Argumento 2 de 'media': o parâmetro 'b' é real e o argumento é char
+Erro semântico na linha 46: Argumento 3 de 'media': o parâmetro var 'm' é real e a variável 'c' é char (num parâmetro var os tipos devem ser iguais)
+Erro semântico na linha 48: Argumento 2 de 'escrever': o parâmetro 'vezes' é integer e o argumento é real
+Erro semântico na linha 49: O procedimento 'escrever' tem 2 parâmetros, mas a chamada passa 1 argumento
+Erro semântico na linha 50: O procedimento 'nada' tem 0 parâmetros, mas a chamada passa 1 argumento
+Erro semântico na linha 52: 'read' precisa de pelo menos um argumento
+Erro semântico na linha 53: Argumento 2 de 'read' precisa ser uma variável
+Erro semântico na linha 54: Argumento 1 de 'read' precisa ser uma variável
+Erro semântico na linha 55: 'write' precisa de pelo menos um argumento
+Erro semântico na linha 59: Identificador 'x' não declarado
+Erro semântico na linha 60: 'nada' é um procedimento e não pode ser usado em uma expressão
+
+Tabela de símbolos:
+Escopo    Nível  Nome      Categoria                 Tipo     Linha  Parâmetros
+externo   0      read      procedimento predefinido  -        -
+externo   0      write     procedimento predefinido  -        -
+externo   0      writeln   procedimento predefinido  -        -
+externo   0      Chamadas  programa                  -        5
+global    1      i         variável                  integer  6
+global    1      r         variável                  real     7
+global    1      c         variável                  char     8
+global    1      s         variável                  string   9
+global    1      dobrar    procedimento              -        11     (var n: integer)
+dobrar    2      n         parâmetro var             integer  11
+global    1      media     procedimento              -        16     (a: real; b: real; var m: real)
+media     2      a         parâmetro                 real     16
+media     2      b         parâmetro                 real     16
+media     2      m         parâmetro var             real     16
+global    1      escrever  procedimento              -        21     (texto: string; vezes: integer)
+escrever  2      texto     parâmetro                 string   21
+escrever  2      vezes     parâmetro                 integer  21
+global    1      nada      procedimento              -        30

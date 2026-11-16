@@ -1,0 +1,20 @@
+OK
+
+Tabela de símbolos:
+Escopo           Nível  Nome     Categoria                 Tipo     Linha  Parâmetros
+externo          0      read     procedimento predefinido  -        -
+externo          0      write    procedimento predefinido  -        -
+externo          0      writeln  procedimento predefinido  -        -
+externo          0      Escopos  programa                  -        6
+global           1      x        variável                  integer  7
+global           1      total    variável                  integer  7
+global           1      escopos  variável                  string   8
+global           1      externa  procedimento              -        10     (x: real)
+externa          2      x        parâmetro                 real     10
+externa          2      y        variável                  integer  11
+externa          2      interna  procedimento              -        13     (var y: integer)
+externa.interna  3      y        parâmetro var             integer  13
+externa.interna  3      z        variável                  char     14
+global           1      contar   procedimento              -        28     (n: integer)
+contar           2      n        parâmetro                 integer  28
+contar           2      write    variável                  integer  29

@@ -1,0 +1,20 @@
+Erro semântico na linha 16: Argumento 3 de 'calcular': o parâmetro var 'resultado' é real e a variável 'faltas' é integer (num parâmetro var os tipos devem ser iguais)
+Erro semântico na linha 18: Identificador 'situacao' não declarado
+Erro léxico na linha 21: Caractere inválido: !
+Erro sintático na linha 23: Encontrado identificador 'writeln'; esperado 'then', '+', '-', '*', 'div' ou 'mod'
+
+Tabela de símbolos (a análise semântica parou no primeiro erro sintático: só o que foi declarado até ali):
+Escopo    Nível  Nome       Categoria                 Tipo     Linha  Parâmetros
+externo   0      read       procedimento predefinido  -        -
+externo   0      write      procedimento predefinido  -        -
+externo   0      writeln    procedimento predefinido  -        -
+externo   0      Notas      programa                  -        4
+global    1      nota1      variável                  real     5
+global    1      nota2      variável                  real     5
+global    1      media      variável                  real     5
+global    1      faltas     variável                  integer  6
+global    1      nome       variável                  string   7
+global    1      calcular   procedimento              -        9      (a: real; b: real; var resultado: real)
+calcular  2      a          parâmetro                 real     9
+calcular  2      b          parâmetro                 real     9
+calcular  2      resultado  parâmetro var             real     9

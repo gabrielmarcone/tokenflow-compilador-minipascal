@@ -1,0 +1,24 @@
+/* Demonstração do TokenFlow: a média de duas notas de um aluno.
+   Este arquivo tem erros das três fases; apresentacao_corrigido.txt
+   é o mesmo programa sem erros. */
+program Notas;
+var nota1, nota2, media: real;
+    faltas: integer;
+    nome: string;
+
+procedure calcular(a, b: real; var resultado: real);
+begin
+  resultado := (a + b) * 0.5;
+end;
+
+begin
+  read(nome, nota1, nota2, faltas);
+  calcular(nota1, nota2, faltas);
+  if media >= 7.0 then
+    situacao := "aprovado"
+  else
+    writeln(nome, " vai para a prova final");
+  if faltas != 0 then
+    writeln("faltas: ", faltas);
+  if faltas > 18 writeln("reprovado por faltas");
+end.

@@ -1,0 +1,31 @@
+Erro semântico na linha 8: 'x' já foi declarado neste escopo (variável, linha 7)
+Erro semântico na linha 11: 'a' já foi declarado neste escopo (parâmetro, linha 11)
+Erro semântico na linha 12: 'a' já foi declarado neste escopo (parâmetro, linha 11)
+Erro semântico na linha 21: Identificador 'z' não declarado
+Erro semântico na linha 23: Identificador 'depois' não declarado
+Erro semântico na linha 26: 'p' já foi declarado neste escopo (procedimento, linha 11)
+Erro semântico na linha 37: Identificador 'z' não declarado
+Erro semântico na linha 38: 'q' é um procedimento e não pode ser usado em uma expressão
+Erro semântico na linha 39: Não é possível atribuir um valor a 'q', que é um procedimento
+Erro semântico na linha 40: 'y' é uma variável do tipo integer e não pode ser chamado como procedimento
+Erro semântico na linha 41: 'y' é uma variável do tipo integer e não pode ser chamado como procedimento
+Erro semântico na linha 42: Não é possível atribuir um valor a 'Nomes', que é o nome do programa
+Erro semântico na linha 43: 'Nomes' é o nome do programa e não pode ser usado em uma expressão
+Erro semântico na linha 44: Identificador 'r' não declarado
+Erro semântico na linha 45: Identificador 'local' não declarado
+Erro semântico na linha 46: Não é possível atribuir um valor a 'read', que é um procedimento predefinido
+
+Tabela de símbolos:
+Escopo   Nível  Nome     Categoria                 Tipo     Linha  Parâmetros
+externo  0      read     procedimento predefinido  -        -
+externo  0      write    procedimento predefinido  -        -
+externo  0      writeln  procedimento predefinido  -        -
+externo  0      Nomes    programa                  -        6
+global   1      x        variável                  integer  7
+global   1      y        variável                  integer  7
+global   1      texto    variável                  string   9
+global   1      p        procedimento              -        11     (a: integer; a: real)
+p        2      a        parâmetro                 integer  11
+p        2      local    variável                  integer  13
+global   1      q        procedimento              -        19
+global   1      depois   procedimento              -        31

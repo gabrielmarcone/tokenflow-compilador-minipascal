@@ -1,0 +1,16 @@
+Erro sintático na linha 7: Encontrado identificador 'b'; esperado ':' ou ','
+Erro sintático na linha 11: Encontrado ';'; esperado ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+Erro sintático na linha 12: Encontrado identificador 'y'; esperado 'then', '+', '-', '*', 'div' ou 'mod'
+Erro sintático na linha 13: Encontrado identificador 'y'; esperado 'do', '+', '-', '*', 'div' ou 'mod'
+Erro sintático na linha 14: Encontrado '='; esperado ';', '(' ou ':='
+Erro sintático na linha 15: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'
+Erro sintático na linha 16: Encontrado '+'; esperado identificador, '(', número, constante string ou constante char
+Erro sintático na linha 18: Encontrado identificador 'x'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+Erro sintático na linha 20: Fim do arquivo inesperado; esperado '.'
+
+Tabela de símbolos (a análise semântica parou no primeiro erro sintático: só o que foi declarado até ali):
+Escopo   Nível  Nome       Categoria                 Tipo  Linha  Parâmetros
+externo  0      read       procedimento predefinido  -     -
+externo  0      write      procedimento predefinido  -     -
+externo  0      writeln    procedimento predefinido  -     -
+externo  0      Sintatico  programa                  -     6

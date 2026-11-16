@@ -1,0 +1,20 @@
+Erro léxico na linha 13: Caractere inválido: #
+Erro semântico na linha 14: Tipos incompatíveis na atribuição a 'b': a variável é integer e a expressão é string
+Erro semântico na linha 15: Identificador 'c' não declarado
+Erro semântico na linha 16: Tipos incompatíveis na atribuição a 'nome': a variável é string e a expressão é integer
+Erro léxico na linha 16: Caractere inválido: ?
+Erro sintático na linha 17: Encontrado ';'; esperado ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+Erro léxico na linha 19: Caractere inválido: @
+Erro sintático na linha 19: Encontrado número '2'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+Erro léxico na linha 21: String não fechada (falta "): "sem fechar;
+Erro sintático na linha 22: Encontrado ':='; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
+
+Tabela de símbolos (a análise semântica parou no primeiro erro sintático: só o que foi declarado até ali):
+Escopo   Nível  Nome     Categoria                 Tipo     Linha  Parâmetros
+externo  0      read     procedimento predefinido  -        -
+externo  0      write    procedimento predefinido  -        -
+externo  0      writeln  procedimento predefinido  -        -
+externo  0      Misto    programa                  -        9
+global   1      a        variável                  integer  10
+global   1      b        variável                  integer  10
+global   1      nome     variável                  string   11

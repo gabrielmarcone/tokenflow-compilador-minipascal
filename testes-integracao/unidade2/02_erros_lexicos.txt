@@ -1,0 +1,21 @@
+/* Teste 02 - erros léxicos.
+   Cada caractere fora da linguagem é um erro léxico e some da entrada da
+   análise sintática. Aqui, sem esses caracteres, o programa fica correto:
+   só aparecem os erros léxicos, e a análise semântica vai até o fim.
+   Dentro de strings e comentários qualquer caractere vale: @ # $ { } ! */
+program Lexico;
+var média, total: integer;
+    identificador_com_mais_de_sessenta_e_tres_caracteres_que_sera_truncado: real;
+    msg: string;
+begin
+  média := 10 # ;
+  total := média $ + 2;
+  if total != 5 then total := 0;
+  msg := "chaves {assim} e arroba @ dentro da string valem";
+  identificador_com_mais_de_sessenta_e_tres_caracteres_que_sera_truncado := 1.5;
+  {total := total + 1};
+  writeln(msg, total ? , média);
+  write(total π);
+  writeln("fim");
+end.
+/* este comentário nunca é fechado
