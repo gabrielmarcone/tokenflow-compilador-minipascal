@@ -1,3 +1,9 @@
+/*
+ * Estilo do TokenFlow: o visual "vidro azul" da Unidade I, com cores por
+ * significado: verde = correto, vermelho = erro, âmbar = atenção.
+ * Fases dos erros: léxico (laranja), sintático (vermelho), semântico (roxo).
+ */
+
 /* ============ BASE ============ */
 
 .root {
@@ -27,12 +33,11 @@
 }
 
 .titulo-secundario {
-    -fx-text-fill: #dff3ff;
-    -fx-font-size: 11px;
-    -fx-letter-spacing: 2px;
+    -fx-text-fill: #e6f6ff;
+    -fx-font-size: 13px;
 }
 
-/* ============ TOOLBAR ============ */
+/* ============ BARRA DE FERRAMENTAS ============ */
 
 .toolbar {
     -fx-background-color: linear-gradient(to bottom, #eaf8fd 0%, #cdeefb 100%);
@@ -43,9 +48,10 @@
 .label-arquivo {
     -fx-text-fill: #4e7a90;
     -fx-font-style: italic;
+    -fx-padding: 0 0 0 6;
 }
 
-/* ============ BOTÕES — efeito vidro/pílula ============ */
+/* ============ BOTÕES (vidro, em pílula) ============ */
 
 .button {
     -fx-background-color:
@@ -58,7 +64,8 @@
     -fx-border-radius: 999;
     -fx-text-fill: white;
     -fx-font-weight: bold;
-    -fx-padding: 8 20 8 20;
+    -fx-padding: 6 16 6 16;
+    -fx-graphic-text-gap: 8;
     -fx-cursor: hand;
     -fx-effect: dropshadow(gaussian, rgba(10,60,90,0.35), 5, 0.15, 0, 2);
 }
@@ -67,17 +74,19 @@
     -fx-background-color:
         linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 55%, rgba(255,255,255,0.0) 100%),
         linear-gradient(to bottom, #86d4f5 0%, #2b9de0 55%, #1a7ec0 100%);
-    -fx-background-radius: 999, 999;
-    -fx-background-insets: 0 0 50% 0, 0;
 }
 
 .button:pressed {
     -fx-background-color:
         linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.3) 100%),
         linear-gradient(to bottom, #12608f 0%, #0d4a70 100%);
-    -fx-background-radius: 999, 999;
     -fx-background-insets: 0, 0;
     -fx-effect: innershadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 1);
+}
+
+.button:focused {
+    -fx-border-color: #ffcf5c;
+    -fx-border-width: 2px;
 }
 
 .button:disabled {
@@ -86,20 +95,13 @@
     -fx-effect: none;
 }
 
-/* Botão de ação principal (Executar análise, Salvar) — vidro verde */
+/* Ação principal (Analisar): vidro verde */
 .botao-destaque {
     -fx-background-color:
         linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.0) 100%),
         linear-gradient(to bottom, #7be0a8 0%, #2aa876 55%, #17864f 100%);
-    -fx-background-radius: 999, 999;
-    -fx-background-insets: 0 0 50% 0, 0;
     -fx-border-color: #0f6a44;
-    -fx-border-width: 1px;
-    -fx-border-radius: 999;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-padding: 8 22 8 22;
-    -fx-cursor: hand;
+    -fx-padding: 6 22 6 22;
     -fx-effect: dropshadow(gaussian, rgba(10,60,40,0.35), 5, 0.15, 0, 2);
 }
 
@@ -107,90 +109,267 @@
     -fx-background-color:
         linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 55%, rgba(255,255,255,0.0) 100%),
         linear-gradient(to bottom, #93ecba 0%, #33bb85 55%, #1a9058 100%);
-    -fx-background-radius: 999, 999;
-    -fx-background-insets: 0 0 50% 0, 0;
 }
 
 .botao-destaque:pressed {
     -fx-background-color:
         linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.3) 100%),
         linear-gradient(to bottom, #146a45 0%, #0c4c32 100%);
-    -fx-background-radius: 999, 999;
-    -fx-background-insets: 0, 0;
-    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 1);
 }
 
-.botao-destaque:disabled {
-    -fx-opacity: 0.45;
-    -fx-cursor: default;
-    -fx-effect: none;
+/* Botões secundários, dentro das abas */
+.botao-pequeno {
+    -fx-font-size: 12px;
+    -fx-padding: 4 12 4 12;
 }
 
-/* ============ PAINÉIS (CÓDIGO / TOKENS / ERROS) ============ */
+.botao-navegacao {
+    -fx-padding: 5 10 5 10;
+    -fx-min-width: 34;
+}
+
+.botao-ajuda {
+    -fx-padding: 6 13 6 13;
+    -fx-font-size: 14px;
+}
+
+/* Ícones (SVG) */
+.icone {
+    -fx-fill: white;
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+}
+
+.icone-navegacao {
+    -fx-fill: white;
+    -fx-scale-x: 0.7;
+    -fx-scale-y: 0.7;
+}
+
+.icone-resultado {
+    -fx-fill: white;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+/* ============ PAINÉIS ============ */
 
 .painel {
     -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.15));
-    -fx-padding: 12;
-}
-
-.painel-erros {
-    -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.2));
-    -fx-border-color: #8fd0ea transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 12 10 12;
 }
 
 .titulo-painel {
     -fx-text-fill: #0c5a82;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-letter-spacing: 1px;
-    -fx-padding: 0 0 6 0;
 }
 
-.split-principal {
+.split-pane {
     -fx-background-color: transparent;
+    -fx-padding: 0;
 }
 
-/* ============ ÁREA DE CÓDIGO ============ */
+.split-pane > .split-pane-divider {
+    -fx-background-color: #8fd0ea;
+    -fx-padding: 0 1 0 1;
+}
 
-.codigo-fonte {
-    -fx-control-inner-background: rgba(255,255,255,0.6);
-    -fx-text-fill: #0c3a52;
-    -fx-font-family: "Consolas", "Courier New", monospace;
-    -fx-font-size: 13px;
+/* ============ EDITOR ============ */
+
+.editor {
+    -fx-background-color: white;
     -fx-background-radius: 10;
     -fx-border-color: #8fd0ea;
     -fx-border-width: 1px;
     -fx-border-radius: 10;
-    -fx-highlight-fill: #ffcf5c;
-    -fx-highlight-text-fill: #0c3a52;
+    -fx-padding: 1;
 }
 
-/* ============ TABELAS (TOKENS E ERROS) ============ */
+/* A fonte de largura fixa é escolhida na abertura (ver Fontes.java). */
+.codigo-fonte,
+.numeros-linha {
+    -fx-font-size: 13px;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
 
-.table-view {
-    -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.7), rgba(255,255,255,0.3));
-    -fx-background-radius: 12;
+.codigo-fonte {
+    -fx-control-inner-background: white;
+    -fx-text-fill: #0c3a52;
+    -fx-highlight-fill: #ffd977;
+    -fx-highlight-text-fill: #3a2600;
+    -fx-background-radius: 0 9 9 0;
+}
+
+.codigo-fonte:focused {
+    -fx-faint-focus-color: transparent;
+    -fx-focus-color: transparent;
+    /* O tema padrão esconde a dica com o foco; aqui ela continua até o usuário digitar. */
+    -fx-prompt-text-fill: #8aa9ba;
+}
+
+.numeros-linha {
+    -fx-control-inner-background: #e7f4fb;
+    -fx-text-fill: #6f97ad;
+    -fx-background-radius: 9 0 0 9;
+    -fx-border-color: transparent #b8e0f2 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.numeros-linha .content,
+.codigo-fonte .content {
+    -fx-padding: 6 6 6 6;
+}
+
+.numeros-linha .scroll-pane {
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: never;
+}
+
+.numeros-linha .scroll-bar {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.posicao-cursor {
+    -fx-text-fill: #4e7a90;
+    -fx-font-size: 11px;
+    -fx-padding: 4 2 0 2;
+}
+
+/* ============ FAIXA DE RESULTADO ============ */
+
+.faixa-resultado {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(10,60,90,0.15), 5, 0.1, 0, 2);
+}
+
+.icone-faixa {
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-max-width: 34;
+    -fx-max-height: 34;
+    -fx-background-radius: 999;
+}
+
+.texto-resultado {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.detalhe-resultado {
+    -fx-font-size: 12px;
+}
+
+.faixa-neutra {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #e3f3fb);
+    -fx-border-color: #8fd0ea;
+}
+.faixa-neutra .icone-faixa { -fx-background-color: #3f9fd3; }
+.faixa-neutra .texto-resultado { -fx-text-fill: #0c5a82; }
+.faixa-neutra .detalhe-resultado { -fx-text-fill: #3b6d86; }
+
+.faixa-ok {
+    -fx-background-color: linear-gradient(to bottom, #f1fcf5, #d3f2df);
+    -fx-border-color: #59c08a;
+}
+.faixa-ok .icone-faixa { -fx-background-color: #24a165; }
+.faixa-ok .texto-resultado { -fx-text-fill: #11663d; }
+.faixa-ok .detalhe-resultado { -fx-text-fill: #2c6e4c; }
+
+.faixa-erro {
+    -fx-background-color: linear-gradient(to bottom, #fff5f4, #fbdcd9);
+    -fx-border-color: #e07b72;
+}
+.faixa-erro .icone-faixa { -fx-background-color: #c9372c; }
+.faixa-erro .texto-resultado { -fx-text-fill: #8f1f17; }
+.faixa-erro .detalhe-resultado { -fx-text-fill: #7a3530; }
+
+.faixa-aviso {
+    -fx-background-color: linear-gradient(to bottom, #fffaf0, #fbeccb);
+    -fx-border-color: #e3b04f;
+}
+.faixa-aviso .icone-faixa { -fx-background-color: #d08a12; }
+.faixa-aviso .texto-resultado { -fx-text-fill: #6e4706; }
+.faixa-aviso .detalhe-resultado { -fx-text-fill: #6e5320; }
+
+/* ============ ABAS ============ */
+
+.tab-pane > .tab-header-area {
+    -fx-padding: 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.75), rgba(205,238,251,0.9));
+    -fx-background-radius: 8 8 0 0;
+    -fx-border-color: #8fd0ea #8fd0ea transparent #8fd0ea;
+    -fx-border-radius: 8 8 0 0;
+    -fx-padding: 4 12 4 12;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: white;
+    -fx-border-color: #3f9fd3 #8fd0ea transparent #8fd0ea;
+    -fx-border-width: 3 1 0 1;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: #0c5a82;
+    -fx-font-weight: bold;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #8fd0ea transparent;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+}
+
+.abas-internas > .tab-header-area > .headers-region > .tab {
+    -fx-padding: 2 10 2 10;
+}
+
+.abas-internas > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-font-weight: normal;
+}
+
+/* ============ TABELAS ============ */
+
+.table-view,
+.list-view {
+    -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(255,255,255,0.6));
+    -fx-background-radius: 10;
     -fx-border-color: #8fd0ea;
     -fx-border-width: 1px;
-    -fx-border-radius: 12;
+    -fx-border-radius: 10;
     -fx-table-cell-border-color: rgba(143,208,234,0.35);
-    -fx-effect: dropshadow(gaussian, rgba(10,60,90,0.15), 5, 0.1, 0, 2);
+    -fx-padding: 1;
 }
 
 .table-view .column-header-background {
     -fx-background-color: linear-gradient(to bottom, #eaf8fd, #b8e4f5);
-    -fx-background-radius: 12 12 0 0;
+    -fx-background-radius: 9 9 0 0;
 }
 
 .table-view .column-header,
-.table-view .filler {
+.table-view .filler,
+.table-view .nested-column-header .column-header {
     -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #8fd0ea transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-border-color: transparent rgba(143,208,234,0.6) #8fd0ea transparent;
+    -fx-border-width: 0 1 1 0;
 }
 
 .table-view .column-header .label {
+    -fx-font-family: "System";
     -fx-text-fill: #0c5a82;
     -fx-font-weight: bold;
     -fx-font-size: 11px;
@@ -202,37 +381,171 @@
 }
 
 .table-row-cell:odd {
-    -fx-background-color: rgba(191,228,245,0.4);
-}
-
-.table-row-cell:selected {
-    -fx-background-color: linear-gradient(to bottom, #ffe9a8, #ffcf5c);
-}
-
-.table-row-cell:selected .table-cell {
-    -fx-text-fill: #5a3d00;
+    -fx-background-color: rgba(191,228,245,0.35);
 }
 
 .table-cell {
     -fx-text-fill: #0c3a52;
-    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
 }
 
-/* Tabela de erros: mesma base, tom avermelhado pra chamar atenção */
-
-#tabelaErros .table-cell {
-    -fx-text-fill: #b02a2a;
+.table-row-cell:selected,
+.table-row-cell:selected:odd {
+    -fx-background-color: linear-gradient(to bottom, #ffe9a8, #ffcf5c);
 }
 
-#tabelaErros .table-row-cell {
-    -fx-background-color: rgba(255,150,150,0.18);
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #4a3200;
 }
 
-#tabelaErros .table-row-cell:odd {
-    -fx-background-color: rgba(255,150,150,0.3);
+/* Texto que quebra em várias linhas (conjuntos FIRST e FOLLOW). */
+.texto-quebrado {
+    -fx-fill: #0c3a52;
 }
 
-/* ============ STATUS BAR ============ */
+.table-row-cell:selected .texto-quebrado {
+    -fx-fill: #4a3200;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #4e7a90;
+    -fx-font-style: italic;
+}
+
+/* Erros: a cor diz a fase */
+.erro-lexico .table-cell { -fx-text-fill: #9a4a00; }
+.erro-sintatico .table-cell { -fx-text-fill: #a3241b; }
+.erro-semantico .table-cell { -fx-text-fill: #6a2fa0; }
+
+.table-row-cell.erro-lexico { -fx-background-color: rgba(255,190,120,0.22); }
+.table-row-cell.erro-sintatico { -fx-background-color: rgba(255,150,150,0.22); }
+.table-row-cell.erro-semantico { -fx-background-color: rgba(200,160,255,0.22); }
+
+/* Passos da pilha */
+.table-row-cell.passo-erro { -fx-background-color: rgba(255,150,150,0.35); }
+.table-row-cell.passo-erro .table-cell { -fx-text-fill: #8f1f17; -fx-font-weight: bold; }
+.table-row-cell.passo-recuperacao { -fx-background-color: rgba(255,214,120,0.35); }
+.table-row-cell.passo-recuperacao .table-cell { -fx-text-fill: #6e4706; }
+.table-row-cell.passo-aceitar { -fx-background-color: rgba(120,220,160,0.4); }
+.table-row-cell.passo-aceitar .table-cell { -fx-text-fill: #11663d; -fx-font-weight: bold; }
+
+.table-row-cell.passo-erro:selected,
+.table-row-cell.passo-recuperacao:selected,
+.table-row-cell.passo-aceitar:selected,
+.table-row-cell.erro-lexico:selected,
+.table-row-cell.erro-sintatico:selected,
+.table-row-cell.erro-semantico:selected {
+    -fx-background-color: linear-gradient(to bottom, #ffe9a8, #ffcf5c);
+}
+
+.label-passo {
+    -fx-font-weight: bold;
+    -fx-text-fill: #0c5a82;
+}
+
+.detalhe-passo {
+    -fx-font-size: 12px;
+    -fx-text-fill: #0c3a52;
+    -fx-background-color: rgba(255,255,255,0.75);
+    -fx-background-radius: 8;
+    -fx-border-color: #8fd0ea;
+    -fx-border-radius: 8;
+    -fx-padding: 6 10 6 10;
+}
+
+.rolagem-detalhe,
+.rolagem-detalhe > .viewport {
+    -fx-background-color: transparent;
+    -fx-padding: 4 0 0 0;
+}
+
+.split-pilha {
+    -fx-background-color: transparent;
+}
+
+.split-pilha > .split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-padding: 3 0 3 0;
+}
+
+/* Tabela ACTION / GOTO */
+.tabela-slr .table-cell {
+    -fx-alignment: center;
+}
+
+.tabela-slr .coluna-estado {
+    -fx-font-weight: bold;
+}
+
+/* ACTION e GOTO cobrem dezenas de colunas: o rótulo fica no começo, à vista. */
+.tabela-slr .column-header.grupo-slr > .label {
+    -fx-alignment: center-left;
+    -fx-padding: 0 0 0 10;
+}
+
+.tabela-slr .celula-reduzir { -fx-text-fill: #6a2fa0; }
+.tabela-slr .celula-empilhar { -fx-text-fill: #0e5a8c; }
+.tabela-slr .celula-aceitar { -fx-text-fill: #11663d; -fx-font-weight: bold; }
+
+.tabela-slr .table-row-cell.linha-destacada {
+    -fx-background-color: rgba(255,217,119,0.45);
+}
+
+.tabela-slr .table-cell.celula-destacada {
+    -fx-background-color: #f2a516;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-border-color: #a86a00;
+    -fx-border-width: 2;
+}
+
+.destaque-slr {
+    -fx-text-fill: #5a3d00;
+    -fx-background-color: #ffe9a8;
+    -fx-background-radius: 6;
+    -fx-border-color: #f2a516;
+    -fx-border-radius: 6;
+    -fx-padding: 4 10 4 10;
+}
+
+/* Estados LR(0) */
+.lista-estados .list-cell {
+    -fx-font-size: 12px;
+    -fx-text-fill: #0c3a52;
+    -fx-padding: 6 10 6 10;
+    -fx-border-color: transparent transparent rgba(143,208,234,0.6) transparent;
+}
+
+.lista-estados .list-cell:selected {
+    -fx-background-color: #ffe9a8;
+}
+
+/* ============ TEXTOS DE APOIO ============ */
+
+.legenda {
+    -fx-text-fill: #3b6d86;
+    -fx-font-size: 11px;
+}
+
+.aviso {
+    -fx-text-fill: #6e4706;
+    -fx-background-color: #fbeccb;
+    -fx-background-radius: 8;
+    -fx-border-color: #e3b04f;
+    -fx-border-radius: 8;
+    -fx-padding: 6 10 6 10;
+}
+
+.campo-invalido {
+    -fx-border-color: #c9372c;
+    -fx-border-radius: 3;
+}
+
+.texto-ajuda {
+    -fx-font-size: 13px;
+}
+
+/* ============ BARRA DE STATUS ============ */
 
 .status-bar {
     -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(191,228,245,0.9));
@@ -244,15 +557,4 @@
     -fx-text-fill: #0c5a82;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-}
-
-/* ============ DIVISOR DO SPLITPANE ============ */
-
-.split-pane {
-    -fx-background-color: transparent;
-}
-
-.split-pane-divider {
-    -fx-background-color: #8fd0ea;
-    -fx-padding: 0 1 0 1;
 }

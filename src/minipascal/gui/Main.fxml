@@ -3,33 +3,47 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import minipascal.gui.EditorCodigo?>
 
-<BorderPane prefHeight="700" prefWidth="1000" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="minipascal.gui.AnalisadorController">
+<!--
+  Janela do TokenFlow. À esquerda, o código (sempre visível); à direita, o
+  resultado da análise (faixa de resultado) e as abas, na ordem das fases do
+  compilador: Erros, Tokens (léxica), Pilha (sintática), Símbolos (semântica)
+  e a descrição da linguagem (Gramática e SLR(1)). O comportamento está em
+  AnalisadorController.
+-->
+<BorderPane fx:id="raiz" prefHeight="780" prefWidth="1280" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="minipascal.gui.AnalisadorController">
 
     <top>
         <VBox>
             <children>
-                <VBox spacing="4" styleClass="header">
-                    <padding><Insets bottom="18" left="20" right="20" top="18" /></padding>
-                    <children>
-                        <Label styleClass="titulo-principal" text="TokenFlow - Analisador Léxico Mini_Pascal" />
-                    </children>
-                </VBox>
-                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">
+                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="header">
                     <padding><Insets bottom="10" left="20" right="20" top="10" /></padding>
                     <children>
-                        <Button fx:id="btnAbrirArquivo" onAction="#abrirArquivo" text="📁  Abrir Arquivo" />
-                        <Label fx:id="labelArquivoAtual" styleClass="label-arquivo" text="(nenhum arquivo carregado)" />
+                        <Label styleClass="titulo-principal" text="TokenFlow" />
+                        <Label styleClass="titulo-secundario" text="Compilador Mini_Pascal · análise léxica, sintática e semântica" />
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="toolbar">
+                    <padding><Insets bottom="8" left="20" right="20" top="8" /></padding>
+                    <children>
+                        <Button fx:id="btnAbrir" onAction="#abrirArquivo" text="Abrir" />
+                        <Button fx:id="btnSalvar" disable="true" onAction="#salvarResultado" text="Salvar resultado" />
+                        <Label fx:id="labelArquivoAtual" styleClass="label-arquivo" text="programa sem nome" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button fx:id="btnExecutar" disable="true" onAction="#executarAnalise" styleClass="botao-destaque" text="▶  Executar Análise" />
+                        <Button fx:id="btnAjuda" onAction="#mostrarAjuda" styleClass="botao-ajuda" text="?" />
+                        <Button fx:id="btnAnalisar" disable="true" onAction="#analisar" styleClass="botao-destaque" text="Analisar" />
                     </children>
                 </HBox>
             </children>
@@ -37,44 +51,135 @@
     </top>
 
     <center>
-        <SplitPane dividerPositions="0.75" orientation="VERTICAL">
+        <SplitPane fx:id="splitPrincipal" dividerPositions="0.36" styleClass="split-principal">
             <items>
-                <SplitPane fx:id="splitPrincipal" dividerPositions="0.45" styleClass="split-principal">
-                    <items>
-                        <VBox styleClass="painel">
-                            <children>
-                                <Label styleClass="titulo-painel" text="Código-Fonte" />
-                                <TextArea fx:id="areaCodigoFonte" editable="true" wrapText="false"
-                                promptText="Cole ou digite o código-fonte aqui, ou clique em Abrir Arquivo..."
-                                styleClass="codigo-fonte" VBox.vgrow="ALWAYS"/>
-                            </children>
-                        </VBox>
-                        <VBox styleClass="painel">
-                            <children>
-                                <Label styleClass="titulo-painel" text="Fluxo de Tokens" />
-                                <TableView fx:id="tabelaTokens" VBox.vgrow="ALWAYS">
-                                    <columns>
-                                        <TableColumn fx:id="colNumero" prefWidth="40" text="#" />
-                                        <TableColumn fx:id="colLexema" prefWidth="150" text="Lexema" />
-                                        <TableColumn fx:id="colTipo" prefWidth="180" text="Tipo" />
-                                        <TableColumn fx:id="colLinha" prefWidth="60" text="Linha" />
-                                    </columns>
-                                </TableView>
-                            </children>
-                        </VBox>
-                    </items>
-                </SplitPane>
-                <VBox spacing="4" styleClass="painel-erros">
-                    <padding><Insets bottom="8" left="20" right="20" top="8" /></padding>
+                <VBox minWidth="300" spacing="6" styleClass="painel">
                     <children>
-                        <Label styleClass="titulo-painel" text="Erros Léxicos" />
-                        <TableView fx:id="tabelaErros" prefHeight="120">
-                            <columns>
-                                <TableColumn fx:id="colErroLinha" prefWidth="60" text="Linha" />
-                                <TableColumn fx:id="colErroLexema" prefWidth="120" text="Lexema" />
-                                <TableColumn fx:id="colErroDescricao" prefWidth="250" text="Descrição" />
-                            </columns>
-                        </TableView>
+                        <Label styleClass="titulo-painel" text="CÓDIGO-FONTE" />
+                        <EditorCodigo fx:id="editor" VBox.vgrow="ALWAYS" />
+                    </children>
+                </VBox>
+                <VBox minWidth="420" spacing="8" styleClass="painel">
+                    <children>
+                        <HBox fx:id="faixaResultado" alignment="CENTER_LEFT" spacing="12" styleClass="faixa-resultado">
+                            <padding><Insets bottom="10" left="14" right="14" top="10" /></padding>
+                            <children>
+                                <StackPane fx:id="iconeResultado" styleClass="icone-faixa" />
+                                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="labelResultado" styleClass="texto-resultado" wrapText="true" />
+                                        <Label fx:id="labelDetalheResultado" styleClass="detalhe-resultado" wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                        <TabPane fx:id="abasResultado" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                            <tabs>
+                                <Tab fx:id="abaErros" text="Erros">
+                                    <content>
+                                        <VBox spacing="6">
+                                            <padding><Insets top="8" /></padding>
+                                            <children>
+                                                <TableView fx:id="tabelaErros" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="colErroLinha" prefWidth="50" sortable="false" text="Linha" />
+                                                        <TableColumn fx:id="colErroFase" prefWidth="90" sortable="false" text="Fase" />
+                                                        <TableColumn fx:id="colErroMensagem" prefWidth="620" sortable="false" text="Mensagem" />
+                                                    </columns>
+                                                </TableView>
+                                                <Label styleClass="legenda" text="Clique num erro para ver a linha no código." />
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab fx:id="abaTokens" text="Tokens">
+                                    <content>
+                                        <VBox spacing="6">
+                                            <padding><Insets top="8" /></padding>
+                                            <children>
+                                                <TableView fx:id="tabelaTokens" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="colNumero" prefWidth="56" sortable="false" text="#" />
+                                                        <TableColumn fx:id="colLexema" prefWidth="220" sortable="false" text="Lexema" />
+                                                        <TableColumn fx:id="colTipo" prefWidth="200" sortable="false" text="Classe" />
+                                                        <TableColumn fx:id="colLinha" prefWidth="60" sortable="false" text="Linha" />
+                                                    </columns>
+                                                </TableView>
+                                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                                    <children>
+                                                        <Label maxWidth="Infinity" styleClass="legenda" text="Saída da análise léxica (Unidade I): um par lexema / classe por token." wrapText="true" HBox.hgrow="ALWAYS" />
+                                                        <Button fx:id="btnSalvarTokens" disable="true" minWidth="-Infinity" onAction="#salvarTokens" styleClass="botao-pequeno" text="Salvar lista de tokens" />
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab fx:id="abaPilha" text="Pilha">
+                                    <content>
+                                        <VBox spacing="6">
+                                            <padding><Insets top="8" /></padding>
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                                    <children>
+                                                        <Button fx:id="btnPrimeiroPasso" onAction="#primeiroPasso" styleClass="botao-navegacao" />
+                                                        <Button fx:id="btnPassoAnterior" onAction="#passoAnterior" styleClass="botao-navegacao" />
+                                                        <Label fx:id="labelPasso" alignment="CENTER" minWidth="120" styleClass="label-passo" text="Passo 0 de 0" />
+                                                        <Button fx:id="btnProximoPasso" onAction="#proximoPasso" styleClass="botao-navegacao" />
+                                                        <Button fx:id="btnUltimoPasso" onAction="#ultimoPasso" styleClass="botao-navegacao" />
+                                                        <Button fx:id="btnProximoErro" minWidth="-Infinity" onAction="#proximoErroNaPilha" styleClass="botao-pequeno" text="Próximo erro" />
+                                                        <Region HBox.hgrow="ALWAYS" />
+                                                        <Button fx:id="btnVerNaTabela" minWidth="-Infinity" onAction="#verPassoNaTabela" styleClass="botao-pequeno" text="Ver na tabela SLR" />
+                                                    </children>
+                                                </HBox>
+                                                <!-- Tabela e detalhe do passo, com divisória que o usuário pode arrastar. -->
+                                                <SplitPane fx:id="splitPilha" dividerPositions="0.78" orientation="VERTICAL" styleClass="split-pilha" VBox.vgrow="ALWAYS">
+                                                    <items>
+                                                        <TableView fx:id="tabelaPassos" minHeight="90">
+                                                            <columns>
+                                                                <TableColumn fx:id="colPassoNumero" prefWidth="48" sortable="false" text="Passo" />
+                                                                <TableColumn fx:id="colPassoPilha" prefWidth="130" sortable="false" text="Pilha (estados)" />
+                                                                <TableColumn fx:id="colPassoSimbolos" prefWidth="190" sortable="false" text="Símbolos" />
+                                                                <TableColumn fx:id="colPassoEntrada" prefWidth="150" sortable="false" text="Entrada" />
+                                                                <TableColumn fx:id="colPassoAcao" prefWidth="330" sortable="false" text="Ação" />
+                                                            </columns>
+                                                        </TableView>
+                                                        <ScrollPane fitToWidth="true" minHeight="40" styleClass="rolagem-detalhe">
+                                                            <content>
+                                                                <Label fx:id="labelDetalhePasso" maxWidth="Infinity" styleClass="detalhe-passo" wrapText="true" />
+                                                            </content>
+                                                        </ScrollPane>
+                                                    </items>
+                                                </SplitPane>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab fx:id="abaSimbolos" text="Símbolos">
+                                    <content>
+                                        <VBox spacing="6">
+                                            <padding><Insets top="8" /></padding>
+                                            <children>
+                                                <Label fx:id="labelAvisoSimbolos" managed="false" maxWidth="Infinity" styleClass="aviso" visible="false" wrapText="true" />
+                                                <TableView fx:id="tabelaSimbolos" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="colSimboloEscopo" prefWidth="100" sortable="false" text="Escopo" />
+                                                        <TableColumn fx:id="colSimboloNivel" prefWidth="54" sortable="false" text="Nível" />
+                                                        <TableColumn fx:id="colSimboloNome" prefWidth="110" sortable="false" text="Nome" />
+                                                        <TableColumn fx:id="colSimboloCategoria" prefWidth="170" sortable="false" text="Categoria" />
+                                                        <TableColumn fx:id="colSimboloTipo" prefWidth="70" sortable="false" text="Tipo" />
+                                                        <TableColumn fx:id="colSimboloLinha" prefWidth="54" sortable="false" text="Linha" />
+                                                        <TableColumn fx:id="colSimboloParametros" prefWidth="260" sortable="false" text="Parâmetros" />
+                                                    </columns>
+                                                </TableView>
+                                                <Label maxWidth="Infinity" styleClass="legenda" text="Nível 0: externo (predefinidos e nome do programa); 1: global; 2 em diante: dentro de procedimentos." wrapText="true" />
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab fx:id="abaSLR" text="Gramática e SLR(1)" />
+                            </tabs>
+                        </TabPane>
                     </children>
                 </VBox>
             </items>
@@ -83,13 +188,13 @@
 
     <bottom>
         <HBox alignment="CENTER_LEFT" spacing="24" styleClass="status-bar">
-            <padding><Insets bottom="8" left="20" right="20" top="8" /></padding>
+            <padding><Insets bottom="6" left="20" right="20" top="6" /></padding>
             <children>
-                <Label fx:id="labelContagemTokens" text="Tokens: 0" />
-                <Label fx:id="labelContagemErros" text="Erros: 0" />
+                <Label fx:id="labelContagemTokens" minWidth="-Infinity" text="Tokens: 0" />
+                <Label fx:id="labelContagemErros" minWidth="-Infinity" text="Erros: 0" />
+                <Label fx:id="labelContagemPassos" minWidth="-Infinity" text="Passos: 0" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="labelStatus" text="Aguardando arquivo..." />
-                <Button fx:id="btnSalvarSaida" disable="true" onAction="#salvarSaida" styleClass="botao-destaque" text="💾  Salvar Resultado" />
+                <Label fx:id="labelStatus" text="Pronto" />
             </children>
         </HBox>
     </bottom>
