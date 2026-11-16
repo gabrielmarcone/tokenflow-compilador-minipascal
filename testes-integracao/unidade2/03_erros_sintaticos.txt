@@ -1,6 +1,8 @@
 /* Teste 03 - erros sintáticos e a recuperação.
    Cada erro é relatado com a linha e com o que era esperado ali; depois a
    análise se recupera e continua, então uma execução mostra todos eles.
+   Na linha 19, como no Pascal, o "and" liga com mais força que o ">", e
+   comparações ligadas por and/or precisam de parênteses.
    Não há erros léxicos nem semânticos (a análise semântica para no
    primeiro erro sintático). */
 program Sintatico;
@@ -14,6 +16,7 @@ begin
   x = y + 1;
   if x > y then x := 1; else x := 2;
   y := x * + 3;
+  if x > 0 and y > 0 then x := 0;
   writeln(x, y
   x := x + 1;
   y := y - 1;

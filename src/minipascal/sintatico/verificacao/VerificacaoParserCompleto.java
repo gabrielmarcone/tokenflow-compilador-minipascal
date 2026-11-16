@@ -87,12 +87,12 @@ public class VerificacaoParserCompleto {
 
     private static void verificarGramatica() {
         Gramatica g = TABELA.getGramatica();
-        checar("gramatica.txt: 57 produções (mais a aumentada)", g.getProducoes().size() == 58);
+        checar("gramatica.txt: 61 produções (mais a aumentada)", g.getProducoes().size() == 62);
         checar("gramatica.txt: 22 não terminais, símbolo inicial PROG",
                 g.getNaoTerminais().size() == 22 && g.getSimboloInicial().equals("PROG"));
-        checar("gramatica.txt: 33 terminais mais $", g.getTerminais().size() == 34);
-        checar("gramatica.txt: 112 estados LR(0) e nenhum conflito (a tabela foi construída)",
-                TABELA.numeroDeEstados() == 112 && !TABELA.getAnalise().temConflitos());
+        checar("gramatica.txt: 37 terminais mais $", g.getTerminais().size() == 38);
+        checar("gramatica.txt: 120 estados LR(0) e nenhum conflito (a tabela foi construída)",
+                TABELA.numeroDeEstados() == 120 && !TABELA.getAnalise().temConflitos());
         // O cabeçalho do procedimento é um não terminal próprio: a análise semântica
         // abre o escopo do procedimento quando ele é reduzido, antes do bloco.
         checar("gramatica.txt: CAB_PROC -> procedure id PALIST e BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;",
@@ -107,7 +107,8 @@ public class VerificacaoParserCompleto {
         Set<String> esperados = new HashSet<>();
         String[] nomes = {"program", "id", ";", ".", "begin", "end", "var", ":", "tipo", ",", "procedure",
                 "(", ")", "if", "then", "else", "while", "do", ":=", "=", "<", ">", "<>", "<=", ">=",
-                "+", "-", "*", "div", "mod", "numero", "constante_string", "constante_char", "$"};
+                "+", "-", "or", "*", "/", "div", "mod", "and", "numero", "constante_string", "constante_char",
+                "not", "$"};
         for (String n : nomes) {
             esperados.add(n);
         }
@@ -214,7 +215,7 @@ public class VerificacaoParserCompleto {
 
     private static void verificarErros() {
         checarSaida("falta ';' antes de 'end'", "program p; begin x := 1 end.",
-                "Erro sintático na linha 1: Encontrado 'end'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'");
+                "Erro sintático na linha 1: Encontrado 'end'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
         checarSaida("';' antes de 'else'", "program p; begin if a then x := 1; else x := 2; end.",
                 "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
         checarSaida("falta o '.' final", "program p; begin x := 1; end",
@@ -231,26 +232,33 @@ public class VerificacaoParserCompleto {
                 "Erro sintático na linha 1: Encontrado 'for'; esperado identificador, 'begin', 'if' ou 'while'");
         checarSaida("'const' não existe na gramática", "program p; const c = 1; begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'const'; esperado 'begin', 'var' ou 'procedure'");
-        checarSaida("'/' não existe na gramática", "program p; begin x := a / b; end.",
-                "Erro sintático na linha 1: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'");
-        checarSaida("'and' não existe na gramática", "program p; begin if a and b then x := 1; end.",
-                "Erro sintático na linha 1: Encontrado 'and'; esperado 'then', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'");
+        // '/', 'and', 'or' e 'not' entraram na gramática (com a precedência do Pascal).
+        checarSaida("'/' faz parte da gramática", "program p; begin x := a / b; end.", "OK");
+        checarSaida("'and', 'or' e 'not' fazem parte da gramática",
+                "program p; begin if (a < b) and not (c = d) or (e > f) then x := 1; end.", "OK");
+        checarSaida("'not' tem a prioridade mais alta: not not (a < b)",
+                "program p; begin while not not (a < b) do x := 1; end.", "OK");
+        // Como no Pascal, 'and' liga com mais força que '<': "a < b and c < d" é
+        // "a < (b and c) < d", e a segunda comparação é erro de sintaxe.
+        checarSaida("comparações ligadas por 'and' precisam de parênteses",
+                "program p; begin if a < b and c < d then x := 1; end.",
+                "Erro sintático na linha 1: Encontrado '<'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
         checarSaida("parênteses vazios na declaração do procedimento", "program p; procedure q(); begin x := 1; end; begin q; end.",
                 "Erro sintático na linha 1: Encontrado ')'; esperado identificador ou 'var'");
         checarSaida("'=' no lugar de ':='", "program p; begin x = 1; end.",
                 "Erro sintático na linha 1: Encontrado '='; esperado ';', '(' ou ':='");
         checarSaida("atribuição sem expressão", "program p; begin x := ; end.",
-                "Erro sintático na linha 1: Encontrado ';'; esperado identificador, '(', '+', '-', número, constante string ou constante char");
+                "Erro sintático na linha 1: Encontrado ';'; esperado identificador, '(', '+', '-', número, constante string, constante char ou 'not'");
         checarSaida("'while' sem comando", "program p; begin while x do; end.",
                 "Erro sintático na linha 1: Encontrado ';'; esperado identificador, 'begin', 'if' ou 'while'");
         checarSaida("erro na linha 5 de um programa em várias linhas", "program p;\nvar x: integer;\nbegin\n  x := 1;\n  x := x +;\nend.",
-                "Erro sintático na linha 5: Encontrado ';'; esperado identificador, '(', número, constante string ou constante char");
+                "Erro sintático na linha 5: Encontrado ';'; esperado identificador, '(', número, constante string, constante char ou 'not'");
         checarSaida("texto depois do '.' final", "program p; begin x := 1; end. x",
                 "Erro sintático na linha 1: Encontrado identificador 'x'; esperado fim do arquivo");
         checarSaida("'var' sem nome de parâmetro", "program p; procedure q(var: integer); begin x := 1; end; begin q; end.",
                 "Erro sintático na linha 1: Encontrado ':'; esperado identificador");
         checarSaida("argumento faltando depois da vírgula", "program p; begin q(a,); end.",
-                "Erro sintático na linha 1: Encontrado ')'; esperado identificador, '(', '+', '-', número, constante string ou constante char");
+                "Erro sintático na linha 1: Encontrado ')'; esperado identificador, '(', '+', '-', número, constante string, constante char ou 'not'");
         checarSaida("';' no lugar do '.' final", "program p; begin x := 1; end;",
                 "Erro sintático na linha 1: Encontrado ';'; esperado '.'");
         checarSaida("só erro léxico (programa correto sem o '@')", "program p; begin x := 1; @\nend.",
@@ -314,12 +322,8 @@ public class VerificacaoParserCompleto {
                 "end;",
                 "write(\"Media Geral = \", Media_das_medias/total);",
                 "end."),
-                // for não existe no Mini_Pascal, nem o operador '/' (aparece duas vezes).
-                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'\n"
-                + "Erro sintático na linha 17: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
-                + "'*', 'div' ou 'mod'\n"
-                + "Erro sintático na linha 21: Encontrado '/'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
-                + "'*', 'div' ou 'mod'");
+                // for não existe no Mini_Pascal (o '/' das linhas 17 e 21 é aceito).
+                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
         checarSaida("programa demo da apresentação da Unidade I", linhas(
                 "/* demonstracao */",
                 "Program Demo;",
@@ -335,19 +339,16 @@ public class VerificacaoParserCompleto {
                 "  x := 5 @ 2;",
                 "  writeln(\"sem fechar);",
                 "end."),
-                // '/' e 'and' não existem no Mini_Pascal. Sem o '@' (erro léxico), sobra
+                // O '/', o 'and' e o 'not' são aceitos. Sem o '@' (erro léxico), sobra
                 // "5 2", que é erro sintático. A string não fechada vai até o fim da
                 // linha 13 (erro léxico); sem ela, sobra "writeln(" e o 'end' da linha 14
                 // chega onde se esperava o argumento.
-                "Erro sintático na linha 8: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'" + "\n"
-                + "Erro sintático na linha 10: Encontrado 'and'; esperado 'then', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
-                + "'*', 'div' ou 'mod'\n"
-                + "Erro léxico na linha 12: Caractere inválido: @" + "\n"
+                "Erro léxico na linha 12: Caractere inválido: @" + "\n"
                 + "Erro sintático na linha 12: Encontrado número '2'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', "
-                + "'*', 'div' ou 'mod'\n"
+                + "'or', '*', '/', 'div', 'mod' ou 'and'\n"
                 + "Erro léxico na linha 13: String não fechada (falta \"): \"sem fechar);\n"
                 + "Erro sintático na linha 14: Encontrado 'end'; esperado identificador, '(', '+', '-', número, "
-                + "constante string ou constante char");
+                + "constante string, constante char ou 'not'");
     }
 
     // ---------------------------------------------------- programas gerados
@@ -480,13 +481,13 @@ public class VerificacaoParserCompleto {
 
             int codigoErro = executarCalado(new String[]{errado.toString(), saida.toString()}, console);
             String esperado = "Erro sintático na linha 3: Encontrado ';'; esperado identificador, '(', número, "
-                    + "constante string ou constante char\n"
+                    + "constante string, constante char ou 'not'\n"
                     + "Erro léxico na linha 4: Caractere inválido: @\n";
             checar("programa com erros: código 1 e arquivo em UTF-8 com acentos (sintático e léxico)",
                     codigoErro == 1 && ler(saida).equals(esperado));
             checar("no console, as mesmas mensagens sem acentos",
                     console[0].replace("\r", "").equals("Erro sintatico na linha 3: Encontrado ';'; esperado "
-                            + "identificador, '(', numero, constante string ou constante char\n"
+                            + "identificador, '(', numero, constante string, constante char ou 'not'\n"
                             + "Erro lexico na linha 4: Caractere invalido: @\n"));
 
             int mesmo = executarCalado(new String[]{ok.toString(), ok.toString()}, console);

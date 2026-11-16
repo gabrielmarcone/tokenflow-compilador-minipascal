@@ -85,7 +85,7 @@ compara com o analisador.
 **Análise sintática**
 
 - ✅ Gramática do enunciado em arquivo de texto (`gramatica.txt`), convertida para GLC, sem
-  conflitos SLR(1): 57 produções, 112 estados
+  conflitos SLR(1): 61 produções, 120 estados
 - ✅ Gerador próprio de tabelas SLR(1): FIRST, FOLLOW, coleção canônica LR(0), tabelas
   ACTION/GOTO, recusa de qualquer conflito, relatório completo e tabela em CSV
 - ✅ Analisador empilha/reduz com pilha de estados e pilha de atributos, onde a análise
@@ -102,8 +102,8 @@ compara com o analisador.
 - ✅ Tabela de símbolos com escopos aninhados (global, procedimentos e procedimentos dentro
   de procedimentos), com `read`, `write` e `writeln` predefinidos
 - ✅ Nomes: não declarado, declarado duas vezes, procedimento usado como variável e o contrário
-- ✅ Tipos: atribuição, operadores (`div`/`mod` só com integer), comparações e condições de
-  `if`/`while`
+- ✅ Tipos: atribuição, operadores (`div`/`mod` só com integer, `/` sempre real, `and`/`or`/`not`
+  só com comparações), comparações e condições de `if`/`while`
 - ✅ Chamadas: número de argumentos, tipo de cada um e parâmetro `var` recebendo variável do
   mesmo tipo
 - ✅ Sem cascatas: uma expressão com erro não gera mais mensagens
@@ -206,7 +206,7 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
 - **Análise sintática:** o arquivo deve conter um programa completo, de `program` até o `.`
   final. Imprime `OK` ou todos os erros encontrados, um por linha, em ordem de linha, por
   exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
-  constante string ou constante char`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8.
+  constante string, constante char ou 'not'`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8.
   Código de saída 0 quando o resultado é `OK` e 1 caso contrário.
 - **Análise completa:** como a sintática, mas com a análise semântica junto; é a saída pedida
   pelo enunciado da Unidade II. Com `--tabela`, imprime também a tabela de símbolos (escopo,
@@ -306,9 +306,9 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 |---|---|---|
 | `01_programa_completo.txt` | Programa correto com toda a linguagem | `OK` |
 | `02_erros_lexicos.txt` | Caracteres inválidos, número mal formado, char com dois caracteres e comentário sem fechar | 10 erros léxicos |
-| `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 9 erros sintáticos |
+| `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 10 erros sintáticos |
 | `04_erros_semanticos_nomes.txt` | Declarações repetidas, nomes não declarados, escopo, categoria | 16 erros semânticos |
-| `05_erros_semanticos_tipos.txt` | Atribuição, operadores, comparações e condições | 22 erros semânticos |
+| `05_erros_semanticos_tipos.txt` | Atribuição, operadores, comparações e condições | 27 erros semânticos |
 | `06_erros_semanticos_chamadas.txt` | Argumentos, parâmetros `var`, `read`/`write`/`writeln` | 19 erros semânticos |
 | `07_escopos.txt` | Procedimentos aninhados, nomes escondidos, recursão | `OK` |
 | `08_erros_misturados.txt` | Erros das três fases juntos | 10 erros |
@@ -319,7 +319,7 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 
 A gramática fica em `src/minipascal/sintatico/gramatica/gramatica.txt`, uma regra por linha
 (`EXPR -> SIEXPR | SIEXPR OPREL SIEXPR`, não terminais em MAIÚSCULAS, `ε` para a produção
-vazia). É a gramática do enunciado convertida de EBNF para GLC, com cinco modificações,
+vazia). É a gramática do enunciado convertida de EBNF para GLC, com seis modificações,
 descritas também no começo do arquivo:
 
 1. **Sinal `-` em SIEXPR.** No enunciado aparece `""` (aspas vazias) no lugar do sinal.
@@ -335,18 +335,25 @@ descritas também no começo do arquivo:
    semântica: num analisador ascendente as ações só rodam nas reduções, e a redução de
    `CAB_PROC`, antes do bloco do procedimento, é o momento de declarar o procedimento e abrir
    o escopo dos parâmetros e das variáveis locais.
+6. **Operadores `/`, `and`, `or` e `not`.** O enunciado da Unidade I os lista como operadores
+   (e o exemplo Piloto usa `/`), mas a gramática da Unidade II não os tinha. Entram com a
+   precedência do Pascal: `not` em FATOR (`FATOR -> not FATOR`), `/` e `and` em TERMO (junto
+   de `*`, `div` e `mod`) e `or` em SIEXPR (junto de `+` e `-`). Como no Pascal, comparações
+   ligadas por `and`/`or` precisam de parênteses: `(a < b) and (c < d)`; sem eles,
+   `a < b and c < d` é lido como `a < (b and c) < d`, que é erro de sintaxe.
 
-Resultado: 57 produções, 22 não terminais, 33 terminais, 112 estados LR(0) e nenhum conflito.
+Resultado: 61 produções, 22 não terminais, 37 terminais (mais o `$`), 120 estados LR(0) e nenhum
+conflito.
 Também vem embutido `expressoes.txt`, o subconjunto das expressões usado na primeira etapa
-(22 produções, 34 estados).
+(22 produções, 34 estados), sem os operadores da modificação 6.
 
 O gerador recusa qualquer gramática com conflito, produção repetida, não terminal sem
 produção, inalcançável ou que não deriva terminais, sempre com a mensagem indicando onde
 está o problema.
 
 O que a gramática não aceita (e por isso vale como limitação da linguagem): `for`,
-`repeat`, `const`, `/`, `and`/`or`/`not`, funções, `;` antes do `else` e parênteses vazios
-na declaração de procedimento. `read`, `write` e `writeln` são aceitos como chamadas de
+`repeat`, `const`, funções, `;` antes do `else`, comparações ligadas por `and`/`or` sem
+parênteses e parênteses vazios na declaração de procedimento. `read`, `write` e `writeln` são aceitos como chamadas de
 procedimento.
 
 ## Recuperação de erros sintáticos
@@ -376,13 +383,15 @@ para que uma única execução mostre o conjunto dos erros do programa, como ped
 - Um caractere inválido some da entrada da análise sintática; se o que sobra estiver errado
   (como `x := 5 @ 2`, que vira `x := 5 2`), aparecem os dois erros, o léxico e o sintático.
 
-Exemplo, com o segundo programa do enunciado (`02_piloto.txt`):
+Exemplo, com o segundo programa do enunciado (`02_piloto.txt`), que usa `for` (fora da
+gramática):
 
 ```
 Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'
-Erro sintático na linha 17: Encontrado '/'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
-Erro sintático na linha 21: Encontrado '/'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
 ```
+
+O resto do programa (inclusive o `/` das linhas 17 e 21) é analisado normalmente depois da
+recuperação, sem erros em cascata.
 
 ## Análise semântica
 
@@ -409,13 +418,15 @@ dos atributos dos filhos.
   e o nome do programa não pode ser usado como variável.
 
 **Tipos**: `integer`, `real`, `char`, `string` e, internamente, *lógico* (o resultado de uma
-comparação). Na atribuição e na passagem de argumentos, os tipos precisam ser iguais, com duas
+comparação, de `and`, `or` e `not`). Na atribuição e na passagem de argumentos, os tipos precisam ser iguais, com duas
 conversões permitidas: `integer` em `real` e `char` em `string`.
 
 | Construção | Regra |
 |---|---|
 | `+` `-` `*` e sinal | números (integer com integer dá integer; com real, real); `+` também junta textos (char e string), dando string |
 | `div`, `mod` | os dois lados integer |
+| `/` | números; o resultado é sempre real (como no Pascal: `4 / 2` dá `2.0`) |
+| `and`, `or`, `not` | operandos lógicos (comparações); o resultado é lógico |
 | `=` `<` `>` `<>` `<=` `>=` | números entre si, textos entre si ou lógicos entre si; o resultado é lógico |
 | condição do `if` e do `while` | lógica (uma comparação) |
 | chamada de procedimento | mesmo número de argumentos e de parâmetros; parâmetro `var` recebe uma variável do mesmo tipo |
@@ -432,6 +443,7 @@ Identificador 'y' não declarado
 Não é possível atribuir um valor a 'q', que é um procedimento
 Tipos incompatíveis na atribuição a 'x': a variável é integer e a expressão é real
 O operador 'div' exige operandos integer, mas recebeu real e integer
+O operador 'and' exige operandos lógicos (comparações), mas recebeu integer e integer
 Comparação entre tipos incompatíveis: integer e string
 A condição do 'if' deve ser lógica (uma comparação), mas é integer
 O procedimento 'q' tem 2 parâmetros, mas a chamada passa 3 argumentos

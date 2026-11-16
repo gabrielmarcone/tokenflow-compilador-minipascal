@@ -277,6 +277,29 @@ public class VerificacaoSemantica {
                 SEM + "5: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real",
                 SEM + "6: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real",
                 SEM + "7: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real");
+        checarSaida("'/' só com números e sempre dá real (como no Pascal)", linhas(
+                "program p;", "var i: integer; r: real; c: char;", "begin", "  r := 4 / 2;", "  r := i / 2.5;",
+                "  i := 4 / 2;", "  r := c / 2;", "end."),
+                SEM + "6: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é real",
+                SEM + "7: O operador '/' não se aplica aos tipos char e integer");
+        checarSaida("and, or e not só com comparações; o resultado é lógico", linhas(
+                "program p;", "var i, j: integer; s: string;", "begin",
+                "  if (i < j) and not (s = \"a\") or (i = 0) then i := 1;",
+                "  while not not (i > j) do i := i - 1;",
+                "  if i and j then i := 2;",
+                "  if (i < j) or s then i := 3;",
+                "  if not i then i := 4;",
+                "  i := (i < j) and (j < i);",
+                "end."),
+                SEM + "6: O operador 'and' exige operandos lógicos (comparações), mas recebeu integer e integer",
+                SEM + "7: O operador 'or' exige operandos lógicos (comparações), mas recebeu lógico e string",
+                SEM + "8: O operador 'not' exige um operando lógico (uma comparação), mas recebeu integer",
+                SEM + "9: Tipos incompatíveis na atribuição a 'i': a variável é integer e a expressão é lógico");
+        checarSaida("expressão lógica com erro não gera outras mensagens", linhas(
+                "program p;", "var i: integer; s: string;", "begin",
+                "  if not (s * 2 > 1) and (i / s < 0) then i := 1;", "end."),
+                SEM + "4: O operador '*' não se aplica aos tipos string e integer",
+                SEM + "4: O operador '/' não se aplica aos tipos integer e string");
         checarSaida("div e mod só com integer", linhas(
                 "program p;", "var i: integer; r: real;", "begin", "  i := r div 2;", "  i := 7 mod r;",
                 "  i := 7 div 2 mod 3;", "end."),
@@ -447,12 +470,12 @@ public class VerificacaoSemantica {
                 r.formatar().equals(String.join("\n",
                         SEM + "4: Tipos incompatíveis na atribuição a 'x': a variável é integer e a expressão é real",
                         "Erro sintático na linha 5: Encontrado ';'; esperado identificador, '(', '+', '-', número, "
-                                + "constante string ou constante char"))
+                                + "constante string, constante char ou 'not'"))
                         && !r.isSemanticaCompleta());
         checarSaida("só erros sintáticos, sem nenhum semântico depois deles", linhas(
                 "program p;", "begin", "  x := 1 +;", "  y := \"a\" * 2;", "end."),
-                "Erro sintático na linha 3: Encontrado ';'; esperado identificador, '(', número, constante string "
-                        + "ou constante char");
+                "Erro sintático na linha 3: Encontrado ';'; esperado identificador, '(', número, constante string, "
+                        + "constante char ou 'not'");
         ResultadoCompilacao lexico = COMPILADOR.analisar(linhas(
                 "program p;", "var x: integer;", "begin", "  x := 1 @;", "  x := 2.5;", "end."));
         checar("erro só léxico (o resto é um programa correto): a semântica continua",
@@ -463,8 +486,8 @@ public class VerificacaoSemantica {
                 "program p;", "var x: integer;", "begin", "  x := y; @ x := 1 +;", "end."),
                 SEM + "4: Identificador 'y' não declarado",
                 "Erro léxico na linha 4: Caractere inválido: @",
-                "Erro sintático na linha 4: Encontrado ';'; esperado identificador, '(', número, constante string "
-                        + "ou constante char");
+                "Erro sintático na linha 4: Encontrado ';'; esperado identificador, '(', número, constante string, "
+                        + "constante char ou 'not'");
         checarSaida("na mesma linha, a condição (antes) sai antes do erro do corpo", linhas(
                 "program p;", "var x: integer;", "begin", "  if x then x := 1.5;", "end."),
                 SEM + "4: A condição do 'if' deve ser lógica (uma comparação), mas é integer",

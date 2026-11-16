@@ -46,8 +46,8 @@ public class VerificacaoRecuperacao {
     private static TabelaSLR TABELA;
     private static AnalisadorSintatico ANALISADOR;
 
-    private static final String NUMERO_ETC = "identificador, '(', número, constante string ou constante char";
-    private static final String OPERADORES = "'=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'";
+    private static final String NUMERO_ETC = "identificador, '(', número, constante string, constante char ou 'not'";
+    private static final String OPERADORES = "'=', '<', '>', '<>', '<=', '>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'";
 
     public static void main(String[] args) {
         try {
@@ -99,7 +99,7 @@ public class VerificacaoRecuperacao {
                 "  if x > 1 x := 2;",
                 "  if x > 1 then x := 3 else",
                 "end."),
-                "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'then', '+', '-', '*', 'div' ou 'mod'",
+                "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'",
                 "Erro sintático na linha 5: Encontrado 'end'; esperado identificador, 'begin', 'if' ou 'while'");
         checarSaida("chamadas: falta ')' e falta ','", linhas(
                 "program p;",
@@ -141,10 +141,10 @@ public class VerificacaoRecuperacao {
     private static void verificarUmErroSo() {
         checarSaida("falta 'then' (o resto do programa segue normal)", linhas(
                 "program p;", "begin", "  if x > 1 x := 2;", "  y := 3;", "end."),
-                "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'then', '+', '-', '*', 'div' ou 'mod'");
+                "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
         checarSaida("falta 'do'", linhas(
                 "program p;", "begin", "  while x < 10 x := x + 1;", "  y := 3;", "end."),
-                "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'do', '+', '-', '*', 'div' ou 'mod'");
+                "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'do', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
         checarSaida("falta 'begin' depois das variáveis", linhas(
                 "program p;", "var x: integer;", "  x := 1;", "  y := 2;", "end."),
                 "Erro sintático na linha 3: Encontrado ':='; esperado ':' ou ','");

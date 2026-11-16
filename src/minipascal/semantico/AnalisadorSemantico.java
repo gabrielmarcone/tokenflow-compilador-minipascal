@@ -303,9 +303,15 @@ public final class AnalisadorSemantico implements AcoesReducao {
                 (v, linha) -> somar((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
         regra("SIEXPR -> SIEXPR - TERMO",
                 (v, linha) -> aritmetica((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
+        regra("SIEXPR -> SIEXPR or TERMO",
+                (v, linha) -> logica((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
         regra("TERMO -> FATOR", (v, linha) -> v.get(0));
         regra("TERMO -> TERMO * FATOR",
                 (v, linha) -> aritmetica((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
+        regra("TERMO -> TERMO / FATOR",
+                (v, linha) -> dividir((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
+        regra("TERMO -> TERMO and FATOR",
+                (v, linha) -> logica((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
         regra("TERMO -> TERMO div FATOR",
                 (v, linha) -> inteira((Expressao) v.get(0), (Terminal) v.get(1), (Expressao) v.get(2)));
         regra("TERMO -> TERMO mod FATOR",
@@ -320,6 +326,7 @@ public final class AnalisadorSemantico implements AcoesReducao {
         });
         regra("FATOR -> constante_string", (v, linha) -> constante((Terminal) v.get(0), Tipo.STRING));
         regra("FATOR -> constante_char", (v, linha) -> constante((Terminal) v.get(0), Tipo.CHAR));
+        regra("FATOR -> not FATOR", (v, linha) -> negar((Terminal) v.get(0), (Expressao) v.get(1)));
     }
 
     // ---------------------------------------------------------- declarações
@@ -519,6 +526,36 @@ public final class AnalisadorSemantico implements AcoesReducao {
         }
         erro(op, "O operador '" + op.getLexema() + "' não se aplica aos tipos " + a.tipo + " e " + b.tipo);
         return a.comTipo(Tipo.ERRO);
+    }
+
+    // '/': divisao de numeros, sempre real (como no Pascal: 4 / 2 da 2.0).
+    private Expressao dividir(Expressao a, Terminal op, Expressao b) {
+        Expressao resultado = aritmetica(a, op, b);
+        return resultado.tipo == Tipo.ERRO ? resultado : resultado.comTipo(Tipo.REAL);
+    }
+
+    // and e or: os dois lados logicos (comparacoes); o resultado e logico.
+    private Expressao logica(Expressao a, Terminal op, Expressao b) {
+        if (a.tipo == Tipo.ERRO || b.tipo == Tipo.ERRO) {
+            return a.comTipo(Tipo.ERRO);
+        }
+        if (a.tipo == Tipo.LOGICO && b.tipo == Tipo.LOGICO) {
+            return a.comTipo(Tipo.LOGICO);
+        }
+        erro(op, "O operador '" + op.getLexema() + "' exige operandos lógicos (comparações), mas recebeu "
+                + a.tipo + " e " + b.tipo);
+        return a.comTipo(Tipo.ERRO);
+    }
+
+    // not: o operando logico (uma comparacao entre parenteses); o resultado e logico.
+    private Expressao negar(Terminal op, Expressao e) {
+        Expressao resultado = new Expressao(e.tipo, op.getLinha(), op.getPosicao(), null);
+        if (e.tipo == Tipo.ERRO || e.tipo == Tipo.LOGICO) {
+            return resultado;
+        }
+        erro(op, "O operador '" + op.getLexema() + "' exige um operando lógico (uma comparação), mas recebeu "
+                + e.tipo);
+        return resultado.comTipo(Tipo.ERRO);
     }
 
     // div e mod: só integer.
