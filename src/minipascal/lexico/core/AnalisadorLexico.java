@@ -193,43 +193,62 @@ public class AnalisadorLexico {
         return new Token(lexema, tipo != null ? tipo : TipoToken.IDENTIFICADOR, linhaToken);
     }
 
-    // Cobre inteiro, real e real com expoente (com ou sem sinal). Se depois
-    // do "." não vier dígito, ou depois do "e/E" não vier sinal/dígito, o
-    // ponteiro volta pra onde estava e o número fica só com a parte válida.
+    /*
+     * Numeros (estados q2 a q7 e q30 do AFD):
+     *   inteiro      12
+     *   real         1.5   1.5e-3   2e3   2E+10
+     * Se depois do "." nao vier digito, o ponto nao faz parte do numero
+     * ("3." e "3" seguido de "."). Um numero colado numa letra ou em "_"
+     * ("12abc", "1.5x", "2end", "2e" sem digitos no expoente) vira um unico
+     * erro lexico, "numero mal formado", com todas as letras e digitos colados.
+     */
     private Token lerNumero(int linhaToken) {
         int inicio = pos;
-        while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
+        pularDigitos();
+        boolean real = false;
+        boolean malFormado = false;
+
+        // Parte fracionaria: so se o ponto for seguido de digito.
+        if (proximoCaractereEh('.') && proximoCaractereEhDigito()) {
             pos++;
+            pularDigitos();
+            real = true;
         }
 
-        if (pos < fonte.length() && fonte.charAt(pos) == '.' && proximoCaractereEhDigito()) {
+        // Expoente: e/E, sinal opcional e pelo menos um digito. Um "e" sem
+        // digitos depois ja e numero mal formado (estado q5 do AFD).
+        if (proximoCaractereEh('e') || proximoCaractereEh('E')) {
             pos++;
-            while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
+            boolean temSinal = proximoCaractereEh('+') || proximoCaractereEh('-');
+            int depoisDoSinal = temSinal ? pos + 1 : pos;
+            if (depoisDoSinal < fonte.length() && ehDigito(fonte.charAt(depoisDoSinal))) {
+                pos = depoisDoSinal;
+                pularDigitos();
+                real = true;
+            } else {
+                malFormado = true;
+            }
+        }
+
+        // Letra ou "_" colado no numero: consome tudo o que estiver colado (q30).
+        if (pos < fonte.length() && (ehLetra(fonte.charAt(pos)) || fonte.charAt(pos) == '_')) {
+            malFormado = true;
+            while (pos < fonte.length()
+                    && (ehLetra(fonte.charAt(pos)) || ehDigito(fonte.charAt(pos)) || fonte.charAt(pos) == '_')) {
                 pos++;
             }
-            lerExpoenteSePresente();
         }
 
         String lexema = fonte.substring(inicio, pos);
-        TipoToken tipo = lexema.indexOf('.') >= 0 ? TipoToken.NUMERO_REAL : TipoToken.NUMERO_INTEIRO;
-        return new Token(lexema, tipo, linhaToken);
+        if (malFormado) {
+            return new Token(lexema, TipoToken.ERRO_LEXICO, linhaToken);
+        }
+        return new Token(lexema, real ? TipoToken.NUMERO_REAL : TipoToken.NUMERO_INTEIRO, linhaToken);
     }
 
-    private void lerExpoenteSePresente() {
-        if (pos >= fonte.length() || (fonte.charAt(pos) != 'e' && fonte.charAt(pos) != 'E')) {
-            return;
-        }
-        int marca = pos;
-        pos++;
-        if (pos < fonte.length() && (fonte.charAt(pos) == '+' || fonte.charAt(pos) == '-')) {
+    private void pularDigitos() {
+        while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
             pos++;
-        }
-        if (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
-            while (pos < fonte.length() && ehDigito(fonte.charAt(pos))) {
-                pos++;
-            }
-        } else {
-            pos = marca;
         }
     }
 
@@ -253,23 +272,29 @@ public class AnalisadorLexico {
         return new Token(lexema, fechada ? TipoToken.CONSTANTE_STRING : TipoToken.ERRO_LEXICO, linhaToken);
     }
 
-    // Constante char precisa ter exatamente 1 caractere entre aspas simples.
-    // "''" (vazio) e "'ab'" (mais de um) devem ser rejeitados como erro —
-    // só "'x'" é válido.
+    /*
+     * Constante char (estados q27, q28, q29, q33, q36 e q38 do AFD): exatamente
+     * um caractere entre aspas simples, como 'x'. Erros:
+     *   ''  e  'ab'   aspas fechadas, mas sem 1 caractere: um erro so, ate a
+     *                 aspa que fecha;
+     *   'a  e  'ab    sem a aspa que fecha: o erro vai ate o fim da linha
+     *                 (como na string), sem consumir a quebra de linha.
+     */
     private Token lerChar(int linhaToken) {
         int inicio = pos;
         pos++;
-        boolean temUmCaractere = pos < fonte.length()
-                && fonte.charAt(pos) != '\'' && !ehQuebraDeLinha(fonte.charAt(pos));
-        if (temUmCaractere) {
+        int caracteres = 0;
+        while (pos < fonte.length() && fonte.charAt(pos) != '\'' && !ehQuebraDeLinha(fonte.charAt(pos))) {
             pos += Character.charCount(fonte.codePointAt(pos));
+            caracteres++;
         }
-        boolean fechado = temUmCaractere && pos < fonte.length() && fonte.charAt(pos) == '\'';
+        boolean fechado = pos < fonte.length() && fonte.charAt(pos) == '\'';
         if (fechado) {
             pos++;
         }
         String lexema = fonte.substring(inicio, pos);
-        return new Token(lexema, fechado ? TipoToken.CONSTANTE_CHAR : TipoToken.ERRO_LEXICO, linhaToken);
+        boolean valido = fechado && caracteres == 1;
+        return new Token(lexema, valido ? TipoToken.CONSTANTE_CHAR : TipoToken.ERRO_LEXICO, linhaToken);
     }
 
     // lerMaior, lerMenor e lerDoisPontos leem o operador mais longo possivel

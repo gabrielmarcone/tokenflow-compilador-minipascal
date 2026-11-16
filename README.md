@@ -61,7 +61,9 @@ salva o resultado; o botão `?` resume tudo isso.
 
 ## Autômato
 
-O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não finais).
+O analisador léxico implementa o AFD abaixo (39 estados: 30 finais e 9 não finais). A figura é
+gerada por `docs/gerar_automato.py`, a partir do mesmo autômato que a suíte `VerificacaoAfd`
+compara com o analisador.
 
 ![AFD do analisador léxico](docs/automato_completo.jpg)
 
@@ -303,7 +305,7 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 | Arquivo | O que testa | Resultado |
 |---|---|---|
 | `01_programa_completo.txt` | Programa correto com toda a linguagem | `OK` |
-| `02_erros_lexicos.txt` | Caracteres inválidos e comentário sem fechar | 8 erros léxicos |
+| `02_erros_lexicos.txt` | Caracteres inválidos, número mal formado, char com dois caracteres e comentário sem fechar | 10 erros léxicos |
 | `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 9 erros sintáticos |
 | `04_erros_semanticos_nomes.txt` | Declarações repetidas, nomes não declarados, escopo, categoria | 16 erros semânticos |
 | `05_erros_semanticos_tipos.txt` | Atribuição, operadores, comparações e condições | 22 erros semânticos |
@@ -469,7 +471,12 @@ ambíguo - todas documentadas e testadas:
 - **Quebra de linha**: `\n`, `\r\n` e `\r` sozinho contam uma linha cada
 - **Codificação do arquivo**: UTF-8 (com ou sem BOM); se não for UTF-8 válido, lê como
   ANSI (ISO-8859-1), e UTF-16 com BOM também é reconhecido
-- **Constante char aceita exatamente 1 caractere** - vazio (`''`) ou múltiplo (`'ab'`) são erro
+- **Constante char aceita exatamente 1 caractere** - vazio (`''`) ou múltiplo (`'ab'`) são um
+  erro só, até a aspa que fecha (`Char deve ter 1 caractere: 'ab'`); sem a aspa do fim, o erro
+  vai até o fim da linha, como na string (`Char não fechado`)
+- **Número colado em letra é erro léxico** - `12abc`, `1.5x` e `2end` viram um único erro,
+  `Número mal formado`, com tudo o que estiver colado. O expoente pode vir sem ponto, como no
+  Pascal: `2e3` e `2E-3` são números reais; `2e` sem dígitos depois é número mal formado
 - **String não fechada é limitada à linha atual** - evita que uma aspa esquecida engula o
   resto do arquivo inteiro
 - **Limite de 63 caracteres em identificador** - o excedente é truncado, não vira erro
@@ -496,8 +503,9 @@ Respostas às perguntas de projeto (a-e) da especificação:
   analisador sintático (ver "Análise semântica").
 - **e) Tratamento de erros léxicos?** Modo pânico: o erro é registrado como token
   `Erro léxico`, o analisador descarta só o trecho inválido e continua a partir do próximo
-  caractere. Caractere fora da linguagem gera um erro por caractere; string e char mal
-  fechados param no fim da linha; comentário sem `*/` gera um erro `/*` na linha de abertura.
+  caractere. Caractere fora da linguagem gera um erro por caractere; número colado em letra e
+  char com mais (ou menos) de um caractere geram um erro só; string e char sem a aspa do fim
+  param no fim da linha; comentário sem `*/` gera um erro `/*` na linha de abertura.
   Na interface, a aba Erros mostra a linha, a fase e a descrição de cada erro.
 
 ## Unidade II: o que já foi feito

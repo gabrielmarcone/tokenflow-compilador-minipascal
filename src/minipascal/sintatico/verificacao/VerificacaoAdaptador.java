@@ -67,10 +67,10 @@ public class VerificacaoAdaptador {
         AdaptadorLexico comErros = adaptador("x := 5 @ 2;\nwriteln(\"aberta);\n'ab'");
         List<String> nomes = nomesAteOFim(comErros);
         checar("erros léxicos não chegam ao parser",
-                nomes.equals(Arrays.asList("id", ":=", "numero", "numero", ";", "id", "(", "id", "$")));
+                nomes.equals(Arrays.asList("id", ":=", "numero", "numero", ";", "id", "(", "$")));
         List<ErroCompilacao> erros = comErros.getErrosLexicos();
-        checar("quatro erros léxicos registrados ('@', string aberta e os dois do char 'ab')",
-                erros.size() == 4);
+        checar("três erros léxicos registrados ('@', string aberta e o char 'ab')",
+                erros.size() == 3);
         checar("primeiro erro: linha 1, caractere inválido",
                 erros.get(0).getLinha() == 1 && erros.get(0).getCategoria() == CategoriaErro.LEXICO
                         && erros.get(0).getMensagem().equals("Caractere inválido: @"));
@@ -79,11 +79,11 @@ public class VerificacaoAdaptador {
                         && erros.get(1).getMensagem().equals("String não fechada (falta \"): \"aberta);"));
         checar("terceiro erro: linha 3, char com mais de um caractere",
                 erros.get(2).getLinha() == 3
-                        && erros.get(2).getMensagem().equals("Char deve ter 1 caractere: 'a"));
+                        && erros.get(2).getMensagem().equals("Char deve ter 1 caractere: 'ab'"));
         checar("formato da mensagem completa",
                 erros.get(0).toString().equals("Erro léxico na linha 1: Caractere inválido: @"));
         checar("tokens lidos incluem os erros (para a aba de tokens)",
-                comErros.getTokensLidos().size() == 12);
+                comErros.getTokensLidos().size() == 10);
 
         // Posições na sequência de todos os tokens lidos (ordenam erros léxicos e
         // sintáticos na mesma linha): x=0, @=1, y=2, $=3.

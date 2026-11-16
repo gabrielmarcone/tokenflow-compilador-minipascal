@@ -185,9 +185,13 @@ public class VerificacaoParserExpressoes {
                 + "Erro sintático na linha 2: Fim do arquivo inesperado; esperado " + INICIO_DE_TERMO);
         checarSaida("/* x", "Erro léxico na linha 1: Comentário não fechado (falta */): /*\n"
                 + "Erro sintático na linha 1: Fim do arquivo inesperado; esperado " + INICIO_DE_EXPRESSAO);
-        // 'a (erro), b, ' seguido de espaço (erro), + e 1: sem os erros, "b + 1" é válida
-        checarSaida("'ab' + 1", "Erro léxico na linha 1: Char deve ter 1 caractere: 'a\n"
-                + "Erro léxico na linha 1: Char deve ter 1 caractere: ' ");
+        // 'ab' e um erro so; sem ele sobra "+ 1", que e valida
+        checarSaida("'ab' + 1", "Erro léxico na linha 1: Char deve ter 1 caractere: 'ab'");
+        // numero colado em letra: um erro lexico; sem ele sobra "+ 1"
+        checarSaida("12abc + 1", "Erro léxico na linha 1: Número mal formado: 12abc");
+        // char sem a aspa do fim vai ate o fim da linha
+        checarSaida("'a + 1", "Erro léxico na linha 1: Char não fechado (falta '): 'a + 1\n"
+                + "Erro sintático na linha 1: Fim do arquivo inesperado; esperado " + INICIO_DE_EXPRESSAO);
 
         ResultadoAnalise r = RECONHECEDOR.analisar("a @ + b");
         checar("só erro léxico: não é sucesso, mas não há erro sintático",

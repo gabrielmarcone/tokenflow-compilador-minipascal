@@ -24,7 +24,12 @@ public final class DescricaoErroLexico {
             return "String não fechada (falta \")";
         }
         if (lexema.startsWith("'")) {
-            return "Char deve ter 1 caractere";
+            // Fechado ('' ou 'ab'): tamanho errado. Sem a aspa do fim: nao fechado.
+            boolean fechado = lexema.length() >= 2 && lexema.endsWith("'");
+            return fechado ? "Char deve ter 1 caractere" : "Char não fechado (falta ')";
+        }
+        if (Character.isDigit(lexema.charAt(0))) {
+            return "Número mal formado";
         }
         return "Caractere inválido";
     }

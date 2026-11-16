@@ -38,8 +38,12 @@ public class VerificacaoFase4 {
         checarToken("@", "@", TipoToken.ERRO_LEXICO);
 
         checarToken("1.a", "1", TipoToken.NUMERO_INTEIRO);
-        checarToken("1.5e", "1.5", TipoToken.NUMERO_REAL);
-        checarToken("1.5e+", "1.5", TipoToken.NUMERO_REAL);
+        checarToken("1.5e", "1.5e", TipoToken.ERRO_LEXICO);
+        checarToken("1.5e+", "1.5e", TipoToken.ERRO_LEXICO);
+        checarToken("2e3", "2e3", TipoToken.NUMERO_REAL);
+        checarToken("2E-3;", "2E-3", TipoToken.NUMERO_REAL);
+        checarToken("12abc", "12abc", TipoToken.ERRO_LEXICO);
+        checarToken("'ab'", "'ab'", TipoToken.ERRO_LEXICO);
 
         checarSemTokenDeComentario();
         checarNaoConfundeDivisaoComComentario();

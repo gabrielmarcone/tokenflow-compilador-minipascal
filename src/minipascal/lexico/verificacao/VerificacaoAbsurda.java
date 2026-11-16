@@ -56,11 +56,11 @@ public class VerificacaoAbsurda {
     // "123abc" — número colado direto num identificador, sem espaço.
     // Comportamento correto: dois tokens separados, não um "número inválido".
     private static void checarNumeroColadoEmIdentificador() {
-        List<Token> tokens = tokenizarTudo("123abc");
-        checar("'123abc' vira DOIS tokens: '123' (inteiro) + 'abc' (identificador)",
+        List<Token> tokens = tokenizarTudo("123abc x");
+        checar("'123abc' vira UM erro lexico (numero mal formado), e o 'x' depois continua normal",
                 tokens.size() == 2
-                        && tokens.get(0).getLexema().equals("123") && tokens.get(0).getTipo() == TipoToken.NUMERO_INTEIRO
-                        && tokens.get(1).getLexema().equals("abc") && tokens.get(1).getTipo() == TipoToken.IDENTIFICADOR);
+                        && tokens.get(0).getLexema().equals("123abc") && tokens.get(0).getTipo() == TipoToken.ERRO_LEXICO
+                        && tokens.get(1).getLexema().equals("x") && tokens.get(1).getTipo() == TipoToken.IDENTIFICADOR);
     }
 
     // Palavra reservada com um caractere a mais/a menos deve ser Identificador.
@@ -242,9 +242,10 @@ public class VerificacaoAbsurda {
     }
 
     private static void checarCharComMaisDeUmCaractereEhErro() {
-        List<Token> tokens = tokenizarTudo("'ab'");
-        checar("char com 2+ caracteres 'ab' deve ser rejeitado (só aceita exatamente 1)",
-                tokens.stream().noneMatch(t -> t.getTipo() == TipoToken.CONSTANTE_CHAR));
+        List<Token> tokens = tokenizarTudo("'ab';");
+        checar("char com 2+ caracteres 'ab' vira um erro so, e o ';' depois continua normal",
+                tokens.size() == 2 && tokens.get(0).getLexema().equals("'ab'")
+                        && tokens.get(0).getTipo() == TipoToken.ERRO_LEXICO && tokens.get(1).getLexema().equals(";"));
     }
 
     // ---------- utilitários ----------
