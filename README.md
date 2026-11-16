@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-653%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-673%20passing-success)
 
 </div>
 
@@ -118,7 +118,7 @@ compara com o analisador.
 
 **Testes**
 
-- ✅ **653 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **673 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
