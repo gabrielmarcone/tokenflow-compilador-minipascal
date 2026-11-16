@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.model.TipoToken;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
@@ -421,17 +422,17 @@ public class VerificacaoRastro {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações do rastro da análise, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do rastro da analise, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

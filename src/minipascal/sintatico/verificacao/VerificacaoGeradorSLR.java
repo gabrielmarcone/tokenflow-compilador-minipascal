@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.sintatico.gramatica.Gramatica;
 import minipascal.sintatico.gramatica.GramaticaInvalidaException;
 import minipascal.sintatico.gramatica.LeitorGramatica;
@@ -59,7 +60,7 @@ public class VerificacaoGeradorSLR {
         executar("linha de comando", VerificacaoGeradorSLR::verificarLinhaDeComando);
 
         System.out.println();
-        System.out.println(total + " verificações do gerador SLR, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do gerador SLR, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -517,10 +518,10 @@ public class VerificacaoGeradorSLR {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

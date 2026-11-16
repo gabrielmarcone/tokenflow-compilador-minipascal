@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.model.TipoToken;
@@ -496,17 +497,17 @@ public class VerificacaoRecuperacao {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações da recuperação de erros, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes da recuperacao de erros, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

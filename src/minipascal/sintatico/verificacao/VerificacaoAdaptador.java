@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.core.AnalisadorLexico;
@@ -132,7 +133,7 @@ public class VerificacaoAdaptador {
         checar("programa completo não tem erros léxicos", completo.getErrosLexicos().isEmpty());
 
         System.out.println();
-        System.out.println(total + " verificações do adaptador, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do adaptador, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -164,10 +165,10 @@ public class VerificacaoAdaptador {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

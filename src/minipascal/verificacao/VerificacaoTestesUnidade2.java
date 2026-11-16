@@ -146,8 +146,8 @@ public final class VerificacaoTestesUnidade2 {
             String x = i < a.length ? a[i] : "(fim)";
             String y = i < b.length ? b[i] : "(fim)";
             if (!x.equals(y)) {
-                return " (linha " + (i + 1) + ": veio \"" + Console.semAcentos(x) + "\", esperado \""
-                        + Console.semAcentos(y) + "\")";
+                return " (linha " + (i + 1) + ": veio \"" + Console.ascii(x) + "\", esperado \""
+                        + Console.ascii(y) + "\")";
             }
         }
         return "";
@@ -177,7 +177,7 @@ public final class VerificacaoTestesUnidade2 {
 
     private static void checar(String descricao, boolean condicao) {
         total++;
-        String texto = Console.semAcentos(descricao);
+        String texto = Console.ascii(descricao);
         if (condicao) {
             System.out.println("[OK]    " + texto);
         } else {

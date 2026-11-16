@@ -19,4 +19,24 @@ public final class Console {
         }
         return Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
+
+    /*
+     * So ASCII, para as mensagens das suites de teste: tira os acentos, troca
+     * alguns simbolos por equivalentes ("->", "eps", "...") e escreve os outros
+     * caracteres como codigo Unicode ("\\u00a7"), que qualquer console mostra.
+     */
+    public static String ascii(String texto) {
+        String sem = semAcentos(texto).replace("\u2014", "-").replace("\u2192", "->").replace("\u2026", "...")
+                .replace("\u03b5", "eps").replace("\u00ab", "<<").replace("\u00bb", ">>").replace("\u25cf", "*");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < sem.length(); i++) {
+            char c = sem.charAt(i);
+            if (c < 128) {
+                sb.append(c);
+            } else {
+                sb.append(String.format("\\u%04x", (int) c));
+            }
+        }
+        return sb.toString();
+    }
 }

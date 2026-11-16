@@ -1,5 +1,7 @@
 package minipascal.verificacao;
 
+import minipascal.cli.Console;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -230,17 +232,17 @@ public class VerificacaoArquitetura {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações de arquitetura, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes de arquitetura, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

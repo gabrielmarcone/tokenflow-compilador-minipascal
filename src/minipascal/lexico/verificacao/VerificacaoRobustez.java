@@ -1,6 +1,7 @@
 package minipascal.lexico.verificacao;
 
 import minipascal.cli.AnaliseLexica;
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.io.EscritorArquivoSaida;
 import minipascal.io.LeitorArquivoFonte;
@@ -41,7 +42,7 @@ public class VerificacaoRobustez {
         checarVolumeGrande();
 
         System.out.println();
-        System.out.println(total + " verificações de robustez, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes de robustez, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -227,10 +228,10 @@ public class VerificacaoRobustez {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.erros.CategoriaErro;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 import minipascal.sintatico.gramatica.Gramatica;
@@ -49,7 +50,7 @@ public class VerificacaoParserExpressoes {
         } catch (RuntimeException e) {
             checar("expressoes.txt gera a tabela SLR(1): " + e.getMessage(), false);
             System.out.println();
-            System.out.println(total + " verificações do parser de expressões, " + falhas + " falha(s).");
+            System.out.println(total + " verificacoes do parser de expressoes, " + falhas + " falha(s).");
             System.exit(1);
         }
         executar("expressões válidas", VerificacaoParserExpressoes::verificarValidas);
@@ -59,7 +60,7 @@ public class VerificacaoParserExpressoes {
         executar("expressões geradas da gramática", VerificacaoParserExpressoes::verificarGeradas);
 
         System.out.println();
-        System.out.println(total + " verificações do parser de expressões, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do parser de expressoes, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -343,10 +344,10 @@ public class VerificacaoParserExpressoes {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

@@ -1,5 +1,6 @@
 package minipascal.sintatico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 import minipascal.cli.AnaliseSintatica;
 import minipascal.sintatico.gramatica.Gramatica;
@@ -54,7 +55,7 @@ public class VerificacaoParserCompleto {
         } catch (RuntimeException e) {
             checar("gramatica.txt gera a tabela SLR(1): " + e.getMessage(), false);
             System.out.println();
-            System.out.println(total + " verificações do parser completo, " + falhas + " falha(s).");
+            System.out.println(total + " verificacoes do parser completo, " + falhas + " falha(s).");
             System.exit(1);
         }
         executar("gramática", VerificacaoParserCompleto::verificarGramatica);
@@ -67,7 +68,7 @@ public class VerificacaoParserCompleto {
         executar("linha de comando", VerificacaoParserCompleto::verificarLinhaDeComando);
 
         System.out.println();
-        System.out.println(total + " verificações do parser completo, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes do parser completo, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -573,10 +574,10 @@ public class VerificacaoParserCompleto {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

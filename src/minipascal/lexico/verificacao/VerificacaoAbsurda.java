@@ -1,5 +1,6 @@
 package minipascal.lexico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.lexico.core.AnalisadorLexico;
 import minipascal.lexico.model.Token;
 import minipascal.lexico.model.TipoToken;
@@ -46,7 +47,7 @@ public class VerificacaoAbsurda {
         checarCharComMaisDeUmCaractereEhErro();
 
         System.out.println();
-        System.out.println(total + " verificações absurdas, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes absurdas, " + falhas + " falha(s).");
         if (falhas > 0) {
             System.exit(1);
         }
@@ -279,10 +280,10 @@ public class VerificacaoAbsurda {
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }

@@ -1,5 +1,6 @@
 package minipascal.semantico.verificacao;
 
+import minipascal.cli.Console;
 import minipascal.semantico.CategoriaSimbolo;
 import minipascal.semantico.Simbolo;
 import minipascal.semantico.TabelaSimbolos;
@@ -196,17 +197,17 @@ public class VerificacaoTabelaSimbolos {
 
     private static void terminar() {
         System.out.println();
-        System.out.println(total + " verificações da tabela de símbolos, " + falhas + " falha(s).");
+        System.out.println(total + " verificacoes da tabela de simbolos, " + falhas + " falha(s).");
         System.exit(falhas > 0 ? 1 : 0);
     }
 
     private static void checar(String descricao, boolean condicao) {
         total++;
         if (condicao) {
-            System.out.println("[OK]    " + descricao);
+            System.out.println("[OK]    " + Console.ascii(descricao));
         } else {
             falhas++;
-            System.out.println("[FALHA] " + descricao);
+            System.out.println("[FALHA] " + Console.ascii(descricao));
         }
     }
 }
