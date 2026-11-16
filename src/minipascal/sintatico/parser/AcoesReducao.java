@@ -1,7 +1,9 @@
 package minipascal.sintatico.parser;
 
+import minipascal.erros.ErroCompilacao;
 import minipascal.sintatico.gramatica.Producao;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,10 +23,13 @@ import java.util.List;
  *     null; por isso aoReduzir pode receber null entre os valores;
  *   - inserir um terminal que falta no texto; aoEmpilhar o recebe com
  *     isInserido() verdadeiro e sem token (getToken() devolve null).
- * As duas coisas só acontecem em programas com erro sintático.
+ * As duas coisas só acontecem depois de um erro sintático, e o analisador
+ * avisa o primeiro deles com aoErroSintatico.
  *
- * É aqui que a análise semântica (Fase 6) vai se encaixar: as verificações
- * acontecem nas reduções.
+ * É assim que a análise semântica (minipascal.semantico.AnalisadorSemantico)
+ * se encaixa: as verificações acontecem nas reduções, e os erros que as ações
+ * encontram (getErros) entram no resultado junto com os léxicos e os
+ * sintáticos; o resultado os põe na ordem do texto (ver ResultadoAnalise).
  */
 public interface AcoesReducao {
 
@@ -41,5 +46,22 @@ public interface AcoesReducao {
 
     default Object aoEmpilhar(Terminal terminal) {
         return terminal;
+    }
+
+    /**
+     * Chamado a cada erro sintático, antes da recuperação. Depois dele, a
+     * pilha de valores pode receber null e terminais inseridos (ver acima).
+     *
+     * @param encontrado o terminal com erro
+     */
+    default void aoErroSintatico(Terminal encontrado) {
+    }
+
+    /**
+     * Erros encontrados pelas ações (por exemplo, os semânticos), com linha e
+     * posição. O analisador os inclui no resultado ao fim da análise.
+     */
+    default List<ErroCompilacao> getErros() {
+        return Collections.emptyList();
     }
 }

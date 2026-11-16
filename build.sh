@@ -36,6 +36,7 @@ if [ "$1" = "teste" ]; then
                  lexico.verificacao.VerificacaoAfd sintatico.verificacao.VerificacaoAdaptador \
                  sintatico.verificacao.VerificacaoGeradorSLR sintatico.verificacao.VerificacaoParserExpressoes \
                  sintatico.verificacao.VerificacaoParserCompleto sintatico.verificacao.VerificacaoRecuperacao \
+                 semantico.verificacao.VerificacaoTabelaSimbolos semantico.verificacao.VerificacaoSemantica \
                  verificacao.VerificacaoArquitetura; do
         "$JAVA" -cp out "minipascal.$suite" > out/resultado.txt || { grep FALHA out/resultado.txt; echo "$suite falhou."; exit 1; }
         grep "falha(s)" out/resultado.txt

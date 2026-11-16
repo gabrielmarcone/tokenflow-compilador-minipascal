@@ -9,8 +9,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Resultado de uma análise: os erros encontrados (léxicos e sintáticos, em
- * ordem de linha), os tokens lidos e o valor produzido pelas ações de redução.
+ * Resultado de uma análise: os erros encontrados (léxicos, sintáticos e os
+ * que as ações de redução encontrarem, como os semânticos), em ordem de linha
+ * e, na mesma linha, na ordem do texto; os tokens lidos; e o valor produzido
+ * pelas ações de redução.
  *
  * Como pede o enunciado da Unidade II, a saída é "OK" quando o programa está
  * correto, ou a lista de erros, cada um com o tipo e a linha.
@@ -25,8 +27,11 @@ public final class ResultadoAnalise {
 
     public ResultadoAnalise(List<ErroCompilacao> erros, List<Token> tokens, Object valor) {
         List<ErroCompilacao> ordenados = new ArrayList<>(erros);
-        // ordenação estável: na mesma linha, mantém a ordem em que foram encontrados
-        ordenados.sort((a, b) -> Integer.compare(a.getLinha(), b.getLinha()));
+        // Por linha e, na mesma linha, pela posição do token no texto. A ordenação
+        // é estável: erros com a mesma posição (ou sem posição, -1) mantêm a ordem
+        // em que foram encontrados.
+        ordenados.sort((a, b) -> a.getLinha() != b.getLinha() ? Integer.compare(a.getLinha(), b.getLinha())
+                : Integer.compare(a.getPosicao(), b.getPosicao()));
         this.erros = Collections.unmodifiableList(ordenados);
         this.tokens = Collections.unmodifiableList(new ArrayList<>(tokens));
         this.valor = valor;

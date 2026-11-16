@@ -3,7 +3,7 @@
 # Origem: "Especificacao da gramatica da linguagem" do enunciado da Unidade II,
 # convertida de EBNF para GLC (como na Atividade 3). Correspondencia:
 #   PROG    -> PROG
-#   BLOCO   -> BLOCO, BLOCO_VAR, DECL_VAR, LISTA_ID, BLOCO_PROC, LISTA_CMD
+#   BLOCO   -> BLOCO, BLOCO_VAR, DECL_VAR, LISTA_ID, BLOCO_PROC, CAB_PROC, LISTA_CMD
 #   PALIST  -> PALIST, LISTA_PARAM, PARAM, LISTA_ID_PARAM
 #   COMANDO -> COMANDO, CMD_FECHADO, CMD_ABERTO, SIMPLES, LISTA_ARG
 #   EXPR    -> EXPR, OPREL;  SIEXPR -> SIEXPR;  TERMO -> TERMO;  FATOR -> FATOR
@@ -17,6 +17,11 @@
 #      else fica sempre com o if mais proximo.
 #   4. FATOR aceita constantes string e char (a linguagem tem os tipos char e
 #      string, mas a gramatica nao tinha como escrever valores deles).
+#   5. O cabecalho do procedimento ("procedure id PALIST") vira o nao terminal
+#      CAB_PROC. A linguagem e a mesma; a mudanca existe para a analise
+#      semantica: ao reduzir CAB_PROC, antes do bloco do procedimento, ela
+#      declara o procedimento e abre o escopo dos parametros e das variaveis
+#      locais (num analisador ascendente, as acoes so rodam nas reducoes).
 #
 # Terminais: os nomes entregues pelo AdaptadorLexico (id, numero, tipo,
 # constante_string, constante_char e o proprio lexema para palavras
@@ -28,7 +33,8 @@ BLOCO -> BLOCO_VAR BLOCO_PROC begin LISTA_CMD end
 BLOCO_VAR -> BLOCO_VAR var DECL_VAR | ε
 DECL_VAR -> DECL_VAR LISTA_ID : tipo ; | LISTA_ID : tipo ;
 LISTA_ID -> LISTA_ID , id | id
-BLOCO_PROC -> BLOCO_PROC procedure id PALIST ; BLOCO ; | ε
+BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ; | ε
+CAB_PROC -> procedure id PALIST
 LISTA_CMD -> LISTA_CMD COMANDO ; | COMANDO ;
 
 PALIST -> ( LISTA_PARAM ) | ε

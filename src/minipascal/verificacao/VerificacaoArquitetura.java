@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  *   erros                   erros de compilação (tipo, linha, mensagem)
  *   io                      leitura de fontes e gravação da listagem de tokens
  *   sintatico               gramática, gerador SLR(1) e analisador sintático
- *   semantico               análise semântica (Fase 6)
+ *   semantico               análise semântica: tabela de símbolos, tipos e as ações de redução
  *   cli, gui                linha de comando e interface gráfica (usam todos)
  *
  * Os pacotes "verificacao" (as suítes) podem usar qualquer módulo; nenhum
@@ -126,8 +126,8 @@ public class VerificacaoArquitetura {
         checar("todo arquivo declara o package da sua pasta" + lista(pacoteErrado), pacoteErrado.isEmpty());
         checar("só existem os módulos previstos em minipascal" + lista(moduloDesconhecido),
                 moduloDesconhecido.isEmpty());
-        checar("módulos lexico, erros, io, sintatico, cli e gui presentes",
-                modulos.containsAll(Arrays.asList("lexico", "erros", "io", "sintatico", "cli", "gui")));
+        checar("módulos lexico, erros, io, sintatico, semantico, cli e gui presentes",
+                modulos.containsAll(Arrays.asList("lexico", "erros", "io", "sintatico", "semantico", "cli", "gui")));
         checar("cada módulo só usa os módulos abaixo dele" + lista(dependenciaProibida),
                 dependenciaProibida.isEmpty());
         checar("nenhum código de produção usa as suítes de verificação" + lista(usaVerificacao),
@@ -144,7 +144,7 @@ public class VerificacaoArquitetura {
     // As classes que o usuário executa existem e têm main público e estático.
     private static void verificarPontosDeEntrada() {
         for (String classe : new String[]{"minipascal.cli.AnaliseLexica", "minipascal.cli.AnaliseSintatica",
-                "minipascal.cli.GeradorTabelas"}) {
+                "minipascal.cli.AnaliseSemantica", "minipascal.cli.GeradorTabelas"}) {
             checar("ponto de entrada " + classe + " com main público", temMainPublico(classe));
         }
         // A interface depende do JavaFX (embutido no JDK 8 da Oracle). Sem ele, a

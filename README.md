@@ -2,13 +2,13 @@
 
 # 🌀 TokenFlow
 
-### Compilador para Mini_Pascal: análise léxica e sintática
+### Compilador para Mini_Pascal: análise léxica, sintática e semântica
 
 *Trabalho de Compiladores - Unidades I e II - UESB*
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-463%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-583%20passing-success)
 
 </div>
 
@@ -25,11 +25,13 @@ simplificada inspirada em Pascal.
   léxicos são **reportados e recuperados**: um caractere inválido ou uma string mal fechada
   nunca travam a análise nem derrubam o resto do arquivo. A versão entregue na Unidade I está
   na tag `unidade-1`.
-- **Análise sintática (Unidade II, em desenvolvimento):** analisador **SLR(1)** com gerador de
-  tabelas próprio, a partir da gramática do enunciado. Recebe um programa e devolve `OK` ou
-  o conjunto das mensagens de erro, cada uma com o tipo e a linha: a análise se recupera de
-  cada erro sintático e segue até o fim do arquivo. Ainda faltam a análise semântica e a
-  integração com a interface gráfica, que por enquanto mostra só a análise léxica.
+- **Análise sintática e semântica (Unidade II, em desenvolvimento):** analisador **SLR(1)**
+  com gerador de tabelas próprio, a partir da gramática do enunciado, e análise semântica
+  feita nas reduções, com **tabela de símbolos** de escopos aninhados e verificação de
+  **tipos**. Recebe um programa e devolve `OK` ou o conjunto das mensagens de erro, cada uma
+  com o tipo (léxico, sintático ou semântico) e a linha: a análise se recupera de cada erro
+  sintático e segue até o fim do arquivo. Ainda falta a integração com a interface gráfica,
+  que por enquanto mostra só a análise léxica.
 
 ## Como é
 
@@ -62,24 +64,38 @@ O analisador léxico implementa o AFD abaixo (36 estados: 27 finais e 9 não fin
 **Análise sintática**
 
 - ✅ Gramática do enunciado em arquivo de texto (`gramatica.txt`), convertida para GLC, sem
-  conflitos SLR(1): 56 produções, 111 estados
+  conflitos SLR(1): 57 produções, 112 estados
 - ✅ Gerador próprio de tabelas SLR(1): FIRST, FOLLOW, coleção canônica LR(0), tabelas
   ACTION/GOTO, recusa de qualquer conflito, relatório completo e tabela em CSV
-- ✅ Analisador empilha/reduz com pilha de estados e pilha de atributos (ponto de entrada da
-  futura análise semântica)
+- ✅ Analisador empilha/reduz com pilha de estados e pilha de atributos, onde a análise
+  semântica se encaixa
 - ✅ Saída `OK` ou erros com tipo e linha, dizendo o que foi encontrado e o que era esperado
 - ✅ Recuperação de erros: uma análise relata todos os erros do programa, sem erros em
   cascata (modo pânico do livro do Dragão mais inserção do símbolo que falta, escolhendo a
   retomada que vai mais longe)
-- ✅ Linha de comando para as duas análises e para o gerador de tabelas
+- ✅ Linha de comando para cada etapa da análise e para o gerador de tabelas
+
+**Análise semântica**
+
+- ✅ Ações semânticas executadas nas reduções do SLR(1), numa única passada pelo texto
+- ✅ Tabela de símbolos com escopos aninhados (global, procedimentos e procedimentos dentro
+  de procedimentos), com `read`, `write` e `writeln` predefinidos
+- ✅ Nomes: não declarado, declarado duas vezes, procedimento usado como variável e o contrário
+- ✅ Tipos: atribuição, operadores (`div`/`mod` só com integer), comparações e condições de
+  `if`/`while`
+- ✅ Chamadas: número de argumentos, tipo de cada um e parâmetro `var` recebendo variável do
+  mesmo tipo
+- ✅ Sem cascatas: uma expressão com erro não gera mais mensagens
 
 **Testes**
 
-- ✅ **463 verificações automatizadas** em 13 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **583 verificações automatizadas** em 15 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
-  (vários erros, cascata, textos aleatórios, desempenho) e regras de arquitetura
+  (vários erros, cascata, textos aleatórios, desempenho), análise semântica (cada regra,
+  escopos, programas gerados bem tipados e com um erro injetado de cada tipo) e regras de
+  arquitetura
 - ✅ 8 arquivos de teste de integração do léxico, incluindo os dois exemplos do enunciado
 
 ## Arquitetura
@@ -101,14 +117,18 @@ src/minipascal/
 │   ├── slr/          FIRST/FOLLOW, coleção LR(0), TabelaSLR, ExportadorTabela
 │   ├── parser/       AnalisadorSintatico, AdaptadorLexico, Terminal, ResultadoAnalise
 │   └── verificacao/  suítes da análise sintática
-├── cli/           → linha de comando: AnaliseLexica, AnaliseSintatica, GeradorTabelas, Console
+├── semantico/     → análise semântica: AnalisadorSemantico (as ações de redução),
+│   │                TabelaSimbolos, Simbolo, Tipo, Compilador (as três fases juntas)
+│   └── verificacao/  suítes da análise semântica
+├── cli/           → linha de comando: AnaliseLexica, AnaliseSintatica, AnaliseSemantica,
+│                    GeradorTabelas, Console
 ├── gui/           → interface JavaFX: MainApp, AnalisadorController, Main.fxml,
 │                    application.css, icon.png
 └── verificacao/   → VerificacaoArquitetura (regras entre os módulos)
 ```
 
 Ordem das camadas, de baixo para cima: `lexico` → `erros` → `io` → `sintatico` →
-(`semantico`, na próxima etapa) → `cli` e `gui`. Os módulos de análise não sabem nada sobre
+`semantico` → `cli` e `gui`. Os módulos de análise não sabem nada sobre
 arquivos de saída, console ou janela; a linha de comando e a interface usam os mesmos
 analisadores, sem duplicar lógica. Os recursos da interface ficam na mesma pasta da classe
 que os carrega, `src/minipascal/gui/`.
@@ -143,7 +163,8 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
 | Para quê | Comando |
 |---|---|
 | Análise léxica (listagem lexema/token, Unidade I) | `java -cp TokenFlow.jar minipascal.cli.AnaliseLexica entrada.txt [saida.txt]` |
-| Análise sintática (`OK` ou os erros, Unidade II) | `java -cp TokenFlow.jar minipascal.cli.AnaliseSintatica programa.txt [saida.txt]` |
+| Análise sintática (`OK` ou os erros léxicos e sintáticos) | `java -cp TokenFlow.jar minipascal.cli.AnaliseSintatica programa.txt [saida.txt]` |
+| **Análise completa: léxica, sintática e semântica** (`OK` ou os erros, Unidade II) | `java -cp TokenFlow.jar minipascal.cli.AnaliseSemantica [--tabela] programa.txt [saida.txt]` |
 | Relatório e tabela SLR(1) de uma gramática | `java -cp TokenFlow.jar minipascal.cli.GeradorTabelas gramatica.txt [pasta-saida]` |
 
 - **Análise léxica:** sem o segundo argumento, a saída é gravada ao lado da entrada como
@@ -153,6 +174,9 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
   exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
   constante string ou constante char`. Com `[saida.txt]`, grava o mesmo resultado em UTF-8.
   Código de saída 0 quando o resultado é `OK` e 1 caso contrário.
+- **Análise completa:** como a sintática, mas com a análise semântica junto; é a saída pedida
+  pelo enunciado da Unidade II. Com `--tabela`, imprime também a tabela de símbolos (escopo,
+  nível, nome, categoria, tipo, linha e parâmetros).
 - **Gerador de tabelas:** aceita um arquivo de gramática ou o nome de uma gramática embutida
   (`gramatica.txt` ou `expressoes.txt`). Grava `<nome>_tabela_slr.txt` (gramática numerada,
   FIRST, FOLLOW, estados LR(0) com itens e transições, tabela e conflitos) e
@@ -211,6 +235,8 @@ java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoGeradorSLR   
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserExpressoes # parser com a gramática das expressões
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoParserCompleto   # parser com a gramática completa
 java -cp TokenFlow.jar minipascal.sintatico.verificacao.VerificacaoRecuperacao      # recuperação de erros sintáticos
+java -cp TokenFlow.jar minipascal.semantico.verificacao.VerificacaoTabelaSimbolos    # tabela de símbolos e tipos
+java -cp TokenFlow.jar minipascal.semantico.verificacao.VerificacaoSemantica         # análise semântica
 java -cp TokenFlow.jar minipascal.verificacao.VerificacaoArquitetura                # regras entre os módulos
 ```
 
@@ -233,7 +259,7 @@ A `VerificacaoArquitetura` lê o código em `src/`, então precisa ser rodada da
 
 A gramática fica em `src/minipascal/sintatico/gramatica/gramatica.txt`, uma regra por linha
 (`EXPR -> SIEXPR | SIEXPR OPREL SIEXPR`, não terminais em MAIÚSCULAS, `ε` para a produção
-vazia). É a gramática do enunciado convertida de EBNF para GLC, com quatro modificações,
+vazia). É a gramática do enunciado convertida de EBNF para GLC, com cinco modificações,
 descritas também no começo do arquivo:
 
 1. **Sinal `-` em SIEXPR.** No enunciado aparece `""` (aspas vazias) no lugar do sinal.
@@ -244,8 +270,13 @@ descritas também no começo do arquivo:
    mudar a linguagem aceita: o `else` fica sempre com o `if` mais próximo.
 4. **Constantes string e char em FATOR.** A linguagem tem os tipos `char` e `string`, mas a
    gramática do enunciado não tinha como escrever valores deles.
+5. **Cabeçalho do procedimento como não terminal próprio**:
+   `CAB_PROC -> procedure id PALIST`. A linguagem é a mesma. A mudança existe para a análise
+   semântica: num analisador ascendente as ações só rodam nas reduções, e a redução de
+   `CAB_PROC`, antes do bloco do procedimento, é o momento de declarar o procedimento e abrir
+   o escopo dos parâmetros e das variáveis locais.
 
-Resultado: 56 produções, 21 não terminais, 33 terminais, 111 estados LR(0) e nenhum conflito.
+Resultado: 57 produções, 22 não terminais, 33 terminais, 112 estados LR(0) e nenhum conflito.
 Também vem embutido `expressoes.txt`, o subconjunto das expressões usado na primeira etapa
 (22 produções, 34 estados).
 
@@ -293,6 +324,72 @@ Erro sintático na linha 17: Encontrado '/'; esperado ';', '=', '<', '>', '<>', 
 Erro sintático na linha 21: Encontrado '/'; esperado ',', ')', '=', '<', '>', '<>', '<=', '>=', '+', '-', '*', 'div' ou 'mod'
 ```
 
+## Análise semântica
+
+A análise semântica acontece **durante** a análise sintática, numa única passada pelo texto:
+a cada redução do SLR(1), o analisador chama a ação semântica da produção
+(`AnalisadorSemantico`). Cada símbolo da pilha carrega um atributo (o tipo de uma expressão,
+a lista de nomes de uma declaração, os parâmetros de um procedimento...), calculado a partir
+dos atributos dos filhos.
+
+**Tabela de símbolos** (`TabelaSimbolos`): uma tabela hash por escopo, empilhadas.
+
+| Escopo | Nível | O que tem |
+|---|---|---|
+| `externo` | 0 | `read`, `write`, `writeln` (predefinidos) e o nome do programa |
+| `global` | 1 | variáveis e procedimentos do programa |
+| `soma`, `soma.aux`... | 2, 3... | parâmetros, variáveis locais e procedimentos de cada procedimento |
+
+- A busca vai do escopo mais interno para o de fora: um nome local esconde o de fora.
+- O procedimento é declarado antes do seu bloco, então pode chamar a si mesmo (recursão);
+  um procedimento declarado depois não é visível antes (não há declaração antecipada).
+- Nomes não diferenciam maiúsculas de minúsculas (`Soma` e `soma` são o mesmo nome), como no
+  Pascal e como as palavras reservadas do léxico.
+- O nome do programa e os predefinidos ficam fora do programa: podem ser redeclarados nele,
+  e o nome do programa não pode ser usado como variável.
+
+**Tipos**: `integer`, `real`, `char`, `string` e, internamente, *lógico* (o resultado de uma
+comparação). Na atribuição e na passagem de argumentos, os tipos precisam ser iguais, com duas
+conversões permitidas: `integer` em `real` e `char` em `string`.
+
+| Construção | Regra |
+|---|---|
+| `+` `-` `*` e sinal | números (integer com integer dá integer; com real, real); `+` também junta textos (char e string), dando string |
+| `div`, `mod` | os dois lados integer |
+| `=` `<` `>` `<>` `<=` `>=` | números entre si, textos entre si ou lógicos entre si; o resultado é lógico |
+| condição do `if` e do `while` | lógica (uma comparação) |
+| chamada de procedimento | mesmo número de argumentos e de parâmetros; parâmetro `var` recebe uma variável do mesmo tipo |
+| `read` | pelo menos um argumento, todos variáveis |
+| `write` / `writeln` | `write` com pelo menos um argumento; `writeln` com qualquer quantidade |
+
+**Mensagens** (todas como `Erro semântico na linha N: ...`), por exemplo:
+
+```
+Identificador 'y' não declarado
+'x' já foi declarado neste escopo (variável, linha 2)
+'q' é um procedimento e não pode ser usado em uma expressão
+'x' é uma variável do tipo integer e não pode ser chamado como procedimento
+Não é possível atribuir um valor a 'q', que é um procedimento
+Tipos incompatíveis na atribuição a 'x': a variável é integer e a expressão é real
+O operador 'div' exige operandos integer, mas recebeu real e integer
+Comparação entre tipos incompatíveis: integer e string
+A condição do 'if' deve ser lógica (uma comparação), mas é integer
+O procedimento 'q' tem 2 parâmetros, mas a chamada passa 3 argumentos
+Argumento 1 de 'q': o parâmetro 'r' é var e precisa receber uma variável
+Argumento 2 de 'q': o parâmetro 'v' é real e o argumento é string
+'read' precisa de pelo menos um argumento
+```
+
+**Sem cascatas**: uma expressão com erro ganha um tipo de erro, que não gera novas mensagens
+(em `x := (s * 2 + 1) div 3`, com `s` string, sai só o erro do `*`). Um nome não declarado é
+relatado uma vez por escopo.
+
+**Junto com as outras fases**: os erros das três fases saem juntos, em ordem de linha e, na
+mesma linha, na ordem do texto. Erros léxicos não param a análise semântica. Depois do
+**primeiro erro sintático**, a análise semântica para. Os erros semânticos encontrados até
+ali continuam valendo. A recuperação de erros pode descartar declarações, e conferir o que
+vem depois geraria erros semânticos que não existem no programa.
+
 ## Decisões de projeto
 
 Algumas leituras do enunciado exigiram uma escolha explícita onde o texto original era
@@ -334,10 +431,11 @@ Respostas às perguntas de projeto (a-e) da especificação:
 - **c) Tabela de palavras reservadas?** Opção (a) do enunciado: uma função constrói a tabela
   uma única vez, no início da execução (`TabelaPalavrasReservadas`). A estrutura é um
   `HashMap` com busca O(1), chave em minúsculas, e funções `buscar`, `contem` e `tamanho`.
-- **d) Quem preenche a tabela de símbolos?** Nesta unidade não há tabela de símbolos: a tabela
-  contém só palavras reservadas e `mod`/`and`/`or`/`not`. O analisador léxico apenas
-  classifica os identificadores; quem inserir informações (tipo, escopo) na tabela de
-  símbolos será o analisador sintático/semântico, na Unidade II.
+- **d) Quem preenche a tabela de símbolos?** Na Unidade I não havia tabela de símbolos: a
+  tabela continha só palavras reservadas e `mod`/`and`/`or`/`not`, e o analisador léxico
+  apenas classificava os identificadores. Na Unidade II, quem preenche a tabela de símbolos
+  (nome, categoria, tipo, escopo e parâmetros) é a análise semântica, nas reduções do
+  analisador sintático (ver "Análise semântica").
 - **e) Tratamento de erros léxicos?** Modo pânico: o erro é registrado como token
   `Erro léxico`, o analisador descarta só o trecho inválido e continua a partir do próximo
   caractere. Caractere fora da linguagem gera um erro por caractere; string e char mal
@@ -360,9 +458,11 @@ Respostas às perguntas de projeto (a-e) da especificação:
 - Módulos reorganizados (léxico, erros, io, sintático, linha de comando e interface
   separados), com a regra de dependências conferida por `VerificacaoArquitetura`. Os
   comandos da linha de comando passaram a ficar em `minipascal.cli`.
+- Análise semântica com tabela de símbolos e verificação de tipos, descrita acima, e a linha
+  de comando `AnaliseSemantica`, que faz a análise completa pedida pelo enunciado.
 
-Próximas etapas: análise semântica com tabela de símbolos, interface gráfica com a análise
-completa e os arquivos de teste da Unidade II.
+Próximas etapas: interface gráfica com a análise completa e os arquivos de teste da
+Unidade II.
 
 ## Contexto acadêmico
 

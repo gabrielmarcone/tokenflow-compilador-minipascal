@@ -63,7 +63,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * sempre avança e termina no fim do arquivo.
  *
  * Todo o texto passa pelo léxico, então todos os erros léxicos são relatados.
- * Os erros saem em ordem de linha e, na mesma linha, na ordem do texto.
+ * Os erros que as ações encontram (os semânticos, ver AcoesReducao) entram
+ * junto. Todos saem em ordem de linha e, na mesma linha, na ordem do texto
+ * (ver ResultadoAnalise).
  */
 public class AnalisadorSintatico {
 
@@ -135,6 +137,7 @@ public class AnalisadorSintatico {
                 lexicosIncluidos = incluirLexicos(adaptador, erros, lexicosIncluidos, atual.getPosicao());
                 erros.add(erroSintatico(estadosAoLerAtual, atual));
                 houveErroSintatico = true;
+                acoes.aoErroSintatico(atual);
                 atual = recuperar(estados, valores, linhas, atual, entrada);
                 estadosAoLerAtual = new ArrayList<>(estados);
                 continue;
@@ -171,6 +174,8 @@ public class AnalisadorSintatico {
             }
         }
         incluirLexicos(adaptador, erros, lexicosIncluidos, Integer.MAX_VALUE);
+        // Os erros das ações (os semânticos); o resultado ordena tudo por linha e posição.
+        erros.addAll(acoes.getErros());
         return new ResultadoAnalise(erros, adaptador.getTokensLidos(), valorFinal);
     }
 
@@ -375,7 +380,7 @@ public class AnalisadorSintatico {
         String mensagem = atual.isFimDeArquivo()
                 ? "Fim do arquivo inesperado; esperado " + esperado
                 : "Encontrado " + DescricaoTerminal.encontrado(atual) + "; esperado " + esperado;
-        return new ErroCompilacao(CategoriaErro.SINTATICO, atual.getLinha(), mensagem);
+        return new ErroCompilacao(CategoriaErro.SINTATICO, atual.getLinha(), mensagem, atual.getPosicao());
     }
 
     /*
