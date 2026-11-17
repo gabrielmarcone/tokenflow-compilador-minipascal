@@ -1,0 +1,37 @@
+TokenFlow - Compilador Mini_Pascal
+Análise léxica, sintática (SLR(1)) e semântica
+Gabriel Marcone e Caio Matos - Compiladores, UESB
+
+Este pacote já traz um Java (pasta java, Liberica JRE 8 com JavaFX): não é
+preciso instalar nada.
+
+ABRIR A INTERFACE
+  Dê dois cliques em TokenFlow.bat.
+  Na janela, use Abrir (Ctrl+O) para carregar um programa, por exemplo os da
+  pasta testes-integracao\unidade2, e Analisar (F5).
+
+LINHA DE COMANDO
+  Abra um terminal nesta pasta (no Explorador: digite cmd na barra de
+  endereço e tecle Enter) e rode:
+
+    java\bin\java -cp TokenFlow.jar minipascal.cli.AnaliseSemantica programa.txt saida.txt
+
+  O resultado ("OK" ou os erros, com tipo e linha) aparece no console e é
+  gravado em saida.txt. Com --tabela antes do programa, sai também a tabela
+  de símbolos. Exemplo com um dos testes:
+
+    java\bin\java -cp TokenFlow.jar minipascal.cli.AnaliseSemantica testes-integracao\unidade2\05_erros_semanticos_tipos.txt saida.txt
+
+  Os resultados esperados de cada teste estão em
+  testes-integracao\unidade2\esperado.
+
+OUTROS SISTEMAS
+  O TokenFlow.jar roda em qualquer sistema com um Java que tenha JavaFX (por
+  exemplo, o Liberica JDK "Full"): java -jar TokenFlow.jar
+  A linha de comando funciona com qualquer Java 8 ou mais novo.
+
+Código-fonte e documentação:
+  https://github.com/gabrielmarcone/tokenflow-compilador-minipascal
+
+O Java incluído é o Liberica JRE 8u432 Full, da BellSoft, distribuído sob a
+licença GPLv2 com Classpath Exception (veja java\LICENSE).

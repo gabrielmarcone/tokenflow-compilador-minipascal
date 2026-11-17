@@ -21,3 +21,6 @@
 Thumbs.db
 
 .vscode/
+# Java portatil baixado pelo TokenFlow.bat (vai so no pacote da pagina de versoes)
+/java/
+/java-baixando/
