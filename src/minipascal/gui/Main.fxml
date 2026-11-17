@@ -39,6 +39,7 @@
                     <padding><Insets bottom="8" left="20" right="20" top="8" /></padding>
                     <children>
                         <Button fx:id="btnAbrir" onAction="#abrirArquivo" text="Abrir" />
+                        <Button fx:id="btnSalvarCodigo" onAction="#salvarCodigoDoEditor" text="Salvar código" />
                         <Button fx:id="btnSalvar" disable="true" onAction="#salvarResultado" text="Salvar resultado" />
                         <Label fx:id="labelArquivoAtual" styleClass="label-arquivo" text="programa sem nome" />
                         <Region HBox.hgrow="ALWAYS" />

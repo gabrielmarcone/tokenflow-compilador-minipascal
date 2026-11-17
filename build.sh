@@ -24,7 +24,7 @@ find src -name '*.java' > out/fontes.txt
 cp src/minipascal/gui/*.fxml src/minipascal/gui/*.css src/minipascal/gui/*.png out/minipascal/gui/
 cp src/minipascal/sintatico/gramatica/*.txt out/minipascal/sintatico/gramatica/
 
-printf 'Main-Class: minipascal.gui.MainApp\n' > out/manifest.txt
+printf 'Main-Class: minipascal.gui.Iniciar\n' > out/manifest.txt
 "$JAR" cfm TokenFlow.jar out/manifest.txt -C out minipascal
 
 echo "TokenFlow.jar gerado."

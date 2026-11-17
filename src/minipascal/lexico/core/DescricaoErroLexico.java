@@ -34,4 +34,36 @@ public final class DescricaoErroLexico {
         }
         return "Caractere inválido";
     }
+
+    // Marca que aparece no lugar de um caractere de controle: um quadrado
+    // vazio, que existe em todas as fontes de largura fixa.
+    public static final char MARCA_INVISIVEL = '□';
+
+    /*
+     * Caracteres de controle, que nao se veem: os de codigo abaixo de 32 (fora
+     * a tabulacao e as quebras de linha) e o DEL (127). A interface grafica
+     * nao consegue mostra-los (o JavaFX os apaga do texto).
+     */
+    public static boolean invisivel(char c) {
+        return (c < 0x20 && c != '\t' && c != '\n' && c != '\r') || c == 0x7F;
+    }
+
+    /*
+     * O texto com cada caractere de controle trocado pela marca. Usado nas
+     * mensagens de erro (um "Caractere invalido: " seguido de nada nao diz
+     * nada) e pela interface ao carregar um arquivo: assim a linha de comando
+     * e a interface mostram a mesma mensagem, na mesma linha.
+     */
+    public static String visivel(String texto) {
+        StringBuilder sb = null;
+        for (int i = 0; i < texto.length(); i++) {
+            if (invisivel(texto.charAt(i))) {
+                if (sb == null) {
+                    sb = new StringBuilder(texto);
+                }
+                sb.setCharAt(i, MARCA_INVISIVEL);
+            }
+        }
+        return sb == null ? texto : sb.toString();
+    }
 }

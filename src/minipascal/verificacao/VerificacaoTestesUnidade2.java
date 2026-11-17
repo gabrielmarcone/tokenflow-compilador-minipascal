@@ -78,6 +78,9 @@ public final class VerificacaoTestesUnidade2 {
             }
             checar("os testes cobrem programas corretos e erros léxicos, sintáticos e semânticos",
                     algumOk && lexico && sintatico && semantico);
+            if (!programas.isEmpty()) {
+                verificarCaminhos(programas.get(0));
+            }
         } catch (IOException | RuntimeException e) {
             checar("execução dos testes: " + e, false);
         }
@@ -104,8 +107,52 @@ public final class VerificacaoTestesUnidade2 {
             Files.write(crlf, comCrlf.getBytes(StandardCharsets.UTF_8));
             Execucao windows = executar(crlf);
             checar(nome + ": mesmo resultado com quebras de linha CRLF", windows.arquivo.equals(esperado));
+            // Quebras so com '\r' (Mac antigo): cada uma tambem conta como uma linha.
+            Files.write(crlf, normalizar(fonte).replace("\n", "\r").getBytes(StandardCharsets.UTF_8));
+            Execucao mac = executar(crlf);
+            checar(nome + ": mesmo resultado com quebras de linha só com CR", mac.arquivo.equals(esperado));
         } finally {
             Files.deleteIfExists(crlf);
+        }
+    }
+
+    /*
+     * Problemas nos caminhos da linha de comando: a mensagem diz qual e o
+     * problema, nada e analisado nem impresso antes dela, e o codigo de saida e 1.
+     */
+    private static void verificarCaminhos(Path programa) throws IOException {
+        Path pasta = Files.createTempDirectory("tokenflow-caminhos");
+        try {
+            Path semPasta = pasta.resolve("nao-existe").resolve("saida.txt");
+            String[][] casos = {
+                    {"pasta de saída que não existe", programa.toString(), semPasta.toString(),
+                            "A pasta do arquivo de saida nao existe: "},
+                    {"entrada que é uma pasta", pasta.toString(), pasta.resolve("saida.txt").toString(),
+                            "A entrada e uma pasta, nao um arquivo: "},
+                    {"saída que é uma pasta", programa.toString(), pasta.toString(),
+                            "A saida e uma pasta, nao um arquivo: "},
+                    {"saída igual à entrada", programa.toString(), programa.toString(),
+                            "O arquivo de saida nao pode ser o mesmo da entrada."},
+                    {"entrada que não existe", pasta.resolve("nada.txt").toString(), pasta.resolve("s.txt").toString(),
+                            "Arquivo nao encontrado: "}};
+            for (String[] c : casos) {
+                PrintStream original = System.out;
+                ByteArrayOutputStream capturado = new ByteArrayOutputStream();
+                int codigo;
+                try {
+                    System.setOut(new PrintStream(capturado, true, "UTF-8"));
+                    codigo = AnaliseSemantica.executar(new String[]{c[1], c[2]});
+                } finally {
+                    System.setOut(original);
+                }
+                String console = normalizar(new String(capturado.toByteArray(), StandardCharsets.UTF_8));
+                checar("linha de comando com " + c[0] + ": \"" + console.trim() + "\" e código 1",
+                        codigo == 1 && console.startsWith(c[3]) && console.indexOf('\n') == console.length() - 1);
+            }
+            checar("nenhum arquivo criado pelos casos acima", !Files.exists(semPasta.getParent())
+                    && !Files.exists(pasta.resolve("saida.txt")) && !Files.exists(pasta.resolve("s.txt")));
+        } finally {
+            Files.deleteIfExists(pasta);
         }
     }
 
