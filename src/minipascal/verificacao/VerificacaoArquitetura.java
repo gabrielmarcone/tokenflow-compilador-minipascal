@@ -141,6 +141,13 @@ public class VerificacaoArquitetura {
                 ? new String(Files.readAllBytes(fxml), StandardCharsets.UTF_8) : "";
         checar("Main.fxml aponta para minipascal.gui.AnalisadorController",
                 conteudoFxml.contains("fx:controller=\"minipascal.gui.AnalisadorController\""));
+
+        // O ponto de entrada do jar precisa abrir mesmo num Java sem JavaFX,
+        // para poder avisar o usuario: ele nao pode usar nada do JavaFX.
+        Path iniciar = FONTES.resolve("gui").resolve("Iniciar.java");
+        String codigoIniciar = Files.isRegularFile(iniciar)
+                ? semComentariosNemTextos(new String(Files.readAllBytes(iniciar), StandardCharsets.UTF_8)) : "javafx";
+        checar("gui/Iniciar.java (ponto de entrada do jar) não usa JavaFX", !codigoIniciar.contains("javafx"));
     }
 
     // As classes que o usuario executa existem e tem main publico e estatico.
@@ -149,6 +156,10 @@ public class VerificacaoArquitetura {
                 "minipascal.cli.AnaliseSemantica", "minipascal.cli.GeradorTabelas"}) {
             checar("ponto de entrada " + classe + " com main público", temMainPublico(classe));
         }
+        // O jar abre por esta classe, que nao usa JavaFX: ela confere se o Java
+        // tem JavaFX antes de abrir a interface (ou explica como abrir).
+        checar("ponto de entrada do jar minipascal.gui.Iniciar com main público, carregável sem JavaFX",
+                temMainPublico("minipascal.gui.Iniciar"));
         // A interface depende do JavaFX (embutido no JDK 8 da Oracle). Sem ele, a
         // classe nao pode ser carregada; ai confere-se ao menos que ela esta no lugar.
         if (javaFxDisponivel()) {
