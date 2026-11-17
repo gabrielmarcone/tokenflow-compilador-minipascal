@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-673%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-695%20passing-success)
 
 </div>
 
@@ -52,8 +52,8 @@ seguem a ordem das fases do compilador:
 
 Clicar num erro, token, passo ou símbolo seleciona a linha correspondente no código. Com um
 passo selecionado, **Ver na tabela SLR** abre a tabela ACTION/GOTO na célula que o analisador
-usou naquele passo. Atalhos: `Ctrl+O` abre um arquivo, `F5` ou `Ctrl+Enter` analisa e `Ctrl+S`
-salva o resultado; o botão `?` resume tudo isso.
+usou naquele passo. Atalhos: `Ctrl+O` abre um arquivo, `Ctrl+Shift+S` salva o código do editor,
+`F5` ou `Ctrl+Enter` analisa e `Ctrl+S` salva o resultado; o botão `?` resume tudo isso.
 
 ![Tela do TokenFlow: pilha da análise parada num erro sintático](docs/screenshot.png)
 
@@ -111,14 +111,21 @@ compara com o analisador.
 **Interface gráfica**
 
 - ✅ Carregar um `.txt` **ou** digitar/colar código direto na tela, com números de linha
-- ✅ Resultado da análise completa (`OK` ou os erros) e salvamento em arquivo UTF-8
+- ✅ Resultado da análise completa (`OK` ou os erros) e salvamento em arquivo UTF-8; se o
+  código mudou depois da análise, ele é analisado de novo antes de salvar, e o resultado não
+  pode ser gravado por cima do arquivo do programa
+- ✅ Salvar o código do editor; abrir outro arquivo ou fechar a janela com alterações não
+  salvas pergunta antes de descartá-las
+- ✅ Mesmo resultado da linha de comando para qualquer arquivo: quebras de linha `\r\n` e `\r`
+  viram `\n` ao carregar, e caracteres de controle (invisíveis) aparecem como `□`, a mesma
+  marca das mensagens de erro
 - ✅ Pilha do SLR(1) passo a passo, ligada ao código e à tabela ACTION/GOTO
 - ✅ Tokens, tabela de símbolos, gramática, FIRST/FOLLOW e estados LR(0)
 - ✅ Aviso quando o código muda depois da análise; atalhos de teclado e ajuda
 
 **Testes**
 
-- ✅ **673 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **695 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
@@ -155,9 +162,10 @@ src/minipascal/
 │   │                TabelaSimbolos, Simbolo, Tipo, Compilador (as três fases juntas)
 │   └── verificacao/  suítes da análise semântica
 ├── cli/           → linha de comando: AnaliseLexica, AnaliseSintatica, AnaliseSemantica,
-│                    GeradorTabelas, Console
-├── gui/           → interface JavaFX: MainApp, AnalisadorController, Main.fxml,
-│                    EditorCodigo, PainelSLR, application.css, icon.png
+│                    GeradorTabelas, Console, Caminhos
+├── gui/           → interface JavaFX: Iniciar (ponto de entrada do jar, sem JavaFX), MainApp,
+│                    AnalisadorController, Main.fxml, EditorCodigo, PainelSLR,
+│                    application.css, icon.png
 └── verificacao/   → VerificacaoArquitetura (regras entre os módulos)
 ```
 
@@ -169,24 +177,38 @@ que os carrega, `src/minipascal/gui/`.
 
 ## Como rodar
 
-### Pré-requisito
+Nada precisa ser compilado: o `TokenFlow.jar` já vem pronto.
 
-**JDK 8** com JavaFX embutido (ex: Oracle JDK 8u202).
+| Para quê | O que é preciso |
+|---|---|
+| Interface gráfica | um Java com JavaFX; o pacote com Java incluído e o `TokenFlow.bat` resolvem isso sozinhos |
+| Linha de comando | qualquer Java 8 ou mais novo |
+| Compilar de novo | JDK 8 com JavaFX (ex.: Oracle JDK 8u202 ou Liberica JDK 8 Full) |
 
-### Interface gráfica (sem compilar)
+### Interface gráfica
 
-O `TokenFlow.jar` já vem no repositório. No Windows, dê duplo clique em `TokenFlow.bat`: ele
-procura o JDK 8 em `C:\Program Files\Java` e abre o programa com ele, não importa qual
-`java` esteja no `PATH`.
+**Mais simples (Windows 10 ou 11, sem instalar nada):** baixe o `TokenFlow-windows.zip` na
+página [Releases](https://github.com/gabrielmarcone/tokenflow-compilador-minipascal/releases),
+extraia e dê dois cliques em `TokenFlow.bat`. O pacote traz um Java portátil com JavaFX
+(Liberica JRE 8 Full, na pasta `java`), o jar, os arquivos de teste e um `LEIA-ME.txt`.
 
-Pelo terminal, só funciona se o `java` do `PATH` for o JDK 8 (os Java 11+ não trazem o
-JavaFX e dão `NoClassDefFoundError: javafx/application/Application`):
+**A partir do repositório:** dê dois cliques em `TokenFlow.bat`. Ele procura um Java com
+JavaFX, nesta ordem: a pasta `java` ao lado dele, o `JAVA_HOME`, os Java instalados em
+`Program Files` (Java, BellSoft, Zulu, Eclipse Adoptium) e o `java` do `PATH`; quem confere se
+cada um tem JavaFX é o próprio jar (`java -jar TokenFlow.jar --verificar`). Se nenhum tiver,
+ele oferece baixar o mesmo Java portátil (cerca de 80 MB) para a pasta `java` do projeto,
+confere o SHA-256 do arquivo e abre o programa; nada é instalado no sistema e, da próxima
+vez, esse Java já é achado. A pasta `java` fica fora do git (`.gitignore`).
+
+**Pelo terminal, em qualquer sistema** com um Java que tenha JavaFX:
 
 ```bash
 java -jar TokenFlow.jar
 ```
 
-Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
+Num Java sem JavaFX (os Java 11+ comuns, ou o OpenJDK 8), o jar não falha em silêncio: abre
+uma janela dizendo como abrir a interface e lembrando que a linha de comando funciona. Se o
+`PATH` apontar para outro Java, chame um com JavaFX pelo caminho completo:
 
 ```powershell
 & "C:\Program Files\Java\jdk1.8.0_202\bin\java.exe" -jar TokenFlow.jar
@@ -216,6 +238,13 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
   FIRST, FOLLOW, estados LR(0) com itens e transições, tabela e conflitos) e
   `<nome>_tabela_slr.csv`. Código de saída 1 se a gramática for inválida ou tiver conflitos.
 
+Antes de analisar, os caminhos são conferidos: entrada que é uma pasta, saída igual à entrada,
+saída que é uma pasta ou pasta de saída que não existe dão uma mensagem dizendo isso (e código
+de saída 1), sem analisar nem gravar nada.
+
+No pacote com Java incluído, use o Java da pasta `java`:
+`java\bin\java -cp TokenFlow.jar minipascal.cli.AnaliseSemantica programa.txt saida.txt`.
+
 No console os acentos são removidos, porque o console do Windows com Java 8 não os mostra;
 os arquivos gravados ficam em UTF-8, com acentos.
 
@@ -239,13 +268,26 @@ Para compilar **e** rodar todas as verificações automatizadas:
 sh build.sh teste      # Linux, macOS, Git Bash
 ```
 
+### Gerar o pacote com Java incluído (Windows)
+
+Depois do `build.bat`, o `empacotar.bat` monta `dist\TokenFlow-windows.zip` (cerca de 80 MB):
+baixa o Java portátil para a pasta `java` (se ainda não estiver lá, pelo `TokenFlow.bat
+--baixar-java`) e junta, numa pasta `TokenFlow`, o `TokenFlow.bat`, o `TokenFlow.jar`, a pasta
+`java`, os `testes-integracao` e o `LEIA-ME.txt` (de `docs/pacote/`). O zip não entra no
+repositório: ele vai como anexo de uma versão na página Releases do GitHub.
+
+```powershell
+.\build.bat teste
+.\empacotar.bat
+```
+
 ### Rodar a partir do código-fonte, sem o script
 
 ```bash
 javac -encoding UTF-8 -d out $(find src -name "*.java")
 cp src/minipascal/gui/*.fxml src/minipascal/gui/*.css src/minipascal/gui/*.png out/minipascal/gui/
 cp src/minipascal/sintatico/gramatica/*.txt out/minipascal/sintatico/gramatica/
-java -cp out minipascal.gui.MainApp
+java -cp out minipascal.gui.Iniciar
 ```
 Em IDEs (IntelliJ, VS Code) basta abrir a pasta: `src` é a única raiz de código e os
 recursos já estão nela.
@@ -485,6 +527,8 @@ ambíguo - todas documentadas e testadas:
 - **Separadores**: espaço, tabulação, `\f`, `\v` e quebras de linha são ignorados; qualquer outro
   caractere fora da linguagem é erro léxico
 - **Quebra de linha**: `\n`, `\r\n` e `\r` sozinho contam uma linha cada
+- **Caractere de controle** (invisível, como o código 1 ou o DEL) fora de string é erro léxico;
+  na mensagem e no editor da interface ele aparece como `□` (`Caractere inválido: □`)
 - **Codificação do arquivo**: UTF-8 (com ou sem BOM); se não for UTF-8 válido, lê como
   ANSI (ISO-8859-1), e UTF-16 com BOM também é reconhecido
 - **Constante char aceita exatamente 1 caractere** - vazio (`''`) ou múltiplo (`'ab'`) são um
