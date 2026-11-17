@@ -547,6 +547,19 @@ final class GeradorDeProgramas {
                 return embrulhar(expressao(Tipo.LOGICO, c, profundidade - 1)) + " " + relacional() + " "
                         + embrulhar(expressao(Tipo.LOGICO, c, profundidade - 1));
             }
+            // and, or e not: so com operandos logicos, e o resultado e logico.
+            // Os operandos compostos vao entre parenteses (no Pascal, and/or
+            // ligam com mais forca que as comparacoes).
+            if (profundidade > 0 && rnd.nextInt(4) == 0) {
+                int p = profundidade - 1;
+                switch (rnd.nextInt(3)) {
+                    case 0:
+                        return "not " + embrulhar(expressao(Tipo.LOGICO, c, p));
+                    default:
+                        return embrulhar(expressao(Tipo.LOGICO, c, p)) + (rnd.nextBoolean() ? " and " : " or ")
+                                + embrulhar(expressao(Tipo.LOGICO, c, p));
+                }
+            }
             boolean numeros = rnd.nextBoolean();
             Tipo a = numeros ? (rnd.nextBoolean() ? Tipo.INTEGER : Tipo.REAL) : (rnd.nextBoolean() ? Tipo.CHAR : Tipo.STRING);
             Tipo b = numeros ? (rnd.nextBoolean() ? Tipo.INTEGER : Tipo.REAL) : (rnd.nextBoolean() ? Tipo.CHAR : Tipo.STRING);
@@ -576,6 +589,12 @@ final class GeradorDeProgramas {
                     Tipo x = a;
                     a = b;
                     b = x;
+                }
+                // '/' aceita quaisquer numeros e sempre da real.
+                if (rnd.nextInt(4) == 0) {
+                    Tipo x = rnd.nextBoolean() ? Tipo.REAL : Tipo.INTEGER;
+                    Tipo y = rnd.nextBoolean() ? Tipo.REAL : Tipo.INTEGER;
+                    return embrulhar(expressao(x, c, p)) + " / " + embrulhar(expressao(y, c, p));
                 }
                 String op = sortear(new String[]{"+", "-", "*"});
                 return embrulhar(expressao(a, c, p)) + " " + op + " " + embrulhar(expressao(b, c, p));
