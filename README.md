@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-673%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-712%20passing-success)
 
 </div>
 
@@ -52,8 +52,8 @@ seguem a ordem das fases do compilador:
 
 Clicar num erro, token, passo ou símbolo seleciona a linha correspondente no código. Com um
 passo selecionado, **Ver na tabela SLR** abre a tabela ACTION/GOTO na célula que o analisador
-usou naquele passo. Atalhos: `Ctrl+O` abre um arquivo, `F5` ou `Ctrl+Enter` analisa e `Ctrl+S`
-salva o resultado; o botão `?` resume tudo isso.
+usou naquele passo. Atalhos: `Ctrl+O` abre um arquivo, `Ctrl+Shift+S` salva o código do editor,
+`F5` ou `Ctrl+Enter` analisa e `Ctrl+S` salva o resultado; o botão `?` resume tudo isso.
 
 ![Tela do TokenFlow: pilha da análise parada num erro sintático](docs/screenshot.png)
 
@@ -85,7 +85,7 @@ compara com o analisador.
 **Análise sintática**
 
 - ✅ Gramática do enunciado em arquivo de texto (`gramatica.txt`), convertida para GLC, sem
-  conflitos SLR(1): 61 produções, 120 estados
+  conflitos SLR(1): 65 produções, 132 estados
 - ✅ Gerador próprio de tabelas SLR(1): FIRST, FOLLOW, coleção canônica LR(0), tabelas
   ACTION/GOTO, recusa de qualquer conflito, relatório completo e tabela em CSV
 - ✅ Analisador empilha/reduz com pilha de estados e pilha de atributos, onde a análise
@@ -111,14 +111,21 @@ compara com o analisador.
 **Interface gráfica**
 
 - ✅ Carregar um `.txt` **ou** digitar/colar código direto na tela, com números de linha
-- ✅ Resultado da análise completa (`OK` ou os erros) e salvamento em arquivo UTF-8
+- ✅ Resultado da análise completa (`OK` ou os erros) e salvamento em arquivo UTF-8; se o
+  código mudou depois da análise, ele é analisado de novo antes de salvar, e o resultado não
+  pode ser gravado por cima do arquivo do programa
+- ✅ Salvar o código do editor; abrir outro arquivo ou fechar a janela com alterações não
+  salvas pergunta antes de descartá-las
+- ✅ Mesmo resultado da linha de comando para qualquer arquivo: quebras de linha `\r\n` e `\r`
+  viram `\n` ao carregar, e caracteres de controle (invisíveis) aparecem como `□`, a mesma
+  marca das mensagens de erro
 - ✅ Pilha do SLR(1) passo a passo, ligada ao código e à tabela ACTION/GOTO
 - ✅ Tokens, tabela de símbolos, gramática, FIRST/FOLLOW e estados LR(0)
 - ✅ Aviso quando o código muda depois da análise; atalhos de teclado e ajuda
 
 **Testes**
 
-- ✅ **673 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **712 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
@@ -127,8 +134,8 @@ compara com o analisador.
   escopos, programas gerados bem tipados e com um erro injetado de cada tipo), regras de
   arquitetura e os arquivos de teste da Unidade II
 - ✅ 8 arquivos de teste de integração do léxico, incluindo os dois exemplos do enunciado
-- ✅ 10 arquivos de teste da Unidade II (dois programas corretos, um para cada tipo de erro,
-  um com erros misturados e o programa da apresentação), cada um com o resultado esperado
+- ✅ 11 arquivos de teste da Unidade II (dois programas corretos, um para cada tipo de erro,
+  um para o `for`, um com erros misturados e o programa da apresentação), cada um com o resultado esperado
   conferido à mão
 
 ## Arquitetura
@@ -155,7 +162,7 @@ src/minipascal/
 │   │                TabelaSimbolos, Simbolo, Tipo, Compilador (as três fases juntas)
 │   └── verificacao/  suítes da análise semântica
 ├── cli/           → linha de comando: AnaliseLexica, AnaliseSintatica, AnaliseSemantica,
-│                    GeradorTabelas, Console
+│                    GeradorTabelas, Console, Caminhos
 ├── gui/           → interface JavaFX: MainApp, AnalisadorController, Main.fxml,
 │                    EditorCodigo, PainelSLR, application.css, icon.png
 └── verificacao/   → VerificacaoArquitetura (regras entre os módulos)
@@ -215,6 +222,10 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
   (`gramatica.txt` ou `expressoes.txt`). Grava `<nome>_tabela_slr.txt` (gramática numerada,
   FIRST, FOLLOW, estados LR(0) com itens e transições, tabela e conflitos) e
   `<nome>_tabela_slr.csv`. Código de saída 1 se a gramática for inválida ou tiver conflitos.
+
+Antes de analisar, os caminhos são conferidos: entrada que é uma pasta, saída igual à entrada,
+saída que é uma pasta ou pasta de saída que não existe dão uma mensagem dizendo isso (e código
+de saída 1), sem analisar nem gravar nada.
 
 No console os acentos são removidos, porque o console do Windows com Java 8 não os mostra;
 os arquivos gravados ficam em UTF-8, com acentos.
@@ -304,7 +315,7 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 
 | Arquivo | O que testa | Resultado |
 |---|---|---|
-| `01_programa_completo.txt` | Programa correto com toda a linguagem | `OK` |
+| `01_programa_completo.txt` | Programa correto com toda a linguagem (inclusive o `for`) | `OK` |
 | `02_erros_lexicos.txt` | Caracteres inválidos, número mal formado, char com dois caracteres e comentário sem fechar | 10 erros léxicos |
 | `03_erros_sintaticos.txt` | Símbolos faltando ou trocados, e a recuperação | 10 erros sintáticos |
 | `04_erros_semanticos_nomes.txt` | Declarações repetidas, nomes não declarados, escopo, categoria | 16 erros semânticos |
@@ -312,6 +323,7 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 | `06_erros_semanticos_chamadas.txt` | Argumentos, parâmetros `var`, `read`/`write`/`writeln` | 19 erros semânticos |
 | `07_escopos.txt` | Procedimentos aninhados, nomes escondidos, recursão | `OK` |
 | `08_erros_misturados.txt` | Erros das três fases juntos | 10 erros |
+| `09_comando_for.txt` | `for` correto (to, downto, char, aninhado) e cada regra do `for` | 10 erros semânticos |
 | `apresentacao.txt` | Programa da apresentação, com um erro de cada fase | 4 erros |
 | `apresentacao_corrigido.txt` | O mesmo programa corrigido | `OK` |
 
@@ -319,7 +331,7 @@ resultados esperados foram conferidos e traz o roteiro da apresentação.
 
 A gramática fica em `src/minipascal/sintatico/gramatica/gramatica.txt`, uma regra por linha
 (`EXPR -> SIEXPR | SIEXPR OPREL SIEXPR`, não terminais em MAIÚSCULAS, `ε` para a produção
-vazia). É a gramática do enunciado convertida de EBNF para GLC, com seis modificações,
+vazia). É a gramática do enunciado convertida de EBNF para GLC, com sete modificações,
 descritas também no começo do arquivo:
 
 1. **Sinal `-` em SIEXPR.** No enunciado aparece `""` (aspas vazias) no lugar do sinal.
@@ -341,8 +353,15 @@ descritas também no começo do arquivo:
    de `*`, `div` e `mod`) e `or` em SIEXPR (junto de `+` e `-`). Como no Pascal, comparações
    ligadas por `and`/`or` precisam de parênteses: `(a < b) and (c < d)`; sem eles,
    `a < b and c < d` é lido como `a < (b and c) < d`, que é erro de sintaxe.
+7. **Comando `for`**, como no Pascal: `for i := 1 to 10 do ...` e `for i := 10 downto 1 do
+   ...`. O enunciado reserva `for`, `to` e `downto` (e o exemplo Piloto usa `for`), mas a
+   gramática da Unidade II não tinha o comando. Segue o `while`, com uma versão fechada e uma
+   aberta (modificação 3), e o cabeçalho vira um não terminal próprio,
+   `CAB_FOR -> for id := EXPR to EXPR | for id := EXPR downto EXPR`, pelo mesmo motivo do
+   `CAB_PROC`: ao reduzi-lo, antes do corpo, a análise semântica confere a variável de
+   controle e os limites.
 
-Resultado: 61 produções, 22 não terminais, 37 terminais (mais o `$`), 120 estados LR(0) e nenhum
+Resultado: 65 produções, 23 não terminais, 40 terminais (mais o `$`), 132 estados LR(0) e nenhum
 conflito.
 Também vem embutido `expressoes.txt`, o subconjunto das expressões usado na primeira etapa
 (22 produções, 34 estados), sem os operadores da modificação 6.
@@ -351,8 +370,8 @@ O gerador recusa qualquer gramática com conflito, produção repetida, não ter
 produção, inalcançável ou que não deriva terminais, sempre com a mensagem indicando onde
 está o problema.
 
-O que a gramática não aceita (e por isso vale como limitação da linguagem): `for`,
-`repeat`, `const`, funções, `;` antes do `else`, comparações ligadas por `and`/`or` sem
+O que a gramática não aceita (e por isso vale como limitação da linguagem): `repeat`,
+`case`, `const`, funções, `;` antes do `else`, comparações ligadas por `and`/`or` sem
 parênteses e parênteses vazios na declaração de procedimento. `read`, `write` e `writeln` são aceitos como chamadas de
 procedimento.
 
@@ -373,8 +392,8 @@ para que uma única execução mostre o conjunto dos erros do programa, como ped
 - **Sem cascata**: como a retomada escolhida sempre empilha pelo menos 4 tokens sem erro, um
   erro que é só consequência do anterior não aparece. O número 4 foi escolhido medindo, em
   milhares de programas com erros inseridos de propósito, quantos erros são encontrados e
-  quantos erros falsos aparecem: com 3, construções que não existem no Mini_Pascal (como o
-  `for` do segundo exemplo do enunciado) geram um segundo erro em cascata; com 5, erros em
+  quantos erros falsos aparecem: com 3, construções que não existem no Mini_Pascal geram um
+  segundo erro em cascata; com 5, erros em
   linhas vizinhas deixam de ser encontrados. Por isso, dois erros a menos de 4 tokens um do
   outro contam como um só.
 - **Mensagens**: o primeiro erro de cada programa é exatamente o da análise sem recuperação
@@ -387,11 +406,11 @@ para que uma única execução mostre o conjunto dos erros do programa, como ped
 - Um caractere inválido some da entrada da análise sintática; se o que sobra estiver errado
   (como `x := 5 @ 2`, que vira `x := 5 2`), aparecem os dois erros, o léxico e o sintático.
 
-Exemplo, com o segundo programa do enunciado (`02_piloto.txt`), que usa `for` (fora da
-gramática):
+Exemplo, com o segundo programa do enunciado (`02_piloto.txt`), cujo `for` usa `=` no lugar
+de `:=`:
 
 ```
-Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'
+Erro sintático na linha 11: Encontrado '='; esperado ':='
 ```
 
 O resto do programa (inclusive o `/` das linhas 17 e 21) é analisado normalmente depois da
@@ -433,6 +452,7 @@ conversões permitidas: `integer` em `real` e `char` em `string`.
 | `and`, `or`, `not` | operandos lógicos (comparações); o resultado é lógico |
 | `=` `<` `>` `<>` `<=` `>=` | números entre si, textos entre si ou lógicos entre si; o resultado é lógico |
 | condição do `if` e do `while` | lógica (uma comparação) |
+| `for v := a to b` (ou `downto`) | `v` é uma variável integer ou char; `a` e `b` são do tipo de `v`; dentro do laço, `v` não pode ser alterada (atribuição, `read`, parâmetro `var` ou outro `for`). Não é conferido, como no Pascal ISO, se um procedimento chamado no laço altera `v` por fora |
 | chamada de procedimento | mesmo número de argumentos e de parâmetros; parâmetro `var` recebe uma variável do mesmo tipo |
 | `read` | pelo menos um argumento, todos variáveis |
 | `write` / `writeln` | `write` com pelo menos um argumento; `writeln` com qualquer quantidade |
@@ -450,6 +470,8 @@ O operador 'div' exige operandos integer, mas recebeu real e integer
 O operador 'and' exige operandos lógicos (comparações), mas recebeu integer e integer
 Comparação entre tipos incompatíveis: integer e string
 A condição do 'if' deve ser lógica (uma comparação), mas é integer
+O valor inicial do 'for' deve ser integer, como a variável 'i', mas é real
+'i' é a variável de controle de um 'for' e não pode ser alterada dentro dele
 O procedimento 'q' tem 2 parâmetros, mas a chamada passa 3 argumentos
 Argumento 1 de 'q': o parâmetro 'r' é var e precisa receber uma variável
 Argumento 2 de 'q': o parâmetro 'v' é real e o argumento é string
@@ -485,6 +507,8 @@ ambíguo - todas documentadas e testadas:
 - **Separadores**: espaço, tabulação, `\f`, `\v` e quebras de linha são ignorados; qualquer outro
   caractere fora da linguagem é erro léxico
 - **Quebra de linha**: `\n`, `\r\n` e `\r` sozinho contam uma linha cada
+- **Caractere de controle** (invisível, como o código 1 ou o DEL) fora de string é erro léxico;
+  na mensagem e no editor da interface ele aparece como `□` (`Caractere inválido: □`)
 - **Codificação do arquivo**: UTF-8 (com ou sem BOM); se não for UTF-8 válido, lê como
   ANSI (ISO-8859-1), e UTF-16 com BOM também é reconhecido
 - **Constante char aceita exatamente 1 caractere** - vazio (`''`) ou múltiplo (`'ab'`) são um
@@ -546,6 +570,8 @@ Respostas às perguntas de projeto (a-e) da especificação:
   pode avisar um observador (`OuvinteAnalise`) a cada ação; a interface usa isso para mostrar
   a pilha passo a passo, e sem observador a análise é a mesma de antes.
 
+- Comando `for` (modificação 7 da gramática), com as regras do Pascal para a variável de
+  controle e os limites.
 - Arquivos de teste da Unidade II com os resultados esperados conferidos à mão, a suíte
   `VerificacaoTestesUnidade2` e o programa da apresentação, descritos em "Arquivos de teste
   da Unidade II".
@@ -579,4 +605,4 @@ Trabalho da disciplina de **Compiladores**, curso de Ciência da Computação - 
 
 <div align="center">
 <sub>Feito para a disciplina de Compiladores - UESB, 2026</sub>
-</div>
+</div>
