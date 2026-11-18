@@ -1,4 +1,4 @@
-# Arquivos de teste da Unidade II
+# Arquivos de teste da análise completa
 
 Programas em Mini_Pascal para testar a análise completa (léxica, sintática e semântica).
 Para cada programa, `esperado/` guarda o resultado esperado: `OK` ou os erros (tipo, linha e
@@ -75,7 +75,7 @@ fase e dois semânticos:
    com erro ficam marcadas com `●` no código.
 3. Na aba **Erros**, clique em cada erro: a linha fica selecionada no código. A mensagem
    inteira aparece ao parar o mouse sobre ela.
-4. Na aba **Tokens**, mostre o `!` classificado como erro léxico (a saída da Unidade I).
+4. Na aba **Tokens**, mostre o `!` classificado como erro léxico (a listagem da análise léxica).
 5. Na aba **Pilha**, clique em **Próximo erro**: é o passo em que o analisador acabou de
    ler o `18` de `if faltas > 18` (estado 41) e encontrou `writeln`. O detalhe embaixo mostra
    a pilha, os símbolos, o que falta ler e a ação. Clique em **Ver na tabela SLR**: a célula
