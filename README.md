@@ -605,4 +605,4 @@ Trabalho da disciplina de **Compiladores**, curso de Ciência da Computação - 
 
 <div align="center">
 <sub>Feito para a disciplina de Compiladores - UESB, 2026</sub>
-</div>
+</div>

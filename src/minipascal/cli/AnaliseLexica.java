@@ -67,4 +67,4 @@ public class AnaliseLexica {
         File entrada = new File(caminhoEntrada);
         return new File(entrada.getParentFile(), EscritorArquivoSaida.nomeDeSaidaPara(entrada.getName())).getPath();
     }
-}
+}
