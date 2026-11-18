@@ -87,9 +87,7 @@ fase e dois semânticos:
    - linha 21: `<>` no lugar de `!=`
    - linha 23: `then` antes do `writeln`
    
-   O resultado é igual a `apresentacao_corrigido.txt`, que pode ser aberto se não der tempo
-   (como o código foi alterado, Abrir pergunta antes: escolha **Descartar alterações**, para
-   não mudar o arquivo de teste).
+   O resultado é igual a `apresentacao_corrigido.txt`, que pode ser aberto se não der tempo.
 7. Analise de novo (F5): a faixa fica verde com "OK: o programa está correto".
 8. Na aba **Símbolos**, mostre os escopos: `externo` (nível 0: predefinidos e o nome do
    programa), `global` (nível 1) e `calcular` (nível 2), com os parâmetros e o `var`.

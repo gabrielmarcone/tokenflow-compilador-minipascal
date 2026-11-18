@@ -9,7 +9,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
@@ -68,19 +67,13 @@ import java.util.function.Function;
  *   - selecionar um erro, um token, um passo ou um simbolo mostra a linha no
  *     codigo; selecionar um passo tambem destaca a celula da tabela SLR(1)
  *     que o analisador usou;
- *   - o codigo do editor pode ser salvo; Abrir e fechar a janela perguntam
- *     antes de descartar alteracoes nao salvas;
- *   - salvar o resultado ou os tokens analisa de novo se o codigo mudou, e
- *     nao deixa gravar por cima do arquivo do programa;
- *   - atalhos: Ctrl+O abre, Ctrl+Shift+S salva o codigo, Ctrl+S salva o
- *     resultado, F5 ou Ctrl+Enter analisa.
+ *   - atalhos: Ctrl+O abre, Ctrl+S salva o resultado, F5 ou Ctrl+Enter analisa.
  */
 public class AnalisadorController implements Initializable {
 
     // Componentes declarados em Main.fxml (o fx:id de cada um e o nome do campo).
     @FXML private BorderPane raiz;
     @FXML private Button btnAbrir;
-    @FXML private Button btnSalvarCodigo;
     @FXML private Button btnSalvar;
     @FXML private Button btnAjuda;
     @FXML private Button btnAnalisar;
@@ -156,10 +149,6 @@ public class AnalisadorController implements Initializable {
     private ResultadoCompilacao resultado;
     private RastroAnalise rastro;
     private String textoAnalisado;
-    // Arquivo aberto ou salvo por ultimo (null: programa sem nome) e o texto
-    // dele, para saber se ha alteracoes nao salvas.
-    private File arquivoAtual;
-    private String textoSalvo = "";
     private String nomeArquivo;
     private File pastaAtual;
 
@@ -193,16 +182,6 @@ public class AnalisadorController implements Initializable {
         raiz.sceneProperty().addListener((obs, antiga, nova) -> {
             if (nova != null) {
                 configurarAtalhos(nova);
-                // Fechar a janela com codigo nao salvo tambem pergunta antes.
-                nova.windowProperty().addListener((o, antes, janela) -> {
-                    if (janela != null) {
-                        janela.setOnCloseRequest(e -> {
-                            if (!podeDescartarAlteracoes()) {
-                                e.consume();
-                            }
-                        });
-                    }
-                });
             }
         });
         limparResultado();
@@ -216,7 +195,6 @@ public class AnalisadorController implements Initializable {
     // Icones e dicas dos botoes.
     private void configurarBotoes() {
         btnAbrir.setGraphic(Icones.pasta());
-        btnSalvarCodigo.setGraphic(Icones.disco());
         btnSalvar.setGraphic(Icones.disco());
         btnAnalisar.setGraphic(Icones.executar());
         btnPrimeiroPasso.setGraphic(Icones.primeiro());
@@ -224,9 +202,7 @@ public class AnalisadorController implements Initializable {
         btnProximoPasso.setGraphic(Icones.proximo());
         btnUltimoPasso.setGraphic(Icones.ultimo());
         btnAbrir.setTooltip(new Tooltip("Abrir um programa (.txt)  —  Ctrl+O"));
-        btnSalvarCodigo.setTooltip(new Tooltip("Salvar o código do editor num .txt  —  Ctrl+Shift+S"));
-        btnSalvar.setTooltip(new Tooltip("Salvar o resultado da análise (OK ou os erros) num .txt  —  Ctrl+S\n"
-                + "Se o código mudou desde a última análise, ele é analisado de novo antes."));
+        btnSalvar.setTooltip(new Tooltip("Salvar o resultado da análise (OK ou os erros) num .txt  —  Ctrl+S"));
         btnAnalisar.setTooltip(new Tooltip("Análise léxica, sintática e semântica do código  —  F5 ou Ctrl+Enter"));
         btnAjuda.setTooltip(new Tooltip("Como usar o TokenFlow"));
         btnPrimeiroPasso.setTooltip(new Tooltip("Primeiro passo"));
@@ -238,11 +214,9 @@ public class AnalisadorController implements Initializable {
         btnSalvarTokens.setTooltip(new Tooltip("Salva a lista lexema / classe no formato da Unidade I"));
     }
 
-    // Ctrl+O, Ctrl+Shift+S, Ctrl+S, F5 e Ctrl+Enter, valendo em qualquer parte da janela.
+    // Ctrl+O, Ctrl+S, F5 e Ctrl+Enter, valendo em qualquer parte da janela.
     private void configurarAtalhos(Scene cena) {
         cena.getAccelerators().put(new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), this::abrirArquivo);
-        cena.getAccelerators().put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN,
-                KeyCombination.SHIFT_DOWN), this::salvarCodigoDoEditor);
         cena.getAccelerators().put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> {
             if (!btnSalvar.isDisabled()) {
                 salvarResultado();
@@ -339,12 +313,8 @@ public class AnalisadorController implements Initializable {
     // --------------------------------------------------------------- acoes
 
     @FXML
-    // Botao Abrir (Ctrl+O): escolhe um .txt e carrega no editor. Se o codigo
-    // do editor foi alterado e nao foi salvo, pergunta antes de descarta-lo.
+    // Botao Abrir (Ctrl+O): escolhe um .txt e carrega no editor.
     private void abrirArquivo() {
-        if (!podeDescartarAlteracoes()) {
-            return;
-        }
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Abrir programa Mini_Pascal");
         chooser.getExtensionFilters().addAll(
@@ -365,7 +335,9 @@ public class AnalisadorController implements Initializable {
             String conteudo = LeitorArquivoFonte.ler(arquivo.getAbsolutePath());
             limparResultado();
             editor.setText(conteudo);
-            definirArquivoAtual(arquivo);
+            nomeArquivo = arquivo.getName();
+            pastaAtual = arquivo.getParentFile();
+            labelArquivoAtual.setText(arquivo.getName());
             mostrarFaixaInicial();
             labelStatus.setText("Arquivo carregado: " + arquivo.getName());
         } catch (IOException e) {
@@ -403,41 +375,12 @@ public class AnalisadorController implements Initializable {
     }
 
     @FXML
-    // Botao Salvar codigo (Ctrl+Shift+S).
-    private void salvarCodigoDoEditor() {
-        salvarCodigo();
-    }
-
-    // Grava o codigo do editor num .txt, que passa a ser o arquivo aberto. A
-    // janela sempre pergunta onde salvar, para nao sobrescrever sem querer um
-    // arquivo de teste. Devolve true se salvou.
-    private boolean salvarCodigo() {
-        String sugestao = nomeArquivo == null ? "programa.txt" : nomeArquivo;
-        File destino = escolherDestino("Salvar o código", sugestao);
-        return destino != null && salvarCodigoEm(destino);
-    }
-
-    // Grava o codigo (UTF-8, com as quebras de linha do sistema) e atualiza o arquivo aberto.
-    boolean salvarCodigoEm(File destino) {
-        String codigo = editor.getText().replace("\n", System.lineSeparator());
-        try {
-            Files.write(destino.toPath(), codigo.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            labelStatus.setText("Não foi possível salvar o código: " + e.getMessage());
-            return false;
-        }
-        definirArquivoAtual(destino);
-        labelStatus.setText("Código salvo em " + destino.getName());
-        return true;
-    }
-
-    @FXML
     // Salvar resultado (Ctrl+S): grava "OK" ou os erros, como a linha de comando.
     private void salvarResultado() {
-        if (!resultadoEmDia()) {
+        if (resultado == null) {
             return;
         }
-        File destino = escolherDestinoDeResultado("Salvar o resultado da análise", nomeBase() + "_resultado.txt");
+        File destino = escolherDestino("Salvar o resultado da análise", nomeBase() + "_resultado.txt");
         if (destino == null) {
             return;
         }
@@ -452,11 +395,11 @@ public class AnalisadorController implements Initializable {
     @FXML
     // Salva a lista lexema/classe no formato da Unidade I.
     private void salvarTokens() {
-        if (!resultadoEmDia()) {
+        if (resultado == null) {
             return;
         }
         String sugestao = nomeArquivo == null ? "saida.txt" : EscritorArquivoSaida.nomeDeSaidaPara(nomeArquivo);
-        File destino = escolherDestinoDeResultado("Salvar a lista de tokens", sugestao);
+        File destino = escolherDestino("Salvar a lista de tokens", sugestao);
         if (destino == null) {
             return;
         }
@@ -476,8 +419,7 @@ public class AnalisadorController implements Initializable {
         ajuda.setTitle("Como usar o TokenFlow");
         ajuda.setHeaderText("Como usar o TokenFlow");
         Label texto = new Label(String.join("\n",
-                "1. Digite ou cole um programa à esquerda, ou abra um .txt (Ctrl+O). Salvar código",
-                "    (Ctrl+Shift+S) grava o que está no editor.",
+                "1. Digite ou cole um programa à esquerda, ou abra um .txt (Ctrl+O).",
                 "2. Clique em Analisar (F5). A faixa no alto da direita diz se o programa está correto",
                 "    ou quantos erros há; a aba Erros lista cada um, com a fase e a linha.",
                 "3. Clique num erro, token, passo ou símbolo para ver a linha no código.",
@@ -494,10 +436,7 @@ public class AnalisadorController implements Initializable {
                 "Na tabela ACTION / GOTO: sN empilha e vai para o estado N; rN reduz pela",
                 "produção N; acc aceita; célula vazia é erro sintático.",
                 "",
-                "Caracteres de controle (invisíveis) do arquivo aparecem no editor como □.",
-                "",
-                "Atalhos: Ctrl+O abrir, Ctrl+Shift+S salvar o código, Ctrl+S salvar o resultado,",
-                "F5 ou Ctrl+Enter analisar."));
+                "Atalhos: Ctrl+O abrir, Ctrl+S salvar o resultado, F5 ou Ctrl+Enter analisar."));
         texto.setWrapText(true);
         texto.getStyleClass().add("texto-ajuda");
         ajuda.getDialogPane().setContent(texto);
@@ -692,7 +631,6 @@ public class AnalisadorController implements Initializable {
     // resultado e antigo; se voltou a ser igual, mostra o resultado de novo.
     private void textoMudou(String novo) {
         btnAnalisar.setDisable(novo == null || novo.trim().isEmpty());
-        atualizarNomeDoArquivo();
         if (resultado == null) {
             return;
         }
@@ -812,105 +750,6 @@ public class AnalisadorController implements Initializable {
         };
         celula.setTextOverrun(corte);
         return celula;
-    }
-
-    // ------------------------------------------------ arquivo aberto e alteracoes
-
-    // O codigo do editor esta diferente do que foi aberto ou salvo por ultimo?
-    boolean temAlteracoesNaoSalvas() {
-        String texto = editor.getText();
-        return !(texto == null ? "" : texto).equals(textoSalvo);
-    }
-
-    // Nome do arquivo na barra de ferramentas, com o aviso de alteracoes nao salvas.
-    private void atualizarNomeDoArquivo() {
-        String nome = nomeArquivo == null ? "programa sem nome" : nomeArquivo;
-        labelArquivoAtual.setText(temAlteracoesNaoSalvas() ? nome + " (alterado, não salvo)" : nome);
-    }
-
-    // O arquivo aberto passou a ser este: nome, pasta, texto salvo e a dica com o caminho.
-    private void definirArquivoAtual(File arquivo) {
-        arquivoAtual = arquivo;
-        nomeArquivo = arquivo.getName();
-        pastaAtual = arquivo.getParentFile();
-        // O texto como ficou no editor (ver EditorCodigo.paraEditor) e o "salvo".
-        textoSalvo = editor.getText();
-        labelArquivoAtual.setTooltip(new Tooltip(arquivo.getAbsolutePath()));
-        atualizarNomeDoArquivo();
-    }
-
-    /*
-     * Antes de trocar o codigo do editor (Abrir) ou fechar a janela: se ha
-     * alteracoes nao salvas, pergunta se salva, descarta ou cancela.
-     * Devolve true se pode seguir.
-     */
-    boolean podeDescartarAlteracoes() {
-        if (!temAlteracoesNaoSalvas()) {
-            return true;
-        }
-        ButtonType salvar = new ButtonType("Salvar código", ButtonBar.ButtonData.YES);
-        ButtonType descartar = new ButtonType("Descartar alterações", ButtonBar.ButtonData.NO);
-        Alert pergunta = new Alert(Alert.AlertType.CONFIRMATION, "", salvar, descartar, ButtonType.CANCEL);
-        pergunta.initOwner(janela());
-        pergunta.setTitle("Código não salvo");
-        pergunta.setHeaderText("O código foi alterado e não foi salvo");
-        pergunta.setContentText("Deseja salvar o código antes de continuar?");
-        ButtonType escolha = pergunta.showAndWait().orElse(ButtonType.CANCEL);
-        if (escolha == salvar) {
-            return salvarCodigo();
-        }
-        return escolha == descartar;
-    }
-
-    /*
-     * Antes de salvar o resultado ou os tokens: se o codigo mudou depois da
-     * ultima analise, analisa de novo, para nao gravar um resultado antigo.
-     * Devolve true se ha um resultado do codigo que esta no editor.
-     */
-    boolean resultadoEmDia() {
-        String texto = editor.getText();
-        if (resultado != null && texto != null && texto.equals(textoAnalisado)) {
-            return true;
-        }
-        analisar();
-        return resultado != null && editor.getText().equals(textoAnalisado);
-    }
-
-    /*
-     * Janela de salvar para o resultado e os tokens. Nao deixa escolher o
-     * arquivo do programa aberto: grava-lo apagaria o codigo (a linha de
-     * comando tambem recusa entrada e saida iguais).
-     */
-    private File escolherDestinoDeResultado(String titulo, String sugestao) {
-        while (true) {
-            File destino = escolherDestino(titulo, sugestao);
-            if (destino == null || !ehOArquivoDoPrograma(destino)) {
-                return destino;
-            }
-            Alert aviso = new Alert(Alert.AlertType.WARNING, "", ButtonType.OK);
-            aviso.initOwner(janela());
-            aviso.setTitle("Arquivo do programa");
-            aviso.setHeaderText(destino.getName() + " é o arquivo do programa aberto");
-            aviso.setContentText("Gravar o resultado nele apagaria o código. Escolha outro nome.");
-            aviso.showAndWait();
-        }
-    }
-
-    // O arquivo dado e o do programa aberto (o mesmo caminho, ou o mesmo arquivo no disco)?
-    boolean ehOArquivoDoPrograma(File destino) {
-        if (arquivoAtual == null || destino == null) {
-            return false;
-        }
-        if (arquivoAtual.getAbsoluteFile().toPath().normalize()
-                .equals(destino.getAbsoluteFile().toPath().normalize())) {
-            return true;
-        }
-        try {
-            return destino.exists() && arquivoAtual.exists()
-                    && Files.isSameFile(arquivoAtual.toPath(), destino.toPath());
-        } catch (IOException e) {
-            return false;
-        }
     }
 
     // Janela de salvar, comecando na pasta do ultimo arquivo aberto.

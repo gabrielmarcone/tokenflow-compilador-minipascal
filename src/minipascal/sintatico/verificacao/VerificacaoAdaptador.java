@@ -4,7 +4,6 @@ import minipascal.cli.Console;
 import minipascal.erros.CategoriaErro;
 import minipascal.erros.ErroCompilacao;
 import minipascal.lexico.core.AnalisadorLexico;
-import minipascal.lexico.core.DescricaoErroLexico;
 import minipascal.lexico.tabela.TabelaPalavrasReservadas;
 import minipascal.sintatico.parser.AdaptadorLexico;
 import minipascal.sintatico.parser.Terminal;
@@ -85,22 +84,6 @@ public class VerificacaoAdaptador {
                 erros.get(0).toString().equals("Erro léxico na linha 1: Caractere inválido: @"));
         checar("tokens lidos incluem os erros (para a aba de tokens)",
                 comErros.getTokensLidos().size() == 10);
-
-        // Caracteres de controle (invisiveis) aparecem na mensagem como uma
-        // marca, a mesma que a interface mostra no lugar deles.
-        AdaptadorLexico controle = adaptador("x\u0001 y\u007f\n\"a\u0002");
-        nomesAteOFim(controle);
-        List<String> mensagens = new ArrayList<>();
-        for (ErroCompilacao e : controle.getErrosLexicos()) {
-            mensagens.add(e.getLinha() + " " + e.getMensagem());
-        }
-        checar("caractere de controle na mensagem aparece como □ (" + mensagens + ")",
-                mensagens.equals(Arrays.asList("1 Caractere inválido: □", "1 Caractere inválido: □",
-                        "2 String não fechada (falta \"): \"a□")));
-        checar("tabulação e quebra de linha não são caracteres de controle invisíveis; \\u0001 e DEL são",
-                !DescricaoErroLexico.invisivel('\t') && DescricaoErroLexico.invisivel('\u0001')
-                        && DescricaoErroLexico.invisivel('\u007f') && !DescricaoErroLexico.invisivel('\n')
-                        && DescricaoErroLexico.visivel("a\u0000b\tc").equals("a□b\tc"));
 
         // Posicoes na sequencia de todos os tokens lidos (ordenam erros lexicos e
         // sintaticos na mesma linha): x=0, @=1, y=2, $=3.

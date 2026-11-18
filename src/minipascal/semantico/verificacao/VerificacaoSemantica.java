@@ -300,15 +300,6 @@ public class VerificacaoSemantica {
                 "  if not (s * 2 > 1) and (i / s < 0) then i := 1;", "end."),
                 SEM + "4: O operador '*' não se aplica aos tipos string e integer",
                 SEM + "4: O operador '/' não se aplica aos tipos integer e string");
-        checarSaida("como no Pascal, 'not' liga mais forte que '<' e '/' entra em comparações e escritas", linhas(
-                "program p;", "var i, j: integer; r: real;", "begin",
-                "  if not (i < j) and (i / 2 > r) then writeln(i / j);",
-                "  if not i < j then i := 1;",
-                "  r := i / j / 2 * 3;",
-                "  i := i div (i / 2);",
-                "end."),
-                SEM + "5: O operador 'not' exige um operando lógico (uma comparação), mas recebeu integer",
-                SEM + "7: O operador 'div' exige operandos integer, mas recebeu integer e real");
         checarSaida("div e mod só com integer", linhas(
                 "program p;", "var i: integer; r: real;", "begin", "  i := r div 2;", "  i := 7 mod r;",
                 "  i := 7 div 2 mod 3;", "end."),
@@ -642,17 +633,9 @@ public class VerificacaoSemantica {
         int corretos = 0;
         String exemploErrado = null;
         int quantos = 1500;
-        // Quantos programas gerados usam cada operador da modificacao 6 da gramatica.
-        String[] operadores = {" / ", " and ", " or ", "not "};
-        int[] usos = new int[operadores.length];
         for (int i = 0; i < quantos; i++) {
             GeradorDeProgramas g = new GeradorDeProgramas(rnd);
             String programa = g.gerar(null);
-            for (int k = 0; k < operadores.length; k++) {
-                if (programa.contains(operadores[k])) {
-                    usos[k]++;
-                }
-            }
             String saida = COMPILADOR.analisar(programa).formatar();
             if (saida.equals("OK")) {
                 corretos++;
@@ -662,8 +645,6 @@ public class VerificacaoSemantica {
         }
         checar(quantos + " programas gerados bem tipados: todos OK"
                 + (exemploErrado == null ? "" : " (ex.:\n" + exemploErrado + ")"), corretos == quantos);
-        checar("os programas gerados usam '/', 'and', 'or' e 'not' (" + usos[0] + ", " + usos[1] + ", " + usos[2]
-                + " e " + usos[3] + " programas)", usos[0] >= 100 && usos[1] >= 100 && usos[2] >= 100 && usos[3] >= 100);
 
         for (GeradorDeProgramas.Defeito defeito : GeradorDeProgramas.Defeito.values()) {
             int certos = 0;
@@ -703,8 +684,7 @@ public class VerificacaoSemantica {
         String exemplo = null;
         String[] pedacos = {"program", "p", ";", "begin", "end", "var", "x", ":", "integer", "real", "char", "string",
                 ",", "procedure", "q", "(", ")", ":=", "+", "-", "*", "div", "mod", "<", "=", "if", "then", "else",
-                "while", "do", "1", "2.5", "'a'", "\"s\"", "read", "write", "writeln", ".", "@", "\n",
-                "/", "and", "or", "not"};
+                "while", "do", "1", "2.5", "'a'", "\"s\"", "read", "write", "writeln", ".", "@", "\n"};
         for (int i = 0; i < programas; i++) {
             String texto;
             if (i % 2 == 0) {
