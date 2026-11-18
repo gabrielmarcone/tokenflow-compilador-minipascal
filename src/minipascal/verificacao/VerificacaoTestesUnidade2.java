@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -149,6 +150,28 @@ public final class VerificacaoTestesUnidade2 {
                 checar("linha de comando com " + c[0] + ": \"" + console.trim() + "\" e código 1",
                         codigo == 1 && console.startsWith(c[3]) && console.indexOf('\n') == console.length() - 1);
             }
+            // A saida igual a entrada escrita de outra forma tambem e recusada
+            // (numa copia do programa, para nao arriscar o arquivo de teste).
+            Path copia = pasta.resolve("prog.txt");
+            Files.copy(programa, copia);
+            Files.createDirectory(pasta.resolve("sub"));
+            String[] outrasFormas = {pasta.resolve(".").resolve("prog.txt").toString(),
+                    pasta.resolve("sub").resolve("..").resolve("prog.txt").toString()};
+            boolean recusadas = true;
+            for (String outra : outrasFormas) {
+                PrintStream original = System.out;
+                try {
+                    System.setOut(new PrintStream(new ByteArrayOutputStream(), true, "UTF-8"));
+                    recusadas &= AnaliseSemantica.executar(new String[]{copia.toString(), outra}) == 1;
+                } finally {
+                    System.setOut(original);
+                }
+            }
+            checar("linha de comando com a saída igual à entrada escrita de outra forma ('./' e 'sub/..'): "
+                    + "recusada e o programa fica intacto",
+                    recusadas && Arrays.equals(Files.readAllBytes(copia), Files.readAllBytes(programa)));
+            Files.delete(copia);
+            Files.delete(pasta.resolve("sub"));
             checar("nenhum arquivo criado pelos casos acima", !Files.exists(semPasta.getParent())
                     && !Files.exists(pasta.resolve("saida.txt")) && !Files.exists(pasta.resolve("s.txt")));
         } finally {

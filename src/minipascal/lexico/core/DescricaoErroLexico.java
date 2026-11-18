@@ -41,27 +41,37 @@ public final class DescricaoErroLexico {
 
     /*
      * Caracteres de controle, que nao se veem: os de codigo abaixo de 32 (fora
-     * a tabulacao e as quebras de linha) e o DEL (127). A interface grafica
-     * nao consegue mostra-los (o JavaFX os apaga do texto).
+     * a tabulacao, as quebras de linha, o '\f' e o '\v') e o DEL (127). A
+     * interface grafica nao consegue mostra-los (o JavaFX os apaga do texto).
+     * '\f' e '\v' ficam de fora porque, para o analisador lexico, sao
+     * separadores, como o espaco.
      */
     public static boolean invisivel(char c) {
-        return (c < 0x20 && c != '\t' && c != '\n' && c != '\r') || c == 0x7F;
+        return (c < 0x20 && c != '\t' && c != '\n' && c != '\r' && !separadorDeControle(c)) || c == 0x7F;
+    }
+
+    // '\f' e '\v': separadores (como o espaco) que o JavaFX tambem apaga.
+    private static boolean separadorDeControle(char c) {
+        return c == '\f' || c == '\u000B';
     }
 
     /*
-     * O texto com cada caractere de controle trocado pela marca. Usado nas
-     * mensagens de erro (um "Caractere invalido: " seguido de nada nao diz
-     * nada) e pela interface ao carregar um arquivo: assim a linha de comando
-     * e a interface mostram a mesma mensagem, na mesma linha.
+     * O texto com cada caractere de controle trocado pela marca, e '\f' e '\v'
+     * trocados por espaco. Usado nas mensagens de erro (um "Caractere
+     * invalido: " seguido de nada nao diz nada) e pela interface ao carregar
+     * um arquivo: assim a linha de comando e a interface mostram a mesma
+     * mensagem, na mesma linha.
      */
     public static String visivel(String texto) {
         StringBuilder sb = null;
         for (int i = 0; i < texto.length(); i++) {
-            if (invisivel(texto.charAt(i))) {
+            char c = texto.charAt(i);
+            boolean marca = invisivel(c);
+            if (marca || separadorDeControle(c)) {
                 if (sb == null) {
                     sb = new StringBuilder(texto);
                 }
-                sb.setCharAt(i, MARCA_INVISIVEL);
+                sb.setCharAt(i, marca ? MARCA_INVISIVEL : ' ');
             }
         }
         return sb == null ? texto : sb.toString();

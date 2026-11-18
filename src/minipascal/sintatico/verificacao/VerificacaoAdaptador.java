@@ -101,6 +101,10 @@ public class VerificacaoAdaptador {
                 !DescricaoErroLexico.invisivel('\t') && DescricaoErroLexico.invisivel('\u0001')
                         && DescricaoErroLexico.invisivel('\u007f') && !DescricaoErroLexico.invisivel('\n')
                         && DescricaoErroLexico.visivel("a\u0000b\tc").equals("a□b\tc"));
+        // '\f' e '\v' sao separadores para o lexico: viram espaco, nao a marca.
+        checar("'\\f' e '\\v' não são invisíveis e viram espaço (são separadores, como o espaço)",
+                !DescricaoErroLexico.invisivel('\f') && !DescricaoErroLexico.invisivel('\u000B')
+                        && DescricaoErroLexico.visivel("a\fb\u000Bc").equals("a b c"));
 
         // Posicoes na sequencia de todos os tokens lidos (ordenam erros lexicos e
         // sintaticos na mesma linha): x=0, @=1, y=2, $=3.
