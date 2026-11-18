@@ -8,7 +8,7 @@
 
 ![Java](https://img.shields.io/badge/Java-8-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-Interface%20Gráfica-blue?logo=java&logoColor=white)
-![Testes](https://img.shields.io/badge/testes%20automatizados-712%20passing-success)
+![Testes](https://img.shields.io/badge/testes%20automatizados-716%20passing-success)
 
 </div>
 
@@ -117,15 +117,15 @@ compara com o analisador.
 - ✅ Salvar o código do editor; abrir outro arquivo ou fechar a janela com alterações não
   salvas pergunta antes de descartá-las
 - ✅ Mesmo resultado da linha de comando para qualquer arquivo: quebras de linha `\r\n` e `\r`
-  viram `\n` ao carregar, e caracteres de controle (invisíveis) aparecem como `□`, a mesma
-  marca das mensagens de erro
+  viram `\n` ao carregar, `\f` e `\v` (separadores, como o espaço) viram espaço, e
+  caracteres de controle (invisíveis) aparecem como `□`, a mesma marca das mensagens de erro
 - ✅ Pilha do SLR(1) passo a passo, ligada ao código e à tabela ACTION/GOTO
 - ✅ Tokens, tabela de símbolos, gramática, FIRST/FOLLOW e estados LR(0)
 - ✅ Aviso quando o código muda depois da análise; atalhos de teclado e ajuda
 
 **Testes**
 
-- ✅ **712 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
+- ✅ **716 verificações automatizadas** em 17 suítes, sem JUnit: casos absurdos e de robustez
   do léxico (número colado em identificador, comentário "aninhado", CRLF e CR solto, emoji,
   arquivo ANSI/UTF-16, locale turco...), tabelas SLR conferidas com o livro do Dragão,
   mensagens de erro exatas, programas gerados a partir da gramática, recuperação de erros
@@ -209,7 +209,8 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
 | Relatório e tabela SLR(1) de uma gramática | `java -cp TokenFlow.jar minipascal.cli.GeradorTabelas gramatica.txt [pasta-saida]` |
 
 - **Análise léxica:** sem o segundo argumento, a saída é gravada ao lado da entrada como
-  `<entrada>_saida.txt`, um par lexema/token por linha.
+  `<entrada>_saida.txt`, um par lexema/token por linha. Código de saída 0 quando a listagem é
+  gravada (os erros léxicos fazem parte dela) e 1 quando não foi possível ler ou gravar.
 - **Análise sintática:** o arquivo deve conter um programa completo, de `program` até o `.`
   final. Imprime `OK` ou todos os erros encontrados, um por linha, em ordem de linha, por
   exemplo `Erro sintático na linha 3: Encontrado '*'; esperado número, identificador, '(',
@@ -223,8 +224,8 @@ Se o `PATH` apontar para outro Java, chame o JDK 8 pelo caminho completo:
   FIRST, FOLLOW, estados LR(0) com itens e transições, tabela e conflitos) e
   `<nome>_tabela_slr.csv`. Código de saída 1 se a gramática for inválida ou tiver conflitos.
 
-Antes de analisar, os caminhos são conferidos: entrada que é uma pasta, saída igual à entrada,
-saída que é uma pasta ou pasta de saída que não existe dão uma mensagem dizendo isso (e código
+Antes de analisar, os caminhos são conferidos: entrada que é uma pasta, saída igual à entrada
+(mesmo escrita de outra forma, como `./programa.txt` ou `pasta/../programa.txt`), saída que é uma pasta ou pasta de saída que não existe dão uma mensagem dizendo isso (e código
 de saída 1), sem analisar nem gravar nada.
 
 No console os acentos são removidos, porque o console do Windows com Java 8 não os mostra;
@@ -241,7 +242,9 @@ Um comando só, na raiz do projeto:
 
 O script compila tudo, copia para dentro do jar os recursos da interface (FXML, CSS e ícone)
 e as gramáticas, e gera o `TokenFlow.jar`. No Windows ele procura sozinho o JDK 8 em
-`C:\Program Files\Java\jdk1.8*`, então não importa qual `java` está primeiro no `PATH`.
+`C:\Program Files\Java\jdk1.8*`, então não importa qual `java` está primeiro no `PATH`. A
+lista dos fontes vai para o compilador num arquivo (`out/fontes.txt`), então a pasta do
+projeto pode ter qualquer nome, longo ou com espaços e acentos.
 
 Para compilar **e** rodar todas as verificações automatizadas:
 
