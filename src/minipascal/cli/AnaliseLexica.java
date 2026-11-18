@@ -33,11 +33,9 @@ public class AnaliseLexica {
         String caminhoEntrada = args[0];
         String caminhoSaida = args.length >= 2 ? args[1] : gerarNomeSaida(caminhoEntrada);
 
-        // Entrada que e pasta, saida igual a entrada (apagaria o programa),
-        // pasta de saida que nao existe.
-        String problema = Caminhos.problema(caminhoEntrada, caminhoSaida);
-        if (problema != null) {
-            System.out.println(Console.semAcentos(problema));
+        // Evita apagar o proprio arquivo de entrada ao gravar a saida.
+        if (new File(caminhoSaida).getAbsoluteFile().equals(new File(caminhoEntrada).getAbsoluteFile())) {
+            System.out.println("O arquivo de saida nao pode ser o mesmo da entrada.");
             return;
         }
 

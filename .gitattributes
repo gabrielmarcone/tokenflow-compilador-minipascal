@@ -2,4 +2,3 @@
 *.bat text eol=crlf
 *.jar binary
 *.png binary
-docs/pacote/*.txt text eol=crlf

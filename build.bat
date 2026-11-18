@@ -51,7 +51,7 @@ if errorlevel 1 goto erro
 copy /y "src\minipascal\sintatico\gramatica\*.txt" "out\minipascal\sintatico\gramatica\" >nul
 if errorlevel 1 goto erro
 
-echo Main-Class: minipascal.gui.Iniciar> out\manifest.txt
+echo Main-Class: minipascal.gui.MainApp> out\manifest.txt
 "%JAR%" cfm TokenFlow.jar out\manifest.txt -C out minipascal
 if errorlevel 1 goto erro
 
