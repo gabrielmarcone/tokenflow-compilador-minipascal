@@ -106,6 +106,8 @@ public final class EditorCodigo extends BorderPane {
      * diferentes para o mesmo arquivo. Assim:
      *   - "\r\n" e '\r' sozinho viram '\n' (o analisador lexico tambem conta
      *     cada um como uma quebra de linha);
+     *   - '\f' e '\v' viram espaco (para o analisador lexico, os dois sao
+     *     separadores, como o espaco);
      *   - cada caractere de controle vira uma marca visivel, a mesma que as
      *     mensagens de erro usam (DescricaoErroLexico.visivel).
      */
