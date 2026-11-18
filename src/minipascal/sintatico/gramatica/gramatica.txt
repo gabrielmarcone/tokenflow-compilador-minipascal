@@ -27,6 +27,12 @@
 #      FATOR; "/" e "and" em TERMO (junto de * div mod); "or" em SIEXPR (junto
 #      de + -). Como no Pascal, comparacoes ligadas por and/or precisam de
 #      parenteses: (a < b) and (c < d).
+#   7. O comando "for" do Pascal (for id := EXPR to EXPR do COMANDO, e com
+#      downto), que o enunciado reserva (for, to, downto) mas a gramatica nao
+#      tinha. Segue o while: uma versao fechada e uma aberta. O cabecalho
+#      "for id := EXPR to EXPR" vira o nao terminal CAB_FOR, pelo mesmo motivo
+#      do CAB_PROC: ao reduzi-lo, antes do corpo, a analise semantica confere
+#      a variavel de controle e os limites.
 #
 # Terminais: os nomes entregues pelo AdaptadorLexico (id, numero, tipo,
 # constante_string, constante_char e o proprio lexema para palavras
@@ -51,9 +57,12 @@ COMANDO -> CMD_FECHADO | CMD_ABERTO
 CMD_FECHADO -> SIMPLES
             | if EXPR then CMD_FECHADO else CMD_FECHADO
             | while EXPR do CMD_FECHADO
+            | CAB_FOR do CMD_FECHADO
 CMD_ABERTO -> if EXPR then COMANDO
            | if EXPR then CMD_FECHADO else CMD_ABERTO
            | while EXPR do CMD_ABERTO
+           | CAB_FOR do CMD_ABERTO
+CAB_FOR -> for id := EXPR to EXPR | for id := EXPR downto EXPR
 SIMPLES -> id := EXPR | id | id ( LISTA_ARG ) | begin LISTA_CMD end
 LISTA_ARG -> LISTA_ARG , EXPR | EXPR
 

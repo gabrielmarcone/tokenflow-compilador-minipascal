@@ -8,8 +8,10 @@ import minipascal.sintatico.gramatica.Producao;
 import minipascal.sintatico.parser.AcoesReducao;
 import minipascal.sintatico.parser.Terminal;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,9 @@ import java.util.TreeSet;
  * como variavel e o contrario); tipos na atribuicao, nos operadores e nas
  * comparacoes; condicao de if e while logica; chamadas (quantidade e tipo dos
  * argumentos, parametro var recebendo variavel do mesmo tipo); read, write e
- * writeln. A regra de cada operador esta junto do metodo que a confere.
+ * writeln; for (variavel de controle integer ou char, limites do mesmo tipo
+ * dela, e a variavel nao pode ser alterada dentro do laco). A regra de cada
+ * operador esta junto do metodo que a confere.
  *
  * Sem cascatas: expressao com erro tem o tipo ERRO, que nao gera novas
  * mensagens; nome nao declarado e relatado uma vez por escopo. Depois do
@@ -94,6 +98,10 @@ public final class AnalisadorSemantico implements AcoesReducao {
     private Terminal anterior;
     // Ultima EXPR reduzida: ao empilhar 'then' ou 'do', e a da condicao.
     private Expressao ultimaExpressao;
+    // A ultima reducao foi a de uma EXPR? (no 'do' do for, a ultima e a de CAB_FOR)
+    private boolean ultimaReducaoFoiExpr;
+    // Variaveis de controle dos for em andamento (do mais externo ao mais interno).
+    private final Deque<Simbolo> controlesDoFor = new ArrayDeque<>();
 
     /**
      * @param gramatica a gramatica do analisador sintatico; toda producao dela
@@ -163,12 +171,13 @@ public final class AnalisadorSemantico implements AcoesReducao {
             tabela.declarar(new Simbolo(terminal.getLexema(), CategoriaSimbolo.PROGRAMA, null, terminal.getLinha()));
             tabela.abrirEscopo(TabelaSimbolos.ESCOPO_GLOBAL);
         }
-        if (terminal.getNome().equals("then") || terminal.getNome().equals("do")) {
-            // 'then' e 'do' so aparecem depois da condicao (if EXPR then, while EXPR do).
+        if ((terminal.getNome().equals("then") || terminal.getNome().equals("do")) && ultimaReducaoFoiExpr) {
+            // 'then' e 'do' aparecem depois da condicao (if EXPR then, while EXPR do).
             // Num analisador LR, o 'then' so e empilhado depois de a condicao ser
             // reduzida a EXPR, e essa e a ultima reducao antes dele: a condicao e a
             // ultima EXPR reduzida. Conferir aqui, e nao na reducao do if inteiro,
-            // faz o erro da condicao sair antes dos erros do corpo.
+            // faz o erro da condicao sair antes dos erros do corpo. No 'do' do for
+            // a ultima reducao e a de CAB_FOR, e nao ha condicao a conferir.
             verificarCondicao(ultimaExpressao, terminal.getNome().equals("then") ? "if" : "while");
         }
         anterior = terminal;
@@ -184,7 +193,8 @@ public final class AnalisadorSemantico implements AcoesReducao {
         Regra regra = regras.get(producao.toString());
         Object valor = regra.aplicar(valores, linha);
         // guarda a ultima EXPR: se o proximo terminal for then/do, ela e a condicao
-        if (producao.getCabeca().equals("EXPR")) {
+        ultimaReducaoFoiExpr = producao.getCabeca().equals("EXPR");
+        if (ultimaReducaoFoiExpr) {
             ultimaExpressao = (Expressao) valor;
         }
         return valor;
@@ -252,6 +262,12 @@ public final class AnalisadorSemantico implements AcoesReducao {
                 "CMD_ABERTO -> if EXPR then CMD_FECHADO else CMD_ABERTO",
                 "CMD_ABERTO -> while EXPR do CMD_ABERTO",
                 "SIMPLES -> begin LISTA_CMD end");
+        // for: o cabecalho e conferido ao reduzir CAB_FOR, antes do corpo; no fim
+        // do laco (a reducao do comando inteiro), a variavel volta a poder mudar.
+        regra("CAB_FOR -> for id := EXPR to EXPR", (v, linha) -> cabecalhoDoFor(v));
+        regra("CAB_FOR -> for id := EXPR downto EXPR", (v, linha) -> cabecalhoDoFor(v));
+        regra("CMD_FECHADO -> CAB_FOR do CMD_FECHADO", (v, linha) -> fimDoFor());
+        regra("CMD_ABERTO -> CAB_FOR do CMD_ABERTO", (v, linha) -> fimDoFor());
         regra("SIMPLES -> id := EXPR", (v, linha) -> {
             atribuir((Terminal) v.get(0), (Expressao) v.get(2));
             return null;
@@ -394,10 +410,80 @@ public final class AnalisadorSemantico implements AcoesReducao {
             erro(nome, "Não é possível atribuir um valor a '" + nome.getLexema() + "', que " + descrever(s));
             return;
         }
+        if (ehControleDoFor(s)) {
+            erro(nome, alteraControle(nome.getLexema()));
+            return;
+        }
         if (valor.tipo != Tipo.ERRO && !valor.tipo.podeSerAtribuidoA(s.getTipo())) {
             erro(nome, "Tipos incompatíveis na atribuição a '" + nome.getLexema() + "': a variável é "
                     + s.getTipo() + " e a expressão é " + valor.tipo);
         }
+    }
+
+    // ------------------------------------------------------------------- for
+
+    /*
+     * for id := inicio to fim (ou downto). Como no Pascal, a variavel de
+     * controle e de um tipo ordinal (aqui, integer ou char), o inicio e o fim
+     * sao do mesmo tipo dela, e ela nao pode ser alterada dentro do laco (nem
+     * ser a variavel de controle de um for de dentro). Devolve a variavel, que
+     * fica na lista dos controles ate o fim do laco (null se nao for uma).
+     */
+    private Object cabecalhoDoFor(List<Object> v) {
+        Terminal nome = (Terminal) v.get(1);
+        Expressao inicio = (Expressao) v.get(3);
+        Expressao fim = (Expressao) v.get(5);
+        Simbolo s = resolver(nome);
+        Simbolo controle = null;
+        if (s.getCategoria() == CategoriaSimbolo.NAO_DECLARADO) {
+            // o erro ja foi relatado em resolver
+        } else if (!s.getCategoria().isVariavel()) {
+            erro(nome, "'" + nome.getLexema() + "' " + descrever(s)
+                    + " e não pode ser a variável de controle do 'for'");
+        } else if (ehControleDoFor(s)) {
+            erro(nome, alteraControle(nome.getLexema()));
+        } else if (s.getTipo() != Tipo.INTEGER && s.getTipo() != Tipo.CHAR) {
+            erro(nome, "A variável de controle do 'for' deve ser integer ou char, mas '" + nome.getLexema()
+                    + "' é " + s.getTipo());
+        } else {
+            controle = s;
+            limiteDoFor("inicial", inicio, s);
+            limiteDoFor("final", fim, s);
+        }
+        controlesDoFor.push(controle == null ? SEM_CONTROLE : controle);
+        return controle;
+    }
+
+    // O valor inicial ou final do for tem de ser do tipo da variavel de controle.
+    private void limiteDoFor(String qual, Expressao limite, Simbolo controle) {
+        if (limite.tipo != Tipo.ERRO && limite.tipo != controle.getTipo()) {
+            erro(limite, "O valor " + qual + " do 'for' deve ser " + controle.getTipo() + ", como a variável '"
+                    + controle.getNome() + "', mas é " + limite.tipo);
+        }
+    }
+
+    // Fim do corpo do for: a variavel de controle volta a poder ser alterada.
+    private Object fimDoFor() {
+        controlesDoFor.pop();
+        return null;
+    }
+
+    // Lugar na pilha dos controles de um for cujo cabecalho teve erro.
+    private static final Simbolo SEM_CONTROLE =
+            new Simbolo("", CategoriaSimbolo.NAO_DECLARADO, Tipo.ERRO, 0);
+
+    // A variavel e a de controle de algum for em andamento? (o mesmo simbolo, nao so o mesmo nome)
+    private boolean ehControleDoFor(Simbolo s) {
+        for (Simbolo c : controlesDoFor) {
+            if (c == s) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String alteraControle(String nome) {
+        return "'" + nome + "' é a variável de controle de um 'for' e não pode ser alterada dentro dele";
     }
 
     // Chamada ("p" ou "p(a, b)"): confere o que o nome e e os argumentos.
@@ -438,6 +524,9 @@ public final class AnalisadorSemantico implements AcoesReducao {
             if (par.getCategoria() == CategoriaSimbolo.PARAMETRO_VAR) {
                 if (arg.variavel == null) {
                     erro(arg, inicio + "o parâmetro '" + par.getNome() + "' é var e precisa receber uma variável");
+                } else if (ehControleDoFor(arg.variavel)) {
+                    erro(arg, inicio + alteraControle(arg.variavel.getNome())
+                            + " (o parâmetro '" + par.getNome() + "' é var)");
                 } else if (arg.tipo != par.getTipo()) {
                     erro(arg, inicio + "o parâmetro var '" + par.getNome() + "' é " + par.getTipo()
                             + " e a variável '" + arg.variavel.getNome() + "' é " + arg.tipo
@@ -462,6 +551,8 @@ public final class AnalisadorSemantico implements AcoesReducao {
                 Expressao arg = argumentos.get(i);
                 if (arg.tipo != Tipo.ERRO && arg.variavel == null) {
                     erro(arg, "Argumento " + (i + 1) + " de '" + nome.getLexema() + "' precisa ser uma variável");
+                } else if (arg.variavel != null && ehControleDoFor(arg.variavel)) {
+                    erro(arg, alteraControle(arg.variavel.getNome()));
                 }
             }
         }

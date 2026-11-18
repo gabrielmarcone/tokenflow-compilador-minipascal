@@ -100,7 +100,7 @@ public class VerificacaoRecuperacao {
                 "  if x > 1 then x := 3 else",
                 "end."),
                 "Erro sintático na linha 3: Encontrado identificador 'x'; esperado 'then', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'",
-                "Erro sintático na linha 5: Encontrado 'end'; esperado identificador, 'begin', 'if' ou 'while'"
+                "Erro sintático na linha 5: Encontrado 'end'; esperado identificador, 'begin', 'if', 'while' ou 'for'"
                         + " (depois de 'else' na linha 4)");
         checarSaida("chamadas: falta ')' e falta ','", linhas(
                 "program p;",
@@ -167,14 +167,14 @@ public class VerificacaoRecuperacao {
                 "program p;", "begin", "  x := 1;", "  y := 2;", "end"),
                 "Erro sintático na linha 5: Fim do arquivo inesperado; esperado '.'");
         checarSaida("arquivo termina no meio do programa", linhas("program p;", "begin", "  x := 1;"),
-                "Erro sintático na linha 3: Fim do arquivo inesperado; esperado identificador, 'begin', 'end', 'if' ou 'while'");
+                "Erro sintático na linha 3: Fim do arquivo inesperado; esperado identificador, 'begin', 'end', 'if', 'while' ou 'for'");
         checarSaida("não começa com 'program'", "x := 1;",
                 "Erro sintático na linha 1: Encontrado identificador 'x'; esperado 'program'");
         checarSaida("só 'begin end'", "begin end",
                 "Erro sintático na linha 1: Encontrado 'begin'; esperado 'program'");
-        checarSaida("comando 'for' (não existe no Mini_Pascal): um erro só, sem cascata no 'to'",
-                "program p; begin for i := 1 to 10 do x := i; end.",
-                "Erro sintático na linha 1: Encontrado 'for'; esperado identificador, 'begin', 'if' ou 'while'");
+        checarSaida("comando 'with' (não existe no Mini_Pascal): um erro só, sem cascata no 'do'",
+                "program p; begin with r do x := i; end.",
+                "Erro sintático na linha 1: Encontrado 'with'; esperado identificador, 'begin', 'if', 'while' ou 'for'");
         checarSaida("texto depois do '.' final", "program p; begin x := 1; end. x y z",
                 "Erro sintático na linha 1: Encontrado identificador 'x'; esperado fim do arquivo");
         checarSaida("muitos tokens inválidos seguidos: um erro só", "program p; begin x := 1 2 3 4 5 6 7 8 9; end.",
@@ -204,7 +204,7 @@ public class VerificacaoRecuperacao {
                 "program p;", "var soma: real;", "* begin", "  x := 3.5;", "  (1);", "end."),
                 "Erro sintático na linha 3: Encontrado '*'; esperado identificador, 'begin', 'var' ou 'procedure'"
                         + " (depois de ';' na linha 2)",
-                "Erro sintático na linha 5: Encontrado '('; esperado identificador, 'begin', 'end', 'if' ou 'while'"
+                "Erro sintático na linha 5: Encontrado '('; esperado identificador, 'begin', 'end', 'if', 'while' ou 'for'"
                         + " (depois de ';' na linha 4)");
         // Um erro a cada 50 linhas, em 2000 linhas: os 40 sao relatados, nas linhas certas.
         StringBuilder sb = new StringBuilder("program p;\nbegin\n");
