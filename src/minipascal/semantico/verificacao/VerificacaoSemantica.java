@@ -69,6 +69,7 @@ public class VerificacaoSemantica {
         executar("nomes e categorias", VerificacaoSemantica::verificarNomes);
         executar("tipos", VerificacaoSemantica::verificarTipos);
         executar("chamadas", VerificacaoSemantica::verificarChamadas);
+        executar("for", VerificacaoSemantica::verificarFor);
         executar("escopos", VerificacaoSemantica::verificarEscopos);
         executar("cascatas", VerificacaoSemantica::verificarCascatas);
         executar("outras fases", VerificacaoSemantica::verificarOutrasFases);
@@ -300,6 +301,15 @@ public class VerificacaoSemantica {
                 "  if not (s * 2 > 1) and (i / s < 0) then i := 1;", "end."),
                 SEM + "4: O operador '*' não se aplica aos tipos string e integer",
                 SEM + "4: O operador '/' não se aplica aos tipos integer e string");
+        checarSaida("como no Pascal, 'not' liga mais forte que '<' e '/' entra em comparações e escritas", linhas(
+                "program p;", "var i, j: integer; r: real;", "begin",
+                "  if not (i < j) and (i / 2 > r) then writeln(i / j);",
+                "  if not i < j then i := 1;",
+                "  r := i / j / 2 * 3;",
+                "  i := i div (i / 2);",
+                "end."),
+                SEM + "5: O operador 'not' exige um operando lógico (uma comparação), mas recebeu integer",
+                SEM + "7: O operador 'div' exige operandos integer, mas recebeu integer e real");
         checarSaida("div e mod só com integer", linhas(
                 "program p;", "var i: integer; r: real;", "begin", "  i := r div 2;", "  i := 7 mod r;",
                 "  i := 7 div 2 mod 3;", "end."),
@@ -344,6 +354,75 @@ public class VerificacaoSemantica {
     // ---------------------------------------------------------------- chamadas
 
     private static final String PROC_Q = "procedure q(var r: integer; v: real);";
+
+    // Como no Pascal: variavel de controle integer ou char, limites do tipo dela,
+    // e ela nao pode ser alterada dentro do laco (atribuicao, read, parametro var
+    // ou outro for com a mesma variavel). Depois do laco, volta a poder.
+    private static void verificarFor() {
+        checarSaida("for correto: to, downto, char, aninhado, em if e em procedimento", linhas(
+                "program p;", "var i, j: integer; c: char; s: string;",
+                "procedure conta(n: integer);", "var k: integer;", "begin",
+                "  for k := n downto 1 do writeln(k);", "end;",
+                "begin",
+                "  for i := 1 to 10 do writeln(i);",
+                "  for c := 'a' to 'z' do s := s + c;",
+                "  for i := 1 to 3 do",
+                "    for j := i to i * 2 do",
+                "      if i < j then writeln(i, j) else conta(j);",
+                "  if i > 0 then for j := i downto 0 do i := j;",
+                "  for i := j + 1 to j div 2 do begin read(j); writeln(i); end;",
+                "  i := 5;",
+                "end."), "OK");
+        checarSaida("variável de controle que não é integer nem char, ou não é variável", linhas(
+                "program p;", "var r: real; s: string;", "procedure q;", "begin", "  writeln;", "end;", "begin",
+                "  for r := 1 to 2 do writeln(r);",
+                "  for s := \"a\" to \"b\" do writeln(s);",
+                "  for q := 1 to 2 do writeln;",
+                "  for p := 1 to 2 do writeln;",
+                "  for x := 1 to 2 do writeln(x);",
+                "end."),
+                SEM + "8: A variável de controle do 'for' deve ser integer ou char, mas 'r' é real",
+                SEM + "9: A variável de controle do 'for' deve ser integer ou char, mas 's' é string",
+                SEM + "10: 'q' é um procedimento e não pode ser a variável de controle do 'for'",
+                SEM + "11: 'p' é o nome do programa e não pode ser a variável de controle do 'for'",
+                SEM + "12: Identificador 'x' não declarado");
+        checarSaida("limites de outro tipo (real não serve para integer)", linhas(
+                "program p;", "var i: integer; c: char;", "begin",
+                "  for i := 1.5 to 10 do writeln(i);",
+                "  for i := 1 to 'z' do writeln(i);",
+                "  for c := 'a' to 10 do writeln(c);",
+                "  for i := (1 < 2) to 3 do writeln(i);",
+                "  for i := 1 to y do writeln(i);",
+                "end."),
+                SEM + "4: O valor inicial do 'for' deve ser integer, como a variável 'i', mas é real",
+                SEM + "5: O valor final do 'for' deve ser integer, como a variável 'i', mas é char",
+                SEM + "6: O valor final do 'for' deve ser char, como a variável 'c', mas é integer",
+                SEM + "7: O valor inicial do 'for' deve ser integer, como a variável 'i', mas é lógico",
+                SEM + "8: Identificador 'y' não declarado");
+        String alterada = "' é a variável de controle de um 'for' e não pode ser alterada dentro dele";
+        checarSaida("variável de controle alterada dentro do laço", linhas(
+                "program p;", "var i, j: integer;", "procedure muda(var x: integer);", "begin", "  x := 1;", "end;",
+                "procedure usa(x: integer);", "begin", "  writeln(x);", "end;", "begin",
+                "  for i := 1 to 3 do i := 2;",
+                "  for i := 1 to 3 do read(j, i);",
+                "  for i := 1 to 3 do muda(i);",
+                "  for i := 1 to 3 do for i := 1 to 2 do writeln(i);",
+                "  for i := 1 to 3 do begin j := i; usa(i); muda(j); end;",
+                "  for i := 1 to 3 do for j := 1 to 2 do j := i;",
+                "  i := 1;",
+                "end."),
+                SEM + "12: 'i" + alterada,
+                SEM + "13: 'i" + alterada,
+                SEM + "14: Argumento 1 de 'muda': 'i" + alterada + " (o parâmetro 'x' é var)",
+                SEM + "15: 'i" + alterada,
+                SEM + "17: 'j" + alterada);
+        checarSaida("'do' do for não confere condição lógica (a do while continua conferida)", linhas(
+                "program p;", "var i: integer;", "begin",
+                "  for i := 1 to 2 do while i do i := 1;",
+                "end."),
+                SEM + "4: A condição do 'while' deve ser lógica (uma comparação), mas é integer",
+                SEM + "4: 'i" + alterada);
+    }
 
     private static void verificarChamadas() {
         checarSaida("número de argumentos diferente do de parâmetros", linhas(
@@ -633,9 +712,17 @@ public class VerificacaoSemantica {
         int corretos = 0;
         String exemploErrado = null;
         int quantos = 1500;
+        // Quantos programas gerados usam os operadores e o for (modificacoes 6 e 7 da gramatica).
+        String[] operadores = {" / ", " and ", " or ", "not ", "for "};
+        int[] usos = new int[operadores.length];
         for (int i = 0; i < quantos; i++) {
             GeradorDeProgramas g = new GeradorDeProgramas(rnd);
             String programa = g.gerar(null);
+            for (int k = 0; k < operadores.length; k++) {
+                if (programa.contains(operadores[k])) {
+                    usos[k]++;
+                }
+            }
             String saida = COMPILADOR.analisar(programa).formatar();
             if (saida.equals("OK")) {
                 corretos++;
@@ -645,6 +732,9 @@ public class VerificacaoSemantica {
         }
         checar(quantos + " programas gerados bem tipados: todos OK"
                 + (exemploErrado == null ? "" : " (ex.:\n" + exemploErrado + ")"), corretos == quantos);
+        checar("os programas gerados usam '/', 'and', 'or', 'not' e 'for' (" + usos[0] + ", " + usos[1] + ", "
+                + usos[2] + ", " + usos[3] + " e " + usos[4] + " programas)",
+                usos[0] >= 100 && usos[1] >= 100 && usos[2] >= 100 && usos[3] >= 100 && usos[4] >= 100);
 
         for (GeradorDeProgramas.Defeito defeito : GeradorDeProgramas.Defeito.values()) {
             int certos = 0;
@@ -684,7 +774,8 @@ public class VerificacaoSemantica {
         String exemplo = null;
         String[] pedacos = {"program", "p", ";", "begin", "end", "var", "x", ":", "integer", "real", "char", "string",
                 ",", "procedure", "q", "(", ")", ":=", "+", "-", "*", "div", "mod", "<", "=", "if", "then", "else",
-                "while", "do", "1", "2.5", "'a'", "\"s\"", "read", "write", "writeln", ".", "@", "\n"};
+                "while", "do", "1", "2.5", "'a'", "\"s\"", "read", "write", "writeln", ".", "@", "\n",
+                "/", "and", "or", "not", "for", "to", "downto"};
         for (int i = 0; i < programas; i++) {
             String texto;
             if (i % 2 == 0) {
