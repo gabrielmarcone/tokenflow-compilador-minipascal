@@ -3,10 +3,12 @@ package minipascal.gui;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
+import minipascal.lexico.core.DescricaoErroLexico;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,6 +37,17 @@ public final class EditorCodigo extends BorderPane {
         area.getStyleClass().add("codigo-fonte");
         area.setWrapText(false);
         area.setPromptText("Digite ou cole aqui um programa Mini_Pascal, ou use Abrir (Ctrl+O)...");
+        // O texto colado passa pelo mesmo ajuste do arquivo carregado (paraEditor).
+        area.setTextFormatter(new TextFormatter<String>(mudanca -> {
+            if (mudanca.isContentChange()) {
+                String colado = mudanca.getText();
+                String ajustado = paraEditor(colado);
+                if (!ajustado.equals(colado)) {
+                    mudanca.setText(ajustado);
+                }
+            }
+            return mudanca;
+        }));
 
         numeros.setId("numerosDeLinha");
         numeros.getStyleClass().add("numeros-linha");
@@ -80,9 +93,27 @@ public final class EditorCodigo extends BorderPane {
     }
 
     public void setText(String texto) {
-        area.setText(texto);
+        area.setText(paraEditor(texto));
         area.positionCaret(0);
         area.setScrollTop(0);
+    }
+
+    /*
+     * Ajusta o texto para a area de texto do JavaFX, que apaga sozinha o '\r'
+     * e os caracteres de controle. Sem este ajuste, um arquivo com quebras de
+     * linha so com '\r' (Mac antigo) viraria uma linha so, e um caractere de
+     * controle sumiria: a interface e a linha de comando dariam resultados
+     * diferentes para o mesmo arquivo. Assim:
+     *   - "\r\n" e '\r' sozinho viram '\n' (o analisador lexico tambem conta
+     *     cada um como uma quebra de linha);
+     *   - cada caractere de controle vira uma marca visivel, a mesma que as
+     *     mensagens de erro usam (DescricaoErroLexico.visivel).
+     */
+    static String paraEditor(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return DescricaoErroLexico.visivel(texto.replace("\r\n", "\n").replace('\r', '\n'));
     }
 
     // Marca com "*" as linhas com erro (vazio para tirar as marcas).
