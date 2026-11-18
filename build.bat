@@ -41,9 +41,23 @@ for %%E in (gramatica.txt expressoes.txt) do (
 if exist out rmdir /s /q out
 mkdir out
 
-set "FONTES="
-for /r src %%F in (*.java) do set FONTES=!FONTES! "%%F"
-"%JAVAC%" %JAVAC_OPTS% -encoding UTF-8 -d out !FONTES!
+rem A lista dos fontes vai num arquivo (@out\fontes.txt), como no build.sh:
+rem numa linha so, os caminhos de todos os .java passariam do limite de 8191
+rem caracteres da linha de comando do Windows numa pasta de nome longo, e a
+rem compilacao sairia incompleta. Os caminhos ficam relativos a pasta do
+rem projeto (src/minipascal/...), com "/": sem espacos nem acentos, qualquer
+rem que seja a pasta onde o projeto esta. Se nao der para tira-la do comeco
+rem do caminho, ele vai inteiro, entre aspas.
+for /r src %%F in (*.java) do (
+    set "F=%%F"
+    set "F=!F:%CD%\=!"
+    if "!F:~1,1!"==":" (
+        >>out\fontes.txt echo "!F:\=/!"
+    ) else (
+        >>out\fontes.txt echo !F:\=/!
+    )
+)
+"%JAVAC%" %JAVAC_OPTS% -encoding UTF-8 -d out @out\fontes.txt
 if errorlevel 1 goto erro
 
 for %%E in (Main.fxml application.css icon.png) do copy /y "src\minipascal\gui\%%E" "out\minipascal\gui\" >nul
