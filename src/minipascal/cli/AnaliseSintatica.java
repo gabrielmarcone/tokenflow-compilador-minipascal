@@ -4,7 +4,6 @@ import minipascal.io.LeitorArquivoFonte;
 import minipascal.sintatico.parser.AnalisadorSintatico;
 import minipascal.sintatico.parser.ResultadoAnalise;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -47,9 +46,10 @@ public final class AnaliseSintatica {
             return 1;
         }
         String entrada = args[0];
-        if (args.length == 2
-                && new File(args[1]).getAbsoluteFile().equals(new File(entrada).getAbsoluteFile())) {
-            System.out.println("O arquivo de saida nao pode ser o mesmo da entrada.");
+        // Entrada que e pasta, saida igual a entrada, pasta de saida que nao existe.
+        String problema = Caminhos.problema(entrada, args.length == 2 ? args[1] : null);
+        if (problema != null) {
+            System.out.println(Console.semAcentos(problema));
             return 1;
         }
         try {
@@ -63,7 +63,7 @@ public final class AnaliseSintatica {
             }
             return resultado.isSucesso() ? 0 : 1;
         } catch (NoSuchFileException e) {
-            System.out.println("Arquivo nao encontrado: " + entrada);
+            System.out.println("Arquivo nao encontrado: " + Console.semAcentos(e.getFile()));
             return 1;
         } catch (IOException e) {
             System.out.println("Erro ao processar o arquivo: " + Console.semAcentos(e.getMessage()));
