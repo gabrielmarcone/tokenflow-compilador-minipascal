@@ -17,17 +17,24 @@ import java.util.List;
  *
  *   java -cp TokenFlow.jar minipascal.cli.AnaliseLexica <entrada.txt> [saida.txt]
  *
- * Grava um par lexema/classe por linha, em UTF-8.
+ * Grava um par lexema/classe por linha, em UTF-8. Codigo de saida 0 quando a
+ * listagem foi gravada (erros lexicos fazem parte dela) e 1 quando nao foi
+ * possivel ler ou gravar, como nas outras linhas de comando.
  */
 public class AnaliseLexica {
+
+    public static void main(String[] args) {
+        System.exit(executar(args));
+    }
 
     // Modo linha de comando: le o arquivo, chama o analisador ate ele devolver
     // null e grava um par lexema/token por linha. Erros lexicos entram na saida
     // como tokens; so falha de leitura ou gravacao interrompe a execucao.
-    public static void main(String[] args) {
+    // Separado do main (que so encerra com o codigo) para as suites chamarem.
+    public static int executar(String[] args) {
         if (args.length < 1) {
             System.out.println("Uso: java -cp TokenFlow.jar minipascal.cli.AnaliseLexica <entrada.txt> [saida.txt]");
-            return;
+            return 1;
         }
 
         String caminhoEntrada = args[0];
@@ -38,7 +45,7 @@ public class AnaliseLexica {
         String problema = Caminhos.problema(caminhoEntrada, caminhoSaida);
         if (problema != null) {
             System.out.println(Console.semAcentos(problema));
-            return;
+            return 1;
         }
 
         try {
@@ -55,10 +62,13 @@ public class AnaliseLexica {
 
             EscritorArquivoSaida.escrever(caminhoSaida, tokens);
             System.out.println(tokens.size() + " tokens reconhecidos. Saida gravada em " + caminhoSaida);
+            return 0;
         } catch (NoSuchFileException e) {
             System.out.println("Arquivo nao encontrado: " + e.getFile());
+            return 1;
         } catch (IOException e) {
             System.out.println("Erro ao processar o arquivo: " + e.getMessage());
+            return 1;
         }
     }
 

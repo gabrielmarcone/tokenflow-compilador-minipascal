@@ -160,13 +160,13 @@ public class VerificacaoRobustez {
         File entrada = new File(pasta, "prog");
         Files.write(entrada.toPath(), "program x;".getBytes(StandardCharsets.UTF_8));
 
-        AnaliseLexica.main(new String[]{entrada.getAbsolutePath()});
-        checar("CLI: entrada 'dir.v2/prog' (ponto na pasta, sem extensão) gera 'dir.v2/prog_saida.txt'",
-                new File(pasta, "prog_saida.txt").isFile() && !new File(raiz, "dir_saida.txt").exists());
+        int codigo = AnaliseLexica.executar(new String[]{entrada.getAbsolutePath()});
+        checar("CLI: entrada 'dir.v2/prog' (ponto na pasta, sem extensão) gera 'dir.v2/prog_saida.txt' (código 0)",
+                new File(pasta, "prog_saida.txt").isFile() && !new File(raiz, "dir_saida.txt").exists() && codigo == 0);
 
         File sub = new File(pasta, "sub");
         sub.mkdirs();
-        AnaliseLexica.main(new String[]{new File(sub, "..").getPath() + File.separator + "prog"});
+        AnaliseLexica.executar(new String[]{new File(sub, "..").getPath() + File.separator + "prog"});
         checar("CLI: caminho com '..' não cria arquivo '._saida.txt'",
                 !new File(".", "._saida.txt").exists());
     }
@@ -174,10 +174,31 @@ public class VerificacaoRobustez {
     private static void checarCliRecusaSobrescreverEntrada() throws IOException {
         File f = temporario("mesmo", ".txt");
         Files.write(f.toPath(), "program x;".getBytes(StandardCharsets.UTF_8));
-        AnaliseLexica.main(new String[]{f.getAbsolutePath(), f.getAbsolutePath()});
+        int codigo = AnaliseLexica.executar(new String[]{f.getAbsolutePath(), f.getAbsolutePath()});
         String depois = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
-        checar("CLI: saída igual à entrada é recusada e o arquivo original fica intacto",
-                depois.equals("program x;"));
+        checar("CLI: saída igual à entrada é recusada (código 1) e o arquivo original fica intacto",
+                depois.equals("program x;") && codigo == 1);
+        // O mesmo arquivo escrito de outra forma tambem e recusado.
+        File pasta = Files.createTempDirectory("tokenflow-mesmo").toFile();
+        File sub = new File(pasta, "sub");
+        sub.mkdir();
+        File prog = new File(pasta, "prog.txt");
+        Files.write(prog.toPath(), "program x;".getBytes(StandardCharsets.UTF_8));
+        String[] outrasFormas = {
+                pasta.getPath() + File.separator + "." + File.separator + "prog.txt",
+                sub.getPath() + File.separator + ".." + File.separator + "prog.txt"};
+        boolean recusadas = true;
+        for (String outra : outrasFormas) {
+            recusadas &= AnaliseLexica.executar(new String[]{prog.getPath(), outra}) == 1;
+        }
+        String depoisDasOutras = new String(Files.readAllBytes(prog.toPath()), StandardCharsets.UTF_8);
+        checar("CLI: saída igual à entrada escrita de outra forma ('./' e 'sub/..') também é recusada",
+                recusadas && depoisDasOutras.equals("program x;"));
+        checar("CLI: arquivo de entrada que não existe dá código 1",
+                AnaliseLexica.executar(new String[]{new File(pasta, "nao-existe.txt").getPath()}) == 1);
+        Files.delete(prog.toPath());
+        Files.delete(sub.toPath());
+        Files.delete(pasta.toPath());
     }
 
     private static void checarVolumeGrande() {
