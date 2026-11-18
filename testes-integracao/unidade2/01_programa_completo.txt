@@ -1,6 +1,6 @@
 /* Teste 01 - programa correto que usa toda a linguagem:
    variáveis dos quatro tipos, procedimentos com parâmetros por valor
-   e por referência (var), recursão, if/else, while, blocos begin/end,
+   e por referência (var), recursão, if/else, while, for, begin/end,
    todos os operadores (inclusive / and or not) e as conversões permitidas.
    Resultado esperado: OK */
 program Completo;
@@ -64,6 +64,8 @@ begin
   while (i >= 1) do i := i - 1;
   media := soma / n + taxa / 2;
   if (n > 0) and not (soma = 0) or (letra = 'T') then writeln("ok");
+  for i := 1 to n do acumular(i, soma);
+  for letra := 'z' downto 'a' do write(letra);
   begin
     LINHA;
     write(+media, -taxa, Soma);

@@ -40,7 +40,9 @@ final class GeradorDeProgramas {
         PROCEDIMENTO_EM_EXPRESSAO,
         DECLARACAO_REPETIDA,
         READ_SEM_VARIAVEL,
-        ESCOPO_INTERNO
+        ESCOPO_INTERNO,
+        FOR_VARIAVEL_ALTERADA,
+        FOR_LIMITE_DE_OUTRO_TIPO
     }
 
     private static final Tipo[] DECLARAVEIS = {Tipo.INTEGER, Tipo.REAL, Tipo.CHAR, Tipo.STRING};
@@ -264,7 +266,7 @@ final class GeradorDeProgramas {
     // Um comando correto (sem o ';').
     private String comando(Contexto c, int profundidade) {
         while (true) {
-            switch (rnd.nextInt(profundidade > 0 ? 9 : 5)) {
+            switch (rnd.nextInt(profundidade > 0 ? 10 : 5)) {
                 case 0:
                     if (!c.vars.isEmpty()) {
                         Var v = sortear(c.vars);
@@ -299,10 +301,50 @@ final class GeradorDeProgramas {
                     return "if " + expressao(Tipo.LOGICO, c, 2) + " then " + comando(c, 0) + " else " + comando(c, 0);
                 case 7:
                     return "while " + expressao(Tipo.LOGICO, c, 2) + " do " + comando(c, 0);
+                case 8: {
+                    // for com uma variavel integer ou char; o corpo nao pode alterar
+                    // a variavel, entao ele nem a enxerga (ver semControle).
+                    List<Var> ordinais = ordinais(c.vars);
+                    if (!ordinais.isEmpty()) {
+                        Var v = sortear(ordinais);
+                        return cabecalhoDoFor(v, c, v.tipo, v.tipo) + comando(semControle(c, v), 0);
+                    }
+                    break;
+                }
                 default:
                     return "begin " + comando(c, 0) + "; " + comando(c, 0) + "; end";
             }
         }
+    }
+
+    // "for v := inicio to fim do " (ou downto), com limites dos tipos dados.
+    private String cabecalhoDoFor(Var v, Contexto c, Tipo inicio, Tipo fim) {
+        return "for " + v.nome + " := " + expressao(inicio, c, 1) + (rnd.nextBoolean() ? " to " : " downto ")
+                + expressao(fim, c, 1) + " do ";
+    }
+
+    // Variaveis que podem controlar um for: integer e char.
+    private static List<Var> ordinais(List<Var> vars) {
+        List<Var> r = new ArrayList<>();
+        for (Var v : vars) {
+            if (v.tipo == Tipo.INTEGER || v.tipo == Tipo.CHAR) {
+                r.add(v);
+            }
+        }
+        return r;
+    }
+
+    // O mesmo contexto sem a variavel de controle (para o corpo do for nao altera-la).
+    private static Contexto semControle(Contexto c, Var controle) {
+        Contexto r = new Contexto();
+        for (Var v : c.vars) {
+            if (!v.nome.equals(controle.nome)) {
+                r.vars.add(v);
+            }
+        }
+        r.procs.addAll(c.procs);
+        r.invisiveis.addAll(c.invisiveis);
+        return r;
     }
 
     private boolean podeTer(Defeito d, Contexto c) {
@@ -330,6 +372,9 @@ final class GeradorDeProgramas {
                 return !c.vars.isEmpty();
             case ESCOPO_INTERNO:
                 return !c.invisiveis.isEmpty();
+            case FOR_VARIAVEL_ALTERADA:
+            case FOR_LIMITE_DE_OUTRO_TIPO:
+                return !ordinais(c.vars).isEmpty();
             default:
                 return true;
         }
@@ -458,6 +503,27 @@ final class GeradorDeProgramas {
                 mensagemDoDefeito = "Identificador '" + q.nome + "' não declarado";
                 return q.nome;
             }
+            case FOR_VARIAVEL_ALTERADA: {
+                // atribuicao a variavel de controle dentro do laco
+                Var v = sortear(ordinais(c.vars));
+                mensagemDoDefeito = "'" + v.nome + "' é a variável de controle de um 'for' e não pode ser alterada dentro dele";
+                return cabecalhoDoFor(v, c, v.tipo, v.tipo) + v.nome + " := " + expressaoAtribuivelA(v.tipo, c, 1);
+            }
+            case FOR_LIMITE_DE_OUTRO_TIPO: {
+                Var v = sortear(ordinais(c.vars));
+                List<Tipo> errados = new ArrayList<>();
+                for (Tipo t : new Tipo[]{Tipo.INTEGER, Tipo.REAL, Tipo.CHAR, Tipo.STRING, Tipo.LOGICO}) {
+                    if (t != v.tipo) {
+                        errados.add(t);
+                    }
+                }
+                Tipo errado = sortear(errados);
+                boolean inicial = rnd.nextBoolean();
+                mensagemDoDefeito = "O valor " + (inicial ? "inicial" : "final") + " do 'for' deve ser " + v.tipo
+                        + ", como a variável '" + v.nome + "', mas é " + errado;
+                return cabecalhoDoFor(v, c, inicial ? errado : v.tipo, inicial ? v.tipo : errado)
+                        + comando(semControle(c, v), 0);
+            }
             default:
                 throw new IllegalArgumentException(d.toString());
         }
@@ -547,6 +613,19 @@ final class GeradorDeProgramas {
                 return embrulhar(expressao(Tipo.LOGICO, c, profundidade - 1)) + " " + relacional() + " "
                         + embrulhar(expressao(Tipo.LOGICO, c, profundidade - 1));
             }
+            // and, or e not: so com operandos logicos, e o resultado e logico.
+            // Os operandos compostos vao entre parenteses (no Pascal, and/or
+            // ligam com mais forca que as comparacoes).
+            if (profundidade > 0 && rnd.nextInt(4) == 0) {
+                int p = profundidade - 1;
+                switch (rnd.nextInt(3)) {
+                    case 0:
+                        return "not " + embrulhar(expressao(Tipo.LOGICO, c, p));
+                    default:
+                        return embrulhar(expressao(Tipo.LOGICO, c, p)) + (rnd.nextBoolean() ? " and " : " or ")
+                                + embrulhar(expressao(Tipo.LOGICO, c, p));
+                }
+            }
             boolean numeros = rnd.nextBoolean();
             Tipo a = numeros ? (rnd.nextBoolean() ? Tipo.INTEGER : Tipo.REAL) : (rnd.nextBoolean() ? Tipo.CHAR : Tipo.STRING);
             Tipo b = numeros ? (rnd.nextBoolean() ? Tipo.INTEGER : Tipo.REAL) : (rnd.nextBoolean() ? Tipo.CHAR : Tipo.STRING);
@@ -576,6 +655,12 @@ final class GeradorDeProgramas {
                     Tipo x = a;
                     a = b;
                     b = x;
+                }
+                // '/' aceita quaisquer numeros e sempre da real.
+                if (rnd.nextInt(4) == 0) {
+                    Tipo x = rnd.nextBoolean() ? Tipo.REAL : Tipo.INTEGER;
+                    Tipo y = rnd.nextBoolean() ? Tipo.REAL : Tipo.INTEGER;
+                    return embrulhar(expressao(x, c, p)) + " / " + embrulhar(expressao(y, c, p));
                 }
                 String op = sortear(new String[]{"+", "-", "*"});
                 return embrulhar(expressao(a, c, p)) + " " + op + " " + embrulhar(expressao(b, c, p));

@@ -132,7 +132,7 @@ public class VerificacaoRastro {
     private static void verificarRecuperacao() {
         AnalisadorSintatico a = new AnalisadorSintatico(TABELA);
         RastroAnalise rastro = new RastroAnalise(TABELA);
-        String fonte = "program p begin if x > 1 x := 2 else x := 3; for i := 1 to 3 do x := 1; end.";
+        String fonte = "program p begin if x > 1 x := 2 else x := 3; with i := 1 to 3 do x := 1; end.";
         ResultadoAnalise r = a.analisar(fonte, rastro);
         List<String> recuperacoes = new ArrayList<>();
         int erros = 0;
@@ -153,7 +153,7 @@ public class VerificacaoRastro {
         boolean descritas = recuperacoes.equals(Arrays.asList(
                 "recuperação: insere ';', que faltava",
                 "recuperação: insere 'then', que faltava",
-                "recuperação: descarta 'for', 'i', ':=', '1', 'to'; insere 'while', que faltava"));
+                "recuperação: descarta 'with'; insere 'for', que faltava"));
         checar("recuperações descritas: inserção de ';', de 'then' e descarte seguido de inserção"
                 + (descritas ? "" : " " + recuperacoes), descritas);
         PassoAnalise erro = passos.get(2);

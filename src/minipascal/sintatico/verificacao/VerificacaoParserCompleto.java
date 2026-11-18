@@ -87,12 +87,18 @@ public class VerificacaoParserCompleto {
 
     private static void verificarGramatica() {
         Gramatica g = TABELA.getGramatica();
-        checar("gramatica.txt: 61 produções (mais a aumentada)", g.getProducoes().size() == 62);
-        checar("gramatica.txt: 22 não terminais, símbolo inicial PROG",
-                g.getNaoTerminais().size() == 22 && g.getSimboloInicial().equals("PROG"));
-        checar("gramatica.txt: 37 terminais mais $", g.getTerminais().size() == 38);
-        checar("gramatica.txt: 120 estados LR(0) e nenhum conflito (a tabela foi construída)",
-                TABELA.numeroDeEstados() == 120 && !TABELA.getAnalise().temConflitos());
+        checar("gramatica.txt: 65 produções (mais a aumentada)", g.getProducoes().size() == 66);
+        checar("gramatica.txt: 23 não terminais, símbolo inicial PROG",
+                g.getNaoTerminais().size() == 23 && g.getSimboloInicial().equals("PROG"));
+        checar("gramatica.txt: 40 terminais mais $", g.getTerminais().size() == 41);
+        checar("gramatica.txt: 132 estados LR(0) e nenhum conflito (a tabela foi construída)",
+                TABELA.numeroDeEstados() == 132 && !TABELA.getAnalise().temConflitos());
+        // O cabecalho do for tambem e um nao terminal proprio (modificacao 7).
+        checar("gramatica.txt: CAB_FOR (to e downto) e o for fechado e aberto, como o while",
+                temProducao(g, "CAB_FOR -> for id := EXPR to EXPR")
+                        && temProducao(g, "CAB_FOR -> for id := EXPR downto EXPR")
+                        && temProducao(g, "CMD_FECHADO -> CAB_FOR do CMD_FECHADO")
+                        && temProducao(g, "CMD_ABERTO -> CAB_FOR do CMD_ABERTO"));
         // O cabecalho do procedimento e um nao terminal proprio: a analise semantica
         // abre o escopo do procedimento quando ele e reduzido, antes do bloco.
         checar("gramatica.txt: CAB_PROC -> procedure id PALIST e BLOCO_PROC -> BLOCO_PROC CAB_PROC ; BLOCO ;",
@@ -108,7 +114,7 @@ public class VerificacaoParserCompleto {
         String[] nomes = {"program", "id", ";", ".", "begin", "end", "var", ":", "tipo", ",", "procedure",
                 "(", ")", "if", "then", "else", "while", "do", ":=", "=", "<", ">", "<>", "<=", ">=",
                 "+", "-", "or", "*", "/", "div", "mod", "and", "numero", "constante_string", "constante_char",
-                "not", "$"};
+                "not", "for", "to", "downto", "$"};
         for (String n : nomes) {
             esperados.add(n);
         }
@@ -217,19 +223,34 @@ public class VerificacaoParserCompleto {
         checarSaida("falta ';' antes de 'end'", "program p; begin x := 1 end.",
                 "Erro sintático na linha 1: Encontrado 'end'; esperado ';', '=', '<', '>', '<>', '<=', '>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
         checarSaida("';' antes de 'else'", "program p; begin if a then x := 1; else x := 2; end.",
-                "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'");
+                "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if', 'while' ou 'for'");
         checarSaida("falta o '.' final", "program p; begin x := 1; end",
                 "Erro sintático na linha 1: Fim do arquivo inesperado; esperado '.'");
         checarSaida("falta 'program'", "begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'begin'; esperado 'program'");
         checarSaida("bloco sem comandos", "program p; begin end.",
-                "Erro sintático na linha 1: Encontrado 'end'; esperado identificador, 'begin', 'if' ou 'while'");
+                "Erro sintático na linha 1: Encontrado 'end'; esperado identificador, 'begin', 'if', 'while' ou 'for'");
         checarSaida("falta ':' na declaração", "program p; var x integer; begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado tipo 'integer'; esperado ':' ou ','");
         checarSaida("'var' depois de 'procedure'", "program p; procedure q; begin x := 1; end; var x: integer; begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'var'; esperado 'begin' ou 'procedure'");
-        checarSaida("'for' não existe na gramática", "program p; begin for i := 1 to 10 do x := i; end.",
-                "Erro sintático na linha 1: Encontrado 'for'; esperado identificador, 'begin', 'if' ou 'while'");
+        // 'for' entrou na gramatica (modificacao 7), com to e downto.
+        checarSaida("'for' com 'to' e com 'downto'",
+                "program p; begin for i := 1 to 10 do x := i; for i := n downto 1 do begin x := i; end; end.", "OK");
+        checarSaida("'for' dentro de 'for', de 'if' e de 'while', e 'if' dentro de 'for' (else com o if mais próximo)",
+                "program p; begin for i := 1 to 2 do for j := i to 3 do if i < j then x := 1 else x := 2; "
+                        + "if a > b then for i := 1 to 2 do x := 1 else x := 3; "
+                        + "while a < b do for i := 1 to 2 do a := a + 1; end.", "OK");
+        checarSaida("'for' com '=' no lugar de ':='", "program p; begin for i = 1 to 10 do x := i; end.",
+                "Erro sintático na linha 1: Encontrado '='; esperado ':='");
+        checarSaida("'for' sem 'to'", "program p; begin for i := 1 10 do x := i; end.",
+                "Erro sintático na linha 1: Encontrado número '10'; esperado 'to', 'downto', '=', '<', '>', '<>', '<=', "
+                        + "'>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
+        checarSaida("'for' sem 'do'", "program p; begin for i := 1 to 10 x := i; end.",
+                "Erro sintático na linha 1: Encontrado identificador 'x'; esperado 'do', '=', '<', '>', '<>', '<=', "
+                        + "'>=', '+', '-', 'or', '*', '/', 'div', 'mod' ou 'and'");
+        checarSaida("'for' sem variável", "program p; begin for := 1 to 10 do x := 1; end.",
+                "Erro sintático na linha 1: Encontrado ':='; esperado identificador");
         checarSaida("'const' não existe na gramática", "program p; const c = 1; begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'const'; esperado 'begin', 'var' ou 'procedure'");
         // '/', 'and', 'or' e 'not' entraram na gramatica (com a precedencia do Pascal).
@@ -250,7 +271,7 @@ public class VerificacaoParserCompleto {
         checarSaida("atribuição sem expressão", "program p; begin x := ; end.",
                 "Erro sintático na linha 1: Encontrado ';'; esperado identificador, '(', '+', '-', número, constante string, constante char ou 'not'");
         checarSaida("'while' sem comando", "program p; begin while x do; end.",
-                "Erro sintático na linha 1: Encontrado ';'; esperado identificador, 'begin', 'if' ou 'while'");
+                "Erro sintático na linha 1: Encontrado ';'; esperado identificador, 'begin', 'if', 'while' ou 'for'");
         checarSaida("erro na linha 5 de um programa em várias linhas", "program p;\nvar x: integer;\nbegin\n  x := 1;\n  x := x +;\nend.",
                 "Erro sintático na linha 5: Encontrado ';'; esperado identificador, '(', número, constante string, constante char ou 'not'");
         checarSaida("texto depois do '.' final", "program p; begin x := 1; end. x",
@@ -281,7 +302,7 @@ public class VerificacaoParserCompleto {
         checarSaida("falta ';' depois do tipo", "program p; var x: integer begin x := 1; end.",
                 "Erro sintático na linha 1: Encontrado 'begin'; esperado ';'");
         checarSaida("'then' sem comando antes do 'else'", "program p; begin if x then else x := 1; end.",
-                "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'if' ou 'while'");
+                "Erro sintático na linha 1: Encontrado 'else'; esperado identificador, 'begin', 'if', 'while' ou 'for'");
         // A recuperacao insere o 'begin' que falta; o "begin q; end" passa a ser o
         // fim do corpo do procedimento, e falta entao o bloco do programa principal
         // (o '.' chega onde se esperava o ';' depois do procedimento).
@@ -310,7 +331,7 @@ public class VerificacaoParserCompleto {
                 // const nao existe no Mini_Pascal; o ';' antes do else tambem e erro.
                 "Erro sintático na linha 3: Encontrado 'const'; esperado identificador, 'begin', 'var' ou 'procedure'"
                 + " (depois de ';' na linha 2)\n"
-                + "Erro sintático na linha 9: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if' ou 'while'"
+                + "Erro sintático na linha 9: Encontrado 'else'; esperado identificador, 'begin', 'end', 'if', 'while' ou 'for'"
                 + " (depois de ';' na linha 8)");
         checarSaida("segundo exemplo do enunciado da Unidade I (usa for e /)", linhas(
                 "Program Piloto;",
@@ -335,9 +356,8 @@ public class VerificacaoParserCompleto {
                 "end;",
                 "write(\"Media Geral = \", Media_das_medias/total);",
                 "end."),
-                // for nao existe no Mini_Pascal (o '/' das linhas 17 e 21 e aceito).
-                "Erro sintático na linha 11: Encontrado 'for'; esperado identificador, 'begin', 'end', 'if' ou 'while'"
-                + " (depois de ';' na linha 10)");
+                // O for usa '=' no lugar de ':=' (o '/' das linhas 17 e 21 e aceito).
+                "Erro sintático na linha 11: Encontrado '='; esperado ':='");
         checarSaida("programa demo da apresentação da Unidade I", linhas(
                 "/* demonstracao */",
                 "Program Demo;",

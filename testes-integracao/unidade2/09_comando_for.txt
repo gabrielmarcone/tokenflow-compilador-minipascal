@@ -1,0 +1,51 @@
+/* Teste 09 - comando for (modificação 7 da gramática), com to e downto.
+   Corretos: variável integer e char, for dentro de for, de if e de
+   procedimento, e a variável lida (sem ser alterada) dentro do laço.
+   Erros: variável de controle que não é integer nem char, que não é
+   variável ou que não foi declarada; limite de outro tipo; variável de
+   controle alterada dentro do laço (atribuição, read, parâmetro var e
+   outro for com a mesma variável).
+   Resultado esperado: 10 erros semânticos */
+program Lacos;
+var i, j, total: integer;
+    letra: char;
+    media: real;
+    nome: string;
+
+procedure zerar(var x: integer);
+begin
+  x := 0;
+end;
+
+procedure tabuada(n: integer);
+var k: integer;
+begin
+  for k := 1 to 10 do
+    writeln(n, " x ", k, " = ", n * k);
+end;
+
+begin
+  total := 0;
+  for i := 1 to 5 do
+    for j := i downto 1 do
+      total := total + i * j;
+  for letra := 'a' to 'e' do write(letra);
+  if total > 10 then for i := 1 to 3 do tabuada(i) else writeln("pouco");
+  for i := total div 2 to total do
+  begin
+    zerar(j);
+    writeln(i);
+  end;
+  i := 0;
+
+  for media := 1 to 10 do writeln(media);
+  for nome := "a" to "b" do writeln(nome);
+  for tabuada := 1 to 2 do writeln;
+  for contador := 1 to 2 do writeln;
+  for i := 0.5 to 10 do writeln(i);
+  for letra := 'a' to 26 do writeln(letra);
+  for i := 1 to 10 do i := i + 1;
+  for i := 1 to 10 do read(i);
+  for i := 1 to 10 do zerar(i);
+  for i := 1 to 3 do for i := 1 to 2 do writeln(i);
+end.

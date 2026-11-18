@@ -1,0 +1,28 @@
+Erro semântico na linha 41: A variável de controle do 'for' deve ser integer ou char, mas 'media' é real
+Erro semântico na linha 42: A variável de controle do 'for' deve ser integer ou char, mas 'nome' é string
+Erro semântico na linha 43: 'tabuada' é um procedimento e não pode ser a variável de controle do 'for'
+Erro semântico na linha 44: Identificador 'contador' não declarado
+Erro semântico na linha 45: O valor inicial do 'for' deve ser integer, como a variável 'i', mas é real
+Erro semântico na linha 46: O valor final do 'for' deve ser char, como a variável 'letra', mas é integer
+Erro semântico na linha 47: 'i' é a variável de controle de um 'for' e não pode ser alterada dentro dele
+Erro semântico na linha 48: 'i' é a variável de controle de um 'for' e não pode ser alterada dentro dele
+Erro semântico na linha 49: Argumento 1 de 'zerar': 'i' é a variável de controle de um 'for' e não pode ser alterada dentro dele (o parâmetro 'x' é var)
+Erro semântico na linha 50: 'i' é a variável de controle de um 'for' e não pode ser alterada dentro dele
+
+Tabela de símbolos:
+Escopo   Nível  Nome     Categoria                 Tipo     Linha  Parâmetros
+externo  0      read     procedimento predefinido  -        -
+externo  0      write    procedimento predefinido  -        -
+externo  0      writeln  procedimento predefinido  -        -
+externo  0      Lacos    programa                  -        9
+global   1      i        variável                  integer  10
+global   1      j        variável                  integer  10
+global   1      total    variável                  integer  10
+global   1      letra    variável                  char     11
+global   1      media    variável                  real     12
+global   1      nome     variável                  string   13
+global   1      zerar    procedimento              -        15     (var x: integer)
+zerar    2      x        parâmetro var             integer  15
+global   1      tabuada  procedimento              -        20     (n: integer)
+tabuada  2      n        parâmetro                 integer  20
+tabuada  2      k        variável                  integer  21
